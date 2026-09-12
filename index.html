@@ -808,6 +808,20 @@
     </header>
 
     <!-- ВКЛАДКА 1: СЛОТЫ 3х3 -->
+  <!-- КИБЕР-КОЛЕСО ФОРТУНЫ -->
+<div class="wheel-card" style="background: var(--card-bg, #111424); border: 1px solid var(--border, #00f0ff33); border-radius: 16px; padding: 20px; text-align: center; margin: 15px 0; box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);">
+  <div style="font-size: 16px; font-weight: 800; color: #fff; letter-spacing: 1px; margin-bottom: 4px;">КИБЕР-КОЛЕСО ФОРТУНЫ</div>
+  <div id="wheel-timer-text" style="font-size: 12px; color: #8892b0; margin-bottom: 15px;">Бесплатный спин раз в 12 часов</div>
+
+  <div style="position: relative; width: 260px; height: 260px; margin: 0 auto 15px auto;">
+    <div style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 20px solid #ff0055; z-index: 10; filter: drop-shadow(0 0 6px #ff0055);"></div>
+    <canvas id="wheelCanvas" width="260" height="260" style="border-radius: 50%; box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);"></canvas>
+  </div>
+
+  <button id="btnFreeSpin" onclick="spinWheel(false)" style="background: linear-gradient(90deg, #00f0ff, #7000ff); border: none; color: #000; font-weight: 800; font-size: 14px; padding: 12px 24px; border-radius: 10px; cursor: pointer; width: 100%; box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); text-transform: uppercase;">Крутить бесплатно</button>
+  
+  <button id="btnPaidSpin" onclick="openPayment('Премиум-спин Колеса', '15 ⭐', () => spinWheel(true))" style="display: none; background: rgba(255, 184, 0, 0.15); border: 1px solid #ffb800; color: #ffb800; font-weight: 800; font-size: 14px; padding: 12px 24px; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 8px;">Крутить за 15 ⭐ (VIP Джекпот)</button>
+</div>
     <main class="view active" id="view-slots">
       <div class="safe-banner">
         <div class="safe-left">
@@ -2013,14 +2027,53 @@
     let pendingCallback = null;
     let pendingTitle = '';
 
+   const ITEM_INVOICES = {
+  'Новичок': 'https://t.me/$49Q1qZJHKUmqFQAA89RD1n7Aaho',
+  'Хакер Вегаса': 'https://t.me/$JcYnvZJHKUmsFQAAelY7EtL5Dsw',
+  'Синдиката': 'https://t.me/$VfeFKpJHKUmvFQAAD2jw_ZSlQss',
+  'VIP PASS': 'https://t.me/$iHbpJpJHKUmhFQAAB_mtvEzLZXY',
+  'Сейфа': 'https://t.me/$49Q1qZJHKUmqFQAA89RD1n7Aaho',
+  'Премиум-спин': 'https://t.me/$XMDjoZJHKUnSFQAAIu3G0MqXoGM'
+};
+
+
+    const ITEM_INVOICES = {
+  'Новичок': 'https://t.me/$49Q1qZJHKUmqFQAA89RD1n7Aaho',
+  'Хакер Вегаса': 'https://t.me/$JcYnvZJHKUmsFQAAelY7EtL5Dsw',
+  'Синдиката': 'https://t.me/$VfeFKpJHKUmvFQAAD2jw_ZSlQss',
+  'VIP PASS': 'https://t.me/$iHbpJpJHKUmhFQAAB_mtvEzLZXY',
+  'Сейфа': 'https://t.me/$49Q1qZJHKUmqFQAA89RD1n7Aaho',
+  'Премиум-спин': 'https://t.me/$XMDjoZJHKUnSFQAAIu3G0MqXoGM'
+};
     function openPayment(title, price, cb) {
-      haptic('medium');
-      pendingTitle = title;
-      pendingCallback = cb;
-      document.getElementById('payItemTitle').innerText = title;
-      document.getElementById('payItemPrice').innerText = price;
-      document.getElementById('paymentModal').style.display = 'flex';
+  haptic('medium');
+  
+  let invoiceUrl = '';
+  for (let key in ITEM_INVOICES) {
+    if (title.includes(key)) {
+      invoiceUrl = ITEM_INVOICES[key];
+      break;
     }
+  }
+
+  if (invoiceUrl && window.Telegram && Telegram.WebApp && Telegram.WebApp.openInvoice) {
+    Telegram.WebApp.openInvoice(invoiceUrl, function(status) {
+      if (status === 'paid') {
+        if (cb) cb();
+        showToast('ОПЛАТА УСПЕШНА!', `${title} получено!`, '⭐');
+        playTone(880, 'square', 0.25, 0.12);
+      } else if (status === 'failed') {
+        showToast('ОШИБКА', 'Платёж не был завершён', '❌');
+      }
+    });
+  } else {
+    pendingTitle = title;
+    pendingCallback = cb;
+    document.getElementById('payItemTitle').innerText = title;
+    document.getElementById('payItemPrice').innerText = price;
+    document.getElementById('paymentModal').style.display = 'flex';
+  }
+}
 
     function executeStarsPayment() {
       haptic('heavy');
@@ -2118,6 +2171,154 @@ function processPayment(packKey) {
     window.open(pack.url, '_blank');
   }
 }
+ // --- ЛОГИКА КОЛЕСА ФОРТУНЫ ---
+const PRIZES_FREE = [
+  { label: '1 000 🪙', val: 1000, color: '#161b33' },
+  { label: '2 500 🪙', val: 2500, color: '#1c2346' },
+  { label: '5 000 🪙', val: 5000, color: '#161b33' },
+  { label: '7 500 🪙', val: 7500, color: '#1c2346' },
+  { label: '10 000 🪙', val: 10000, color: '#161b33' },
+  { label: '25 000 🪙 🔥', val: 25000, color: '#7000ff' }
+];
+
+const PRIZES_VIP = [
+  { label: '15 000 🪙', val: 15000, color: '#2a1a40' },
+  { label: '25 000 🪙', val: 25000, color: '#3d1c5a' },
+  { label: '50 000 🪙', val: 50000, color: '#2a1a40' },
+  { label: '75 000 🪙', val: 75000, color: '#3d1c5a' },
+  { label: '100 000 🪙 👑', val: 100000, color: '#ff0055' },
+  { label: '150 000 🪙 💎', val: 150000, color: '#ffb800' }
+];
+
+let wheelAngle = 0;
+let isSpinning = false;
+const FREE_COOLDOWN_MS = 12 * 60 * 60 * 1000;
+
+function drawWheel(isVip = false) {
+  const canvas = document.getElementById('wheelCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const items = isVip ? PRIZES_VIP : PRIZES_FREE;
+  const numSlices = items.length;
+  const sliceAngle = (2 * Math.PI) / numSlices;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const r = cx - 5;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(wheelAngle);
+
+  for (let i = 0; i < numSlices; i++) {
+    const angle = i * sliceAngle;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, r, angle, angle + sliceAngle);
+    ctx.fillStyle = items[i].color;
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#00f0ff';
+    ctx.stroke();
+
+    ctx.save();
+    ctx.rotate(angle + sliceAngle / 2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText(items[i].label, r - 15, 5);
+    ctx.restore();
+  }
+
+  ctx.beginPath();
+  ctx.arc(0, 0, 18, 0, 2 * Math.PI);
+  ctx.fillStyle = '#00f0ff';
+  ctx.fill();
+  ctx.restore();
+}
+
+function updateWheelTimer() {
+  const lastSpin = parseInt(localStorage.getItem('last_free_spin') || '0', 10);
+  const now = Date.now();
+  const diff = now - lastSpin;
+  const btnFree = document.getElementById('btnFreeSpin');
+  const btnPaid = document.getElementById('btnPaidSpin');
+  const timerText = document.getElementById('wheel-timer-text');
+
+  if (diff >= FREE_COOLDOWN_MS) {
+    if (btnFree) { btnFree.disabled = false; btnFree.style.display = 'block'; }
+    if (btnPaid) btnPaid.style.display = 'none';
+    if (timerText) timerText.innerText = 'Бесплатный спин доступен!';
+  } else {
+    const remaining = FREE_COOLDOWN_MS - diff;
+    const hours = Math.floor(remaining / 3600000);
+    const mins = Math.floor((remaining % 3600000) / 60000);
+    const secs = Math.floor((remaining % 60000) / 1000);
+
+    if (btnFree) { btnFree.disabled = true; btnFree.style.display = 'none'; }
+    if (btnPaid) btnPaid.style.display = 'block';
+    if (timerText) {
+      timerText.innerText = `До бесплатного спина: ${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+  }
+}
+
+setInterval(updateWheelTimer, 1000);
+
+function spinWheel(isVip = false) {
+  if (isSpinning) return;
+
+  if (!isVip) {
+    const lastSpin = parseInt(localStorage.getItem('last_free_spin') || '0', 10);
+    if (Date.now() - lastSpin < FREE_COOLDOWN_MS) return;
+    localStorage.setItem('last_free_spin', Date.now().toString());
+  }
+
+  isSpinning = true;
+  const items = isVip ? PRIZES_VIP : PRIZES_FREE;
+  const numSlices = items.length;
+  const sliceAngle = (2 * Math.PI) / numSlices;
+
+  const targetIndex = Math.floor(Math.random() * numSlices);
+  const fullRotations = (5 + Math.floor(Math.random() * 3)) * 2 * Math.PI;
+  const targetAngle = fullRotations + (numSlices - targetIndex - 0.5) * sliceAngle - (Math.PI / 2);
+
+  const startAngle = wheelAngle;
+  const duration = 4000;
+  const startTime = performance.now();
+
+  function animate(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const easeOut = 1 - Math.pow(1 - progress, 3);
+    wheelAngle = startAngle + (targetAngle - startAngle) * easeOut;
+    drawWheel(isVip);
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      isSpinning = false;
+      const won = items[targetIndex];
+      showToast('ВЫИГРЫШ!', `Получено: ${won.label}`, '🎁');
+      
+      if (typeof updateBalance === 'function') {
+        updateBalance(won.val);
+      } else if (typeof balance !== 'undefined') {
+        balance += won.val;
+        if (typeof updateBalanceUI === 'function') updateBalanceUI();
+      }
+      updateWheelTimer();
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+setTimeout(() => {
+  drawWheel(false);
+  updateWheelTimer();
+}, 200);
   </script>
 </body>
 </html>
