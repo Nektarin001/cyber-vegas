@@ -1233,7 +1233,7 @@
     // 4. ДВИЖОК СЛОТОВ
     const symbols = ['⚡', '💎', '🍒', '🍋', '🍇', '7️⃣'];
     let currentBet = 50;
-    let isSpinning = false;
+    let isWheelSpinning = false;
     let gamblePool = 0;
     let currentReelSymbols = ['⚡', '💎', '7️⃣'];
 
@@ -1257,7 +1257,7 @@
     }
 
     function setSlotBet(val, btn) {
-      if (isSpinning) return;
+      if (isWheelSpinning) return;
       haptic('light');
       document.querySelectorAll('#view-slots .bet-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -1266,7 +1266,7 @@
     }
 
     function spinSlots() {
-      if (isSpinning) return;
+      if (isWheelSpinning) return;
 
       // АВТО-ЗАЧИСЛЕНИЕ ВЫИГРЫША, ЕСЛИ ИГРОК НЕ НАЖАЛ КНОПКУ
       if (gamblePool > 0) {
@@ -1297,7 +1297,7 @@
       const xpGain = Math.max(3, Math.floor(Math.sqrt(currentBet) * 1.4));
       addExperience(xpGain);
 
-      isSpinning = true;
+     isWheelSpinning = true;
       document.getElementById('spinBtn').disabled = true;
       document.getElementById('termMsg').innerText = 'СКАНИРОВАНИЕ...';
       document.getElementById('termMsg').style.color = 'var(--cyan)';
@@ -1331,7 +1331,7 @@
       }
 
       setTimeout(() => {
-        isSpinning = false;
+        isWheelSpinning = false;
         document.getElementById('spinBtn').disabled = false;
         currentReelSymbols = [...results];
         evaluateSlotResult(results);
@@ -2184,7 +2184,7 @@ const PRIZES_VIP = [
 ];
 
 let wheelAngle = 0;
-let isSpinning = false;
+let isWheelSpinning = false;
 const FREE_COOLDOWN_MS = 12 * 60 * 60 * 1000;
 
 function drawWheel(isVip = false) {
@@ -2260,7 +2260,7 @@ function updateWheelTimer() {
 setInterval(updateWheelTimer, 1000);
 
 function spinWheel(isVip = false) {
-  if (isSpinning) return;
+  if (isWheelSpinning) return;
 
   if (!isVip) {
     const lastSpin = parseInt(localStorage.getItem('last_free_spin') || '0', 10);
@@ -2268,7 +2268,7 @@ function spinWheel(isVip = false) {
     localStorage.setItem('last_free_spin', Date.now().toString());
   }
 
-  isSpinning = true;
+  isWheelSpinning = true;
   const items = isVip ? PRIZES_VIP : PRIZES_FREE;
   const numSlices = items.length;
   const sliceAngle = (2 * Math.PI) / numSlices;
@@ -2291,7 +2291,7 @@ function spinWheel(isVip = false) {
     if (progress < 1) {
       requestAnimationFrame(animate);
     } else {
-      isSpinning = false;
+     isWheelSpinning = false;
       const won = items[targetIndex];
       showToast('ВЫИГРЫШ!', `Получено: ${won.label}`, '🎁');
       
