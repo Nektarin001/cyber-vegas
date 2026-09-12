@@ -910,7 +910,7 @@
             <div class="pass-title">СЕЗОН 1: СИНДИКАТ</div>
             <div style="font-size: 11px; color: var(--cyan); margin-top: 2px;">ЭКСКЛЮЗИВНЫЕ МОДИФИКАТОРЫ И НАГРАДЫ</div>
           </div>
-          <button class="pass-vip-btn" id="vipPassBtn" onclick="requestVipPassPayment()">VIP PASS (150 ⭐)</button>
+          <button class="pass-vip-btn" id="vipPassBtn"onclick="processPayment('vip_pass')">300 ⭐</button>
         </div>
         <div class="pass-track" id="passTrack"></div>
       </div>
@@ -936,7 +936,7 @@
               <div style="font-size: 11px; color: var(--cyan); font-weight: 600;">+5 000 МОНЕТ</div>
             </div>
           </div>
-          <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;" onclick="openPayment('Пак «Новичок» (+5 000 🪙)', '50 ⭐', () => updateBalance(5000))">50 ⭐</button>
+          <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;"onclick="processPayment('novice')">50 ⭐</button>
         </div>
 
         <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;">
@@ -947,7 +947,7 @@
               <div style="font-size: 11px; color: var(--cyan); font-weight: 600;">+35 000 МОНЕТ</div>
             </div>
           </div>
-          <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;" onclick="openPayment('Пак «Хакер Вегаса» (+35 000 🪙)', '150 ⭐', () => updateBalance(35000))">150 ⭐</button>
+          <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;"onclick="processPayment('hacker')">150 ⭐</button>
         </div>
 
         <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;">
@@ -958,7 +958,7 @@
               <div style="font-size: 11px; color: var(--cyan); font-weight: 600;">+120 000 МОНЕТ</div>
             </div>
           </div>
-          <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;" onclick="openPayment('Матрица Синдиката (+120 000 🪙)', '400 ⭐', () => updateBalance(120000))">400 ⭐</button>
+          <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;"onclick="processPayment('syndicate')">400 ⭐</button>
         </div>
       </div>
     </main>
@@ -2072,6 +2072,52 @@
     updateRankVisuals();
     buildPassTrack();
     buildCosmeticsShop();
+  const INVOICES = {
+  novice: {
+    url: 'https://t.me/$49Q1qZJHKUmqFQAA89RD1n7Aaho',
+    coins: 5000
+  },
+  hacker: {
+    url: 'https://t.me/$JcYnvZJHKUmsFQAAelY7EtL5Dsw',
+    coins: 35000
+  },
+  syndicate: {
+    url: 'https://t.me/$VfeFKpJHKUmvFQAAD2jw_ZSlQss',
+    coins: 120000
+  },
+  vip_pass: {
+    url: 'https://t.me/$iHbpJpJHKUmhFQAAB_mtvEzLZXY',
+    type: 'pass'
+  }
+};
+
+function processPayment(packKey) {
+  const pack = INVOICES[packKey];
+  if (!pack) return;
+
+  if (window.Telegram && Telegram.WebApp && Telegram.WebApp.openInvoice) {
+    Telegram.WebApp.openInvoice(pack.url, function(status) {
+      if (status === 'paid') {
+        if (pack.type === 'pass') {
+          alert('VIP Pass успешно разблокирован!');
+          if (typeof activateVip === 'function') activateVip();
+        } else {
+          alert('Успешно начислено: ' + pack.coins.toLocaleString() + ' монет!');
+          if (typeof addCredits === 'function') {
+            addCredits(pack.coins);
+          } else if (typeof balance !== 'undefined') {
+            balance += pack.coins;
+            if (typeof updateBalanceUI === 'function') updateBalanceUI();
+          }
+        }
+      } else if (status === 'failed') {
+        alert('Ошибка при проведении платежа.');
+      }
+    });
+  } else {
+    window.open(pack.url, '_blank');
+  }
+}
   </script>
 </body>
 </html>
