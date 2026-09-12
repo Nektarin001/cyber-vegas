@@ -1,0 +1,2077 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>КИБЕР ВЕГАС 2077 // OVERLORD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #050711;
+      --card-bg: rgba(12, 16, 32, 0.95);
+      --cyan: #00d8f6;
+      --pink: #ff2a85;
+      --yellow: #ffc837;
+      --green: #05df72;
+      --purple: #843dff;
+      --orange: #ff7a18;
+      --border: rgba(0, 216, 246, 0.25);
+      --rank-color: #00d8f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: #f1f5f9;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    #cityCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%);
+      background-size: 100% 4px;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.35;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 440px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      padding-bottom: 78px;
+      background: rgba(6, 9, 20, 0.88);
+      backdrop-filter: blur(6px);
+      border-left: 1px solid rgba(0, 216, 246, 0.2);
+      border-right: 1px solid rgba(255, 42, 133, 0.2);
+      z-index: 2;
+    }
+
+    /* ДЖЕКПОТ */
+    .jackpot-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 5, 12, 0.94);
+      backdrop-filter: blur(8px);
+      z-index: 100000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #coinRainCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .jackpot-content-box {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      animation: popBounce 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+
+    @keyframes popBounce {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .jackpot-banner-glow {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--yellow);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 0 20px rgba(255, 200, 55, 0.8), 0 0 40px var(--orange);
+    }
+
+    .jackpot-ticker-num {
+      font-size: 46px;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 25px var(--cyan);
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: 1px;
+    }
+
+    .jackpot-claim-btn {
+      background: linear-gradient(135deg, var(--green), #049f50);
+      border: 2px solid #fff;
+      color: #031408;
+      font-size: 16px;
+      font-weight: 900;
+      padding: 14px 36px;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(5, 223, 114, 0.6);
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    /* ТОСТ */
+    .toast-notify {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-120px);
+      background: rgba(14, 19, 38, 0.98);
+      border: 1.5px solid var(--cyan);
+      box-shadow: 0 0 20px rgba(0, 216, 246, 0.4);
+      padding: 12px 20px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 10000;
+      transition: all 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .toast-notify.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast-title { font-size: 13px; font-weight: 700; color: var(--yellow); }
+    .toast-sub { font-size: 12px; color: #f1f5f9; font-weight: 500; }
+
+    /* ШАПКА */
+    .header {
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10, 14, 28, 0.95);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .user-info { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 4px 6px; border-radius: 12px; }
+
+    .avatar-frame {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      padding: 2.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--rank-color);
+      box-shadow: 0 0 12px var(--rank-color);
+      transition: all 0.3s ease;
+    }
+
+    .avatar-frame.frame-default { background: rgba(255, 255, 255, 0.15); box-shadow: none; }
+    .avatar-frame.frame-neon { background: linear-gradient(135deg, var(--cyan), var(--pink)); box-shadow: 0 0 16px var(--cyan); }
+    .avatar-frame.frame-gold { background: linear-gradient(135deg, #ffd700, #ff8800); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5); }
+    .avatar-frame.frame-plasma { background: linear-gradient(135deg, #ff0055, #9900ff); box-shadow: 0 0 20px #ff0055; animation: plasmaGlow 2s infinite alternate; }
+    .avatar-frame.frame-noir { background: linear-gradient(135deg, #00f2fe, #4facfe, #000); box-shadow: 0 0 20px #00f2fe; }
+
+    @keyframes plasmaGlow {
+      from { box-shadow: 0 0 12px #ff0055; }
+      to { box-shadow: 0 0 24px #9900ff; }
+    }
+
+    .avatar { width: 100%; height: 100%; border-radius: 9px; background: #0d1226; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: #fff; }
+
+    .user-meta { display: flex; flex-direction: column; gap: 2px; }
+    .user-name { font-size: 13px; font-weight: 700; color: #fff; transition: all 0.2s; }
+    .user-name.name-cyan { color: var(--cyan); text-shadow: 0 0 8px var(--cyan); }
+    .user-name.name-gold { color: #ffe066; text-shadow: 0 0 10px rgba(255, 215, 0, 0.7); font-weight: 800; }
+    .user-name.name-fire {
+      background: linear-gradient(90deg, #ff3366, #ff8800, #ff3366);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% auto;
+      animation: fireFlow 3s linear infinite;
+      font-weight: 800;
+    }
+    .user-name.name-overlord {
+      font-family: 'Space Grotesk', sans-serif;
+      color: #00ffcc;
+      text-shadow: 0 0 10px #00ffcc, 0 0 20px #843dff;
+      letter-spacing: 1px;
+      font-weight: 900;
+    }
+
+    @keyframes fireFlow { to { background-position: 200% center; } }
+
+    .rank-tag { font-size: 10px; font-weight: 600; color: var(--rank-color); text-transform: uppercase; letter-spacing: 0.3px; }
+    .xp-wrap { display: flex; align-items: center; gap: 6px; margin-top: 1px; }
+    .xp-bar { width: 75px; height: 5px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; }
+    .xp-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--pink)); width: 0%; box-shadow: 0 0 6px var(--cyan); transition: width 0.3s ease; }
+    .user-level { font-size: 10px; font-weight: 600; color: var(--cyan); }
+
+    .balance-badge {
+      background: rgba(7, 10, 22, 0.9);
+      border: 1.5px solid var(--yellow);
+      border-radius: 16px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 0 12px rgba(255, 200, 55, 0.25);
+    }
+    .balance-val { font-weight: 700; font-size: 14px; color: var(--yellow); }
+
+    .view { display: none; flex-direction: column; padding: 12px 14px; gap: 12px; }
+    .view.active { display: flex; }
+
+    /* СЕЙФ */
+    .safe-banner {
+      background: linear-gradient(135deg, rgba(255, 122, 24, 0.15), rgba(132, 61, 255, 0.15));
+      border: 1.5px solid var(--orange);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .safe-left { display: flex; align-items: center; gap: 10px; }
+    .safe-icon { font-size: 24px; }
+    .safe-title { font-size: 10px; color: var(--orange); font-weight: 600; text-transform: uppercase; }
+    .safe-val { font-size: 14px; font-weight: 700; color: #fff; }
+    .safe-crack-btn {
+      background: linear-gradient(135deg, #ff7a18, #ffa048);
+      border: none;
+      color: #070913;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    /* КОРПУС СЛОТА */
+    .machine-chassis {
+      background: var(--card-bg);
+      border: 1.5px solid var(--cyan);
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 0 16px rgba(0, 216, 246, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8);
+    }
+
+    .reels-viewport {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      background: #03050c;
+      border-radius: 12px;
+      padding: 10px;
+      border: 1px solid rgba(0, 216, 246, 0.25);
+      position: relative;
+    }
+
+    .laser-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--pink);
+      box-shadow: 0 0 10px var(--pink), 0 0 4px #fff;
+      z-index: 10;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .reel {
+      flex: 1;
+      height: 110px;
+      background: #080c1b;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .reel-strip {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(0px);
+    }
+
+    .reel-item {
+      height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 46px;
+      filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
+    }
+
+    .terminal-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: rgba(6, 9, 20, 0.95);
+      border: 1px solid var(--cyan);
+      border-radius: 10px;
+    }
+
+    .term-left { display: flex; align-items: center; gap: 6px; }
+    .led-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+    .term-title { font-size: 11px; color: #8292a8; font-weight: 500; }
+    .term-val { font-size: 12px; font-weight: 700; color: #fff; }
+
+    /* РИСК-ИГРА УДВОЕНИЯ */
+    .gamble-box {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 14px;
+      background: linear-gradient(135deg, rgba(132, 61, 255, 0.2), rgba(6, 9, 20, 0.95));
+      border: 1.5px solid var(--purple);
+      border-radius: 14px;
+      box-shadow: 0 0 16px rgba(132, 61, 255, 0.3);
+      text-align: center;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .gamble-header { font-size: 12px; font-weight: 700; color: var(--yellow); }
+    .gamble-grid { display: flex; gap: 10px; }
+
+    .core-btn {
+      flex: 1;
+      padding: 12px 8px;
+      border-radius: 12px;
+      border: 2px solid transparent;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .core-cyan { background: linear-gradient(135deg, #0264d8, var(--cyan)); box-shadow: 0 0 10px rgba(0, 216, 246, 0.35); }
+    .core-pink { background: linear-gradient(135deg, #b01058, var(--pink)); box-shadow: 0 0 10px rgba(255, 42, 133, 0.35); }
+
+    .core-btn.correct-win {
+      border-color: #fff !important;
+      box-shadow: 0 0 28px #fff, 0 0 40px var(--green), inset 0 0 15px #fff !important;
+      transform: scale(1.05);
+      z-index: 10;
+    }
+
+    .core-btn.exploded {
+      background: radial-gradient(circle, #ff2a2a, #300208) !important;
+      border-color: #ff3333 !important;
+      box-shadow: 0 0 35px #ff2a2a !important;
+      animation: explodeShake 0.9s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+      pointer-events: none;
+    }
+
+    @keyframes explodeShake {
+      0% { transform: scale(1); }
+      20% { transform: scale(1.15) rotate(-3deg); }
+      40% { transform: scale(0.95) rotate(3deg); }
+      60% { transform: scale(1.08) rotate(-2deg); opacity: 0.9; }
+      80% { transform: scale(0.7) rotate(1deg); opacity: 0.5; }
+      100% { transform: scale(0.2); opacity: 0; }
+    }
+
+    .cashout-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #f1f5f9;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .cashout-val { color: var(--yellow); font-weight: 800; }
+
+    .bet-selector {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .bet-btn {
+      background: #0a0e22;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: #94a3b8;
+      padding: 8px 0;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .bet-btn.active {
+      background: rgba(0, 216, 246, 0.2);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .bet-btn.max-bet {
+      border-color: var(--pink);
+      color: var(--pink);
+      background: rgba(255, 42, 133, 0.12);
+    }
+
+    .bet-btn.max-bet.active {
+      background: rgba(255, 42, 133, 0.3);
+      color: #fff;
+    }
+
+    .spin-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      padding: 14px;
+      border-radius: 12px;
+      margin-top: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 18px rgba(255, 42, 133, 0.4);
+    }
+
+    .spin-btn:active { transform: scale(0.98); }
+    .spin-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* КРАШ-РАКЕТА */
+    .crash-box {
+      background: var(--card-bg);
+      border-radius: 14px;
+      border: 1.5px solid var(--purple);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+    }
+
+    .crash-viewport {
+      width: 100%;
+      height: 220px;
+      background: #02030a;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #rocketCanvas { width: 100%; height: 100%; display: block; }
+
+    .crash-mult-hud {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 48px;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 15px var(--cyan);
+      pointer-events: none;
+      z-index: 5;
+    }
+    .crash-mult-hud.crashed { color: var(--pink); text-shadow: 0 0 15px var(--pink); }
+
+    .crash-history-bar { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; }
+    .crash-badge { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; background: #0f142b; color: var(--cyan); border: 1px solid rgba(0, 216, 246, 0.3); white-space: nowrap; }
+    .crash-badge.crashed { color: var(--pink); border-color: rgba(255, 42, 133, 0.3); }
+
+    .crash-inputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .crash-input-box { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 6px 10px; display: flex; flex-direction: column; gap: 2px; }
+    .crash-input-label { font-size: 9px; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
+    .crash-num-input { background: transparent; border: none; color: #fff; font-size: 14px; font-weight: 800; outline: none; width: 100%; }
+
+    .crash-actions { display: flex; gap: 8px; }
+    .crash-btn-action {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(135deg, var(--cyan), #0077ff);
+      box-shadow: 0 0 15px rgba(0, 216, 246, 0.4);
+    }
+    .crash-btn-action.flying { background: linear-gradient(135deg, var(--green), #049f50); box-shadow: 0 0 15px rgba(5, 223, 114, 0.4); }
+
+    .crash-free-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 0 14px; color: #fff; font-size: 18px; cursor: pointer; }
+
+    /* КИБЕР-ПАСС С АКТИВАЦИЕЙ НАГРАД */
+    .pass-container { display: flex; flex-direction: column; gap: 10px; }
+    .pass-header {
+      background: linear-gradient(135deg, rgba(132, 61, 255, 0.25), rgba(0, 216, 246, 0.15));
+      border: 1.5px solid var(--purple);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pass-title { font-size: 14px; font-weight: 800; color: #fff; }
+    .pass-vip-btn {
+      background: linear-gradient(135deg, var(--yellow), var(--orange));
+      border: none;
+      color: #050711;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .pass-vip-btn.claimed { background: rgba(5, 223, 114, 0.2); border: 1px solid var(--green); color: var(--green); cursor: default; }
+
+    .pass-track { display: flex; flex-direction: column; gap: 8px; }
+    .track-row {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .track-row.unlocked { border-color: var(--green); background: rgba(5, 223, 114, 0.08); }
+    .track-left { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .track-lvl { font-size: 12px; font-weight: 700; color: var(--cyan); }
+    .track-rewards-grid { display: flex; flex-direction: column; gap: 2px; }
+    .track-reward-item { font-size: 11px; color: #cbd5e1; font-weight: 500; }
+    .track-reward-item.exclusive { color: var(--yellow); font-weight: 700; text-shadow: 0 0 6px rgba(255, 200, 55, 0.5); }
+
+    .pass-act-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 10px;
+      font-weight: 800;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+    .pass-act-btn.active { background: var(--green); color: #000; }
+    .pass-act-btn.ready { background: var(--cyan); color: #050711; box-shadow: 0 0 10px rgba(0, 216, 246, 0.3); }
+    .pass-act-btn.locked { background: #1e293b; color: #64748b; cursor: not-allowed; }
+
+    /* ВКЛАДКА СТИЛЬ */
+    .custom-sec-title { font-size: 12px; font-weight: 700; color: var(--cyan); margin-top: 4px; }
+    .cosmetic-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .cosmetic-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .cosmetic-row.active-item { border-color: var(--cyan); background: rgba(0, 216, 246, 0.08); }
+    .cosmetic-row.locked-item { opacity: 0.65; background: rgba(0, 0, 0, 0.3); }
+
+    .cosmetic-info { display: flex; align-items: center; gap: 12px; }
+    .cosmetic-preview-box { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+    .cosmetic-text-meta { display: flex; flex-direction: column; gap: 2px; }
+    .cosmetic-name { font-size: 13px; font-weight: 700; color: #fff; }
+    .cosmetic-price { font-size: 11px; color: var(--yellow); }
+
+    .cosmetic-btn { padding: 7px 14px; border-radius: 8px; border: none; font-size: 11px; font-weight: 700; cursor: pointer; }
+    .cosmetic-btn.buy { background: var(--cyan); color: #040817; }
+    .cosmetic-btn.equip { background: rgba(255, 255, 255, 0.1); color: #fff; }
+    .cosmetic-btn.active { background: var(--green); color: #031408; cursor: default; }
+    .cosmetic-btn.locked { background: #1e293b; color: #64748b; cursor: not-allowed; }
+
+    /* НАВИГАЦИЯ */
+    .tabbar {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 440px;
+      height: 64px;
+      background: rgba(8, 11, 24, 0.96);
+      border-top: 1px solid var(--cyan);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: #64748b;
+      cursor: pointer;
+      font-size: 9px;
+      font-weight: 600;
+      flex: 1;
+    }
+    .tab-item.active { color: var(--cyan); }
+    .tab-icon { font-size: 18px; }
+
+    /* МОДАЛКИ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 6, 16, 0.88);
+      backdrop-filter: blur(6px);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 380px;
+      background: #0d1226;
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-title { font-size: 16px; font-weight: 800; color: #fff; text-align: center; }
+    .modal-btn-close {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #cbd5e1;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat-card { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+    .stat-title { font-size: 10px; color: #94a3b8; font-weight: 500; }
+    .stat-val { font-size: 14px; font-weight: 700; color: #fff; }
+
+    .pay-box { border: 1.5px dashed var(--yellow); background: rgba(255, 200, 55, 0.06); border-radius: 12px; padding: 12px; text-align: center; display: flex; flex-direction: column; gap: 4px; }
+    .pay-item-name { font-size: 13px; font-weight: 700; color: #fff; }
+    .pay-item-price { font-size: 18px; font-weight: 800; color: var(--yellow); }
+
+    .pay-confirm-btn {
+      background: linear-gradient(135deg, var(--green), #049f50);
+      border: none;
+      color: #031208;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(5, 223, 114, 0.4);
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+  <canvas id="cityCanvas"></canvas>
+  <div class="scanlines"></div>
+
+  <!-- ПОЛНОЭКРАННАЯ ЛАВИНА ДЖЕКПОТА -->
+  <div class="jackpot-modal-overlay" id="jackpotOverlay">
+    <canvas id="coinRainCanvas"></canvas>
+    <div class="jackpot-content-box">
+      <div style="font-size: 50px;">💎</div>
+      <div class="jackpot-banner-glow">КВАНТОВЫЙ ДЖЕКПОТ!</div>
+      <div class="jackpot-ticker-num" id="jackpotTicker">+0 🪙</div>
+      <button class="jackpot-claim-btn" onclick="closeJackpotCelebration()">ЗАБРАТЬ ВЫИГРЫШ</button>
+    </div>
+  </div>
+
+  <!-- ТОСТ -->
+  <div class="toast-notify" id="toast">
+    <span style="font-size: 20px;" id="toastIcon">✨</span>
+    <div>
+      <div class="toast-title" id="toastTitle">УВЕДОМЛЕНИЕ</div>
+      <div class="toast-sub" id="toastSub">+200 монет</div>
+    </div>
+  </div>
+
+  <!-- МОДАЛКА ПРОФИЛЯ -->
+  <div class="modal-overlay" id="profileModal">
+    <div class="modal-box">
+      <div class="modal-title">ПРОФИЛЬ И СТАТИСТИКА</div>
+      <div class="stat-grid">
+        <div class="stat-card"><span class="stat-title">ПОТРАЧЕНО</span><span class="stat-val" id="statSpent">0 🪙</span></div>
+        <div class="stat-card"><span class="stat-title">ВЫИГРАНО</span><span class="stat-val" id="statWon">0 🪙</span></div>
+        <div class="stat-card"><span class="stat-title">СПИНОВ</span><span class="stat-val" id="statSpins">0</span></div>
+        <div class="stat-card"><span class="stat-title">ДЖЕКПОТЫ</span><span class="stat-val" id="statJackpots">0</span></div>
+      </div>
+      <button class="modal-btn-close" onclick="closeModal('profileModal')">ЗАКРЫТЬ</button>
+    </div>
+  </div>
+
+  <!-- МОДАЛКА ОПЛАТЫ TELEGRAM STARS -->
+  <div class="modal-overlay" id="paymentModal">
+    <div class="modal-box">
+      <div style="text-align:center; font-size: 28px;">⭐</div>
+      <div class="modal-title">ПОКУПКА ЗА TELEGRAM STARS</div>
+      <div class="pay-box">
+        <span class="pay-item-name" id="payItemTitle">Пак фишек</span>
+        <span class="pay-item-price" id="payItemPrice">50 ⭐</span>
+      </div>
+      <p style="font-size:12px; color:#94a3b8; text-align:center; line-height:1.4;">
+        Официальный шлюз Telegram. Оплата в один клик.
+      </p>
+      <button class="pay-confirm-btn" id="payActionBtn" onclick="executeStarsPayment()">ОПЛАТИТЬ ЧЕРЕЗ TELEGRAM ⭐</button>
+      <button class="modal-btn-close" onclick="closeModal('paymentModal')">ОТМЕНА</button>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <!-- ШАПКА -->
+    <header class="header">
+      <div class="user-info" onclick="openProfile()">
+        <div class="avatar-frame frame-default" id="avatarFrame">
+          <div class="avatar" id="avatarLetter">K</div>
+        </div>
+        <div class="user-meta">
+          <span class="user-name" id="username">CYBER_PUNK</span>
+          <span class="rank-tag" id="rankTag">СКРИПТ-КИДДИ</span>
+          <div class="xp-wrap">
+            <div class="xp-bar"><div class="xp-fill" id="xpFill"></div></div>
+            <span class="user-level" id="userLevel">LVL 1</span>
+          </div>
+        </div>
+      </div>
+      <div class="balance-badge">
+        <span>🪙</span>
+        <span class="balance-val" id="balanceText">1 000</span>
+      </div>
+    </header>
+
+    <!-- ВКЛАДКА 1: СЛОТЫ 3х3 -->
+    <main class="view active" id="view-slots">
+      <div class="safe-banner">
+        <div class="safe-left">
+          <span class="safe-icon">💼</span>
+          <div>
+            <div class="safe-title" id="safeTitleTxt">КИБЕР-СЕЙФ (5% СО СПИНОВ)</div>
+            <div class="safe-val" id="safeVal">2 500 🪙</div>
+          </div>
+        </div>
+        <button class="safe-crack-btn" onclick="openPayment('Взлом Сейфа-Копилки', '50 ⭐', crackSafeCallback)">ВЗЛОМАТЬ (50 ⭐)</button>
+      </div>
+
+      <div class="machine-chassis">
+        <div class="reels-viewport">
+          <div class="laser-line"></div>
+          <div class="reel"><div class="reel-strip" id="reel0"></div></div>
+          <div class="reel"><div class="reel-strip" id="reel1"></div></div>
+          <div class="reel"><div class="reel-strip" id="reel2"></div></div>
+        </div>
+
+        <div class="terminal-status">
+          <div class="term-left">
+            <div class="led-dot" id="ledStatus"></div>
+            <span class="term-title">ТЕРМИНАЛ:</span>
+          </div>
+          <span class="term-val" id="termMsg">ГОТОВ К СПИНУ</span>
+        </div>
+
+        <!-- РИСК-ИГРА УДВОЕНИЯ Х2 -->
+        <div class="gamble-box" id="gamblePanel">
+          <div class="gamble-header">⚡ ВЫБОР ЯДРА (ШАНС 50/50)</div>
+          <div class="gamble-grid">
+            <button class="core-btn core-cyan" id="coreBtnCyan" onclick="chooseCore('cyan')">
+              <span>СИНИЙ КВАНТ</span>
+              <span style="font-size: 10px; opacity: 0.85;">ШАНС 50%</span>
+            </button>
+            <button class="core-btn core-pink" id="coreBtnPink" onclick="chooseCore('pink')">
+              <span>ПЛАЗМА ЯДРО</span>
+              <span style="font-size: 10px; opacity: 0.85;">ШАНС 50%</span>
+            </button>
+          </div>
+          <button class="cashout-btn" onclick="takeGambleWin()">
+            <span>ЗАБРАТЬ ВЫИГРЫШ:</span>
+            <span class="cashout-val" id="cashoutAmount">0 🪙</span>
+          </button>
+        </div>
+
+        <div class="bet-selector">
+          <button class="bet-btn active" onclick="setSlotBet(50, this)">50</button>
+          <button class="bet-btn" onclick="setSlotBet(100, this)">100</button>
+          <button class="bet-btn" onclick="setSlotBet(250, this)">250</button>
+          <button class="bet-btn" onclick="setSlotBet(500, this)">500</button>
+          <button class="bet-btn max-bet" id="maxBetBtn" onclick="setSlotBet('MAX', this)">MAX: 500</button>
+        </div>
+
+        <button class="spin-btn" id="spinBtn" onclick="spinSlots()">ЗАПУСТИТЬ БАРАБАНЫ</button>
+      </div>
+    </main>
+
+    <!-- ВКЛАДКА 2: КРАШ-РАКЕТА -->
+    <main class="view" id="view-crash">
+      <div class="crash-box">
+        <div class="crash-history-bar" id="crashHistoryBar"></div>
+
+        <div class="crash-viewport">
+          <canvas id="rocketCanvas"></canvas>
+          <div class="crash-mult-hud" id="rocketMultText">1.00x</div>
+        </div>
+
+        <div class="crash-inputs-grid">
+          <div class="crash-input-box">
+            <span class="crash-input-label">СТАВКА (МОНЕТ)</span>
+            <input type="number" class="crash-num-input" id="crashBetInput" value="100" min="10" step="10">
+          </div>
+          <div class="crash-input-box">
+            <span class="crash-input-label">АВТОЗАБОР (КОЭФФИЦИЕНТ)</span>
+            <input type="number" class="crash-num-input" id="crashAutoInput" placeholder="Напр. 1.10" step="0.05">
+          </div>
+        </div>
+
+        <div class="bet-selector">
+          <button class="bet-btn active" onclick="setCrashBetAmt(100, this)">100</button>
+          <button class="bet-btn" onclick="setCrashBetAmt(500, this)">500</button>
+          <button class="bet-btn" onclick="setCrashBetAmt(1000, this)">1K</button>
+          <button class="bet-btn" onclick="setCrashBetAmt(5000, this)">5K</button>
+        </div>
+
+        <div class="crash-actions">
+          <button class="crash-btn-action" id="rocketActionBtn" onclick="handleCrashAction()">ВЗЛЕТ (100 🪙)</button>
+          <button class="crash-free-btn" onclick="resetAutoCashout()" title="Сбросить автозабор (свободный полет)">💸</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ВКЛАДКА 3: КИБЕР-ПАСС С АКТИВАЦИЕЙ НАГРАД -->
+    <main class="view" id="view-pass">
+      <div class="pass-container">
+        <div class="pass-header">
+          <div>
+            <div class="pass-title">СЕЗОН 1: СИНДИКАТ</div>
+            <div style="font-size: 11px; color: var(--cyan); margin-top: 2px;">ЭКСКЛЮЗИВНЫЕ МОДИФИКАТОРЫ И НАГРАДЫ</div>
+          </div>
+          <button class="pass-vip-btn" id="vipPassBtn" onclick="requestVipPassPayment()">VIP PASS (150 ⭐)</button>
+        </div>
+        <div class="pass-track" id="passTrack"></div>
+      </div>
+    </main>
+
+    <!-- ВКЛАДКА 4: СТИЛЬ И КАСТОМИЗАЦИЯ -->
+    <main class="view" id="view-style">
+      <div class="custom-sec-title">РАМКИ АВАТАРКИ (ПРЕВЬЮ)</div>
+      <div class="cosmetic-list" id="avatarFrameList"></div>
+
+      <div class="custom-sec-title" style="margin-top:10px;">СТИЛИ НИКНЕЙМА (ПРЕВЬЮ)</div>
+      <div class="cosmetic-list" id="nameStyleList"></div>
+    </main>
+
+    <!-- ВКЛАДКА 5: МАГАЗИН МОНЕТ -->
+    <main class="view" id="view-shop">
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">🔋</span>
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: #fff;">ПАК «НОВИЧОК»</div>
+              <div style="font-size: 11px; color: var(--cyan); font-weight: 600;">+5 000 МОНЕТ</div>
+            </div>
+          </div>
+          <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;" onclick="openPayment('Пак «Новичок» (+5 000 🪙)', '50 ⭐', () => updateBalance(5000))">50 ⭐</button>
+        </div>
+
+        <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">💎</span>
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: #fff;">ПАК «ХАКЕР ВЕГАСА»</div>
+              <div style="font-size: 11px; color: var(--cyan); font-weight: 600;">+35 000 МОНЕТ</div>
+            </div>
+          </div>
+          <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;" onclick="openPayment('Пак «Хакер Вегаса» (+35 000 🪙)', '150 ⭐', () => updateBalance(35000))">150 ⭐</button>
+        </div>
+
+        <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">👑</span>
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: #fff;">МАТРИЦА СИНДИКАТА</div>
+              <div style="font-size: 11px; color: var(--cyan); font-weight: 600;">+120 000 МОНЕТ</div>
+            </div>
+          </div>
+          <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;" onclick="openPayment('Матрица Синдиката (+120 000 🪙)', '400 ⭐', () => updateBalance(120000))">400 ⭐</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- НАВИГАЦИЯ -->
+    <nav class="tabbar">
+      <div class="tab-item active" onclick="switchTab('slots', this)">
+        <div class="tab-icon">🎰</div>
+        <span>СЛОТЫ</span>
+      </div>
+      <div class="tab-item" onclick="switchTab('crash', this)">
+        <div class="tab-icon">🚀</div>
+        <span>КРАШ</span>
+      </div>
+      <div class="tab-item" onclick="switchTab('pass', this)">
+        <div class="tab-icon">🎖️</div>
+        <span>ПАСС</span>
+      </div>
+      <div class="tab-item" onclick="switchTab('style', this)">
+        <div class="tab-icon">🎨</div>
+        <span>СТИЛЬ</span>
+      </div>
+      <div class="tab-item" onclick="switchTab('shop', this)">
+        <div class="tab-icon">⭐</div>
+        <span>МАГАЗИН</span>
+      </div>
+    </nav>
+  </div>
+
+  <script>
+    // 1. АНИМАЦИЯ ГОРОДА TRON СО СВЕТОЦИКЛАМИ
+    const canvas = document.getElementById('cityCanvas');
+    const ctx = canvas.getContext('2d');
+    let cw, ch;
+
+    function resizeCanvas() {
+      cw = canvas.width = window.innerWidth;
+      ch = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const buildings = [];
+    const bCount = Math.floor(window.innerWidth / 35);
+    for (let i = 0; i < bCount + 6; i++) {
+      buildings.push({
+        x: i * 35,
+        w: 36,
+        h: 110 + Math.random() * 250,
+        windows: Array.from({length: 14}, () => Math.random() > 0.6)
+      });
+    }
+
+    const bikes = [
+      { x: -50, yOffset: 20, speed: 7.0, color: '#00d8f6', trail: [] },
+      { x: cw + 50, yOffset: 46, speed: -8.5, color: '#ff2a85', trail: [] },
+      { x: -140, yOffset: 72, speed: 9.2, color: '#05df72', trail: [] }
+    ];
+
+    function renderTronCity() {
+      ctx.fillStyle = '#030510';
+      ctx.fillRect(0, 0, cw, ch);
+
+      const horizonY = ch * 0.72;
+      const grad = ctx.createLinearGradient(0, horizonY - 140, 0, horizonY);
+      grad.addColorStop(0, 'rgba(4, 5, 15, 0)');
+      grad.addColorStop(1, 'rgba(255, 42, 133, 0.22)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, horizonY - 140, cw, 140);
+
+      buildings.forEach(b => {
+        const by = horizonY - b.h;
+        ctx.fillStyle = '#060a1a';
+        ctx.fillRect(b.x, by, b.w, b.h);
+        ctx.strokeStyle = 'rgba(0, 216, 246, 0.18)';
+        ctx.strokeRect(b.x, by, b.w, b.h);
+
+        ctx.fillStyle = 'rgba(0, 216, 246, 0.6)';
+        b.windows.forEach((on, idx) => {
+          if (on) {
+            const wx = b.x + 5 + (idx % 2) * 14;
+            const wy = by + 12 + Math.floor(idx / 2) * 22;
+            ctx.fillRect(wx, wy, 6, 8);
+          }
+        });
+      });
+
+      ctx.strokeStyle = 'rgba(0, 216, 246, 0.18)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= cw; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, horizonY);
+        ctx.lineTo((x - cw / 2) * 2.5 + cw / 2, ch);
+        ctx.stroke();
+      }
+      for (let y = horizonY; y <= ch; y += 18) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(cw, y);
+        ctx.stroke();
+      }
+
+      // СВЕТОЦИКЛЫ
+      const roadY = horizonY + 15;
+      bikes.forEach(bike => {
+        bike.x += bike.speed;
+        const curY = roadY + bike.yOffset;
+        bike.trail.push({ x: bike.x, y: curY });
+        if (bike.trail.length > 25) bike.trail.shift();
+
+        if (bike.trail.length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(bike.trail[0].x, bike.trail[0].y);
+          for (let i = 1; i < bike.trail.length; i++) {
+            ctx.lineTo(bike.trail[i].x, bike.trail[i].y);
+          }
+          ctx.strokeStyle = bike.color;
+          ctx.lineWidth = 3.5;
+          ctx.shadowColor = bike.color;
+          ctx.shadowBlur = 14;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(bike.x - 3, curY - 3, 8, 6);
+
+        if (bike.speed > 0 && bike.x > cw + 80) { bike.x = -60; bike.trail = []; }
+        else if (bike.speed < 0 && bike.x < -80) { bike.x = cw + 60; bike.trail = []; }
+      });
+
+      requestAnimationFrame(renderTronCity);
+    }
+    renderTronCity();
+
+    // 2. АУДИО И SDK
+    let tg = window.Telegram?.WebApp;
+    if (tg) {
+      try {
+        tg.expand();
+        if (tg.initDataUnsafe?.user) {
+          const u = tg.initDataUnsafe.user;
+          document.getElementById('username').innerText = (u.first_name || 'CYBER_PUNK').toUpperCase();
+          document.getElementById('avatarLetter').innerText = (u.first_name || 'C')[0].toUpperCase();
+        }
+      } catch (e) {}
+    }
+
+    function haptic(type = 'medium') {
+      try { tg?.HapticFeedback?.impactOccurred(type); } catch (e) {}
+    }
+
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function playTone(freq, type = 'sine', dur = 0.08, vol = 0.08) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + dur);
+      } catch (e) {}
+    }
+
+    let toastTimer = null;
+    function showToast(title, sub, icon = '✨') {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastTitle').innerText = title;
+      document.getElementById('toastSub').innerText = sub;
+      document.getElementById('toastIcon').innerText = icon;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.classList.remove('show'); }, 2000);
+    }
+
+    // 3. БАЛАНС И СОСТОЯНИЯ
+    let balance = parseInt(localStorage.getItem('tron_bal') || '5000');
+    let currentLvl = parseInt(localStorage.getItem('tron_lvl') || '1');
+    let currentXp = parseInt(localStorage.getItem('tron_xp') || '0');
+    let safeBalance = parseInt(localStorage.getItem('tron_safe') || '2500');
+    let isVipPassActive = localStorage.getItem('tron_vip_pass') === 'true';
+
+    // АКТИВИРОВАННЫЕ НАГРАДЫ ПАССА
+    let activePassRewards = JSON.parse(localStorage.getItem('tron_pass_active') || '[]');
+
+    let totalSpent = parseInt(localStorage.getItem('tron_spent') || '0');
+    let totalWon = parseInt(localStorage.getItem('tron_won') || '0');
+    let totalSpins = parseInt(localStorage.getItem('tron_spins') || '0');
+    let totalJackpots = parseInt(localStorage.getItem('tron_jackpots') || '0');
+
+    let equippedFrame = localStorage.getItem('tron_equipped_frame') || 'frame-default';
+    let equippedNameStyle = localStorage.getItem('tron_equipped_name') || '';
+    let ownedCosmetics = JSON.parse(localStorage.getItem('tron_owned_cosmetics') || '["frame-default", ""]');
+
+    function saveStats() {
+      localStorage.setItem('tron_spent', totalSpent);
+      localStorage.setItem('tron_won', totalWon);
+      localStorage.setItem('tron_spins', totalSpins);
+      localStorage.setItem('tron_jackpots', totalJackpots);
+    }
+
+    function updateBalance(val) {
+      balance = Math.max(0, balance + val);
+      localStorage.setItem('tron_bal', balance);
+      document.getElementById('balanceText').innerText = balance.toLocaleString();
+    }
+
+    function updateSafe(val) {
+      safeBalance += val;
+      localStorage.setItem('tron_safe', safeBalance);
+      document.getElementById('safeVal').innerText = safeBalance.toLocaleString() + ' 🪙';
+    }
+
+    function addExperience(amount) {
+      currentXp += amount;
+      let needed = Math.floor(300 * Math.pow(1.55, currentLvl - 1));
+
+      while (currentXp >= needed) {
+        currentXp -= needed;
+        currentLvl++;
+        needed = Math.floor(300 * Math.pow(1.55, currentLvl - 1));
+        updateBalance(1000);
+        showToast('НОВЫЙ УРОВЕНЬ!', `Достигнут Уровень ${currentLvl} (+1 000 🪙)`, '⚡');
+        playTone(740, 'square', 0.25, 0.1);
+        updateRankVisuals();
+        buildPassTrack();
+        buildCosmeticsShop();
+      }
+
+      localStorage.setItem('tron_lvl', currentLvl);
+      localStorage.setItem('tron_xp', currentXp);
+      document.getElementById('userLevel').innerText = `LVL ${currentLvl}`;
+      const pct = Math.min(100, Math.floor((currentXp / needed) * 100));
+      document.getElementById('xpFill').style.width = pct + '%';
+    }
+
+    function updateRankVisuals() {
+      const tag = document.getElementById('rankTag');
+      if (currentLvl < 5) tag.innerText = 'СКРИПТ-КИДДИ';
+      else if (currentLvl < 10) tag.innerText = 'СЕТЕВОЙ ВЗЛОМЩИК';
+      else if (currentLvl < 20) tag.innerText = 'КИБЕР-БАРОН';
+      else tag.innerText = 'ВЛАСТЕЛИН МАТРИЦЫ';
+
+      document.getElementById('avatarFrame').className = 'avatar-frame ' + equippedFrame;
+      document.getElementById('username').className = 'user-name ' + equippedNameStyle;
+
+      if (activePassRewards.includes('safe_boost')) {
+        document.getElementById('safeTitleTxt').innerText = 'ЗОЛОТОЙ КИБЕР-СЕЙФ (10% СО СПИНОВ)';
+      }
+    }
+
+    // 4. ДВИЖОК СЛОТОВ
+    const symbols = ['⚡', '💎', '🍒', '🍋', '🍇', '7️⃣'];
+    let currentBet = 50;
+    let isSpinning = false;
+    let gamblePool = 0;
+    let currentReelSymbols = ['⚡', '💎', '7️⃣'];
+
+    function initReels() {
+      for (let i = 0; i < 3; i++) {
+        renderReelStrip(i, currentReelSymbols[i], currentReelSymbols[i]);
+      }
+    }
+
+    function renderReelStrip(reelIdx, startSym, targetSym) {
+      const strip = document.getElementById(`reel${reelIdx}`);
+      let html = `<div class="reel-item">${startSym}</div>`;
+      for (let j = 1; j < 24; j++) {
+        html += `<div class="reel-item">${symbols[Math.floor(Math.random() * symbols.length)]}</div>`;
+      }
+      html += `<div class="reel-item">${targetSym}</div>`;
+      strip.innerHTML = html;
+      strip.style.transition = 'none';
+      strip.style.transform = 'translateY(0px)';
+      void strip.offsetHeight;
+    }
+
+    function setSlotBet(val, btn) {
+      if (isSpinning) return;
+      haptic('light');
+      document.querySelectorAll('#view-slots .bet-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (val === 'MAX') currentBet = 10000;
+      else currentBet = val;
+    }
+
+    function spinSlots() {
+      if (isSpinning) return;
+
+      // АВТО-ЗАЧИСЛЕНИЕ ВЫИГРЫША, ЕСЛИ ИГРОК НЕ НАЖАЛ КНОПКУ
+      if (gamblePool > 0) {
+        updateBalance(gamblePool);
+        totalWon += gamblePool;
+        saveStats();
+        showToast('КУШ СОХРАНЕН', `+${gamblePool.toLocaleString()} 🪙 зачислено на баланс`, '🪙');
+        gamblePool = 0;
+        document.getElementById('gamblePanel').style.display = 'none';
+      }
+
+      if (balance < currentBet) {
+        showToast('НЕДОСТАТОЧНО МОНЕТ', 'Пополните баланс в Магазине', '⚠️');
+        return;
+      }
+
+      haptic('heavy');
+      updateBalance(-currentBet);
+
+      totalSpent += currentBet;
+      totalSpins++;
+      saveStats();
+
+      // Проверка бонуса Пасса (Сейф 10% вместо 5%)
+      const safePercent = activePassRewards.includes('safe_boost') ? 0.10 : 0.05;
+      updateSafe(Math.max(1, Math.floor(currentBet * safePercent)));
+
+      const xpGain = Math.max(3, Math.floor(Math.sqrt(currentBet) * 1.4));
+      addExperience(xpGain);
+
+      isSpinning = true;
+      document.getElementById('spinBtn').disabled = true;
+      document.getElementById('termMsg').innerText = 'СКАНИРОВАНИЕ...';
+      document.getElementById('termMsg').style.color = 'var(--cyan)';
+
+      // Проверка билета в секретную комнату (х2 шанс джекпота)
+      const hasTicket = activePassRewards.includes('ticket_room');
+      const isJackpotForce = hasTicket && Math.random() < 0.25;
+
+      let results;
+      if (isJackpotForce) {
+        const jSym = symbols[Math.floor(Math.random() * symbols.length)];
+        results = [jSym, jSym, jSym];
+      } else {
+        results = [
+          symbols[Math.floor(Math.random() * symbols.length)],
+          symbols[Math.floor(Math.random() * symbols.length)],
+          symbols[Math.floor(Math.random() * symbols.length)]
+        ];
+      }
+
+      for (let i = 0; i < 3; i++) {
+        const prevSym = currentReelSymbols[i];
+        renderReelStrip(i, prevSym, results[i]);
+
+        const strip = document.getElementById(`reel${i}`);
+        setTimeout(() => {
+          strip.style.transition = `transform ${1.1 + i * 0.25}s cubic-bezier(0.12, 0.8, 0.2, 1.03)`;
+          strip.style.transform = `translateY(-${24 * 110}px)`;
+          playTone(240 + i * 90, 'triangle', 0.1);
+        }, i * 120);
+      }
+
+      setTimeout(() => {
+        isSpinning = false;
+        document.getElementById('spinBtn').disabled = false;
+        currentReelSymbols = [...results];
+        evaluateSlotResult(results);
+      }, 2100);
+    }
+
+    function evaluateSlotResult(res) {
+      const msg = document.getElementById('termMsg');
+
+      if (res[0] === res[1] && res[1] === res[2]) {
+        let mult = 15;
+        if (res[0] === '7️⃣') mult = 50;
+        if (res[0] === '💎') mult = 25;
+        const win = currentBet * mult;
+
+        totalWon += win;
+        totalJackpots++;
+        saveStats();
+
+        msg.innerText = `КВАНТОВЫЙ ВЫИГРЫШ +${win}`;
+        msg.style.color = 'var(--yellow)';
+        triggerJackpotCelebration(win);
+      } else if (res[0] === res[1] || res[1] === res[2] || res[0] === res[2]) {
+        const win = Math.floor(currentBet * 1.8);
+        totalWon += win;
+        saveStats();
+        updateBalance(win);
+
+        msg.innerText = `СОВПАДЕНИЕ ПАРЫ +${win}`;
+        msg.style.color = 'var(--green)';
+        showToast('СОВПАДЕНИЕ ПАРЫ', `Начислено +${win} кредитов`, '⚡');
+        playTone(480, 'sine', 0.15, 0.1);
+
+        if (win >= 500) {
+          gamblePool = win;
+          openGamble(win);
+        }
+      } else {
+        msg.innerText = 'НЕТ СОВПАДЕНИЙ';
+        msg.style.color = '#7d8ca3';
+      }
+    }
+
+    // 5. ДЖЕКПОТ
+    let coinCanvas, coinCtx, coinsArray = [], coinAnimFrame = null, pendingJackpotWin = 0;
+
+    class GoldCoin {
+      constructor(w, h) {
+        this.w = w; this.h = h;
+        this.x = Math.random() * w;
+        this.y = -20 - Math.random() * 50;
+        this.vy = 4 + Math.random() * 8;
+        this.vx = (Math.random() - 0.5) * 3;
+        this.size = 12 + Math.random() * 12;
+        this.rot = Math.random() * Math.PI * 2;
+        this.vRot = (Math.random() - 0.5) * 0.2;
+      }
+      update() {
+        this.y += this.vy; this.x += this.vx; this.rot += this.vRot;
+        if (this.y > this.h + 20) { this.y = -20; this.x = Math.random() * this.w; }
+      }
+      draw(c) {
+        c.save();
+        c.translate(this.x, this.y);
+        c.rotate(this.rot);
+        c.fillStyle = '#ffd700';
+        c.beginPath(); c.arc(0, 0, this.size, 0, Math.PI * 2); c.fill();
+        c.strokeStyle = '#fff'; c.lineWidth = 1.5; c.stroke();
+        c.fillStyle = '#b8860b';
+        c.font = `bold ${Math.floor(this.size * 0.9)}px sans-serif`;
+        c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.fillText('🪙', 0, 0);
+        c.restore();
+      }
+    }
+
+    function triggerJackpotCelebration(winAmt) {
+      pendingJackpotWin = winAmt;
+      const overlay = document.getElementById('jackpotOverlay');
+      overlay.style.display = 'flex';
+
+      coinCanvas = document.getElementById('coinRainCanvas');
+      coinCanvas.width = window.innerWidth;
+      coinCanvas.height = window.innerHeight;
+      coinCtx = coinCanvas.getContext('2d');
+
+      coinsArray = [];
+      for (let i = 0; i < 45; i++) coinsArray.push(new GoldCoin(coinCanvas.width, coinCanvas.height));
+
+      function rainLoop() {
+        coinCtx.clearRect(0, 0, coinCanvas.width, coinCanvas.height);
+        coinsArray.forEach(c => { c.update(); c.draw(coinCtx); });
+        coinAnimFrame = requestAnimationFrame(rainLoop);
+      }
+      rainLoop();
+
+      const ticker = document.getElementById('jackpotTicker');
+      let cur = 0;
+      const step = Math.max(1, Math.floor(winAmt / 35));
+      const interval = setInterval(() => {
+        cur += step;
+        if (cur >= winAmt) {
+          cur = winAmt;
+          clearInterval(interval);
+          playTone(880, 'square', 0.3, 0.15);
+        } else {
+          playTone(200 + (cur / winAmt) * 500, 'sine', 0.04, 0.04);
+        }
+        ticker.innerText = `+${cur.toLocaleString()} 🪙`;
+      }, 35);
+    }
+
+    function closeJackpotCelebration() {
+      const overlay = document.getElementById('jackpotOverlay');
+      overlay.style.display = 'none';
+      cancelAnimationFrame(coinAnimFrame);
+      updateBalance(pendingJackpotWin);
+      gamblePool = pendingJackpotWin;
+      openGamble(pendingJackpotWin);
+      pendingJackpotWin = 0;
+    }
+
+    // 6. РИСК-ИГРА
+    function openGamble(amount) {
+      gamblePool = amount;
+      resetCoreButtons();
+      document.getElementById('cashoutAmount').innerText = `${gamblePool.toLocaleString()} 🪙`;
+      document.getElementById('gamblePanel').style.display = 'flex';
+    }
+
+    function resetCoreButtons() {
+      const btnCyan = document.getElementById('coreBtnCyan');
+      const btnPink = document.getElementById('coreBtnPink');
+      btnCyan.className = 'core-btn core-cyan';
+      btnPink.className = 'core-btn core-pink';
+      btnCyan.style.pointerEvents = 'auto';
+      btnPink.style.pointerEvents = 'auto';
+    }
+
+    function chooseCore(choice) {
+      if (gamblePool === 0) return;
+      haptic('heavy');
+
+      const btnCyan = document.getElementById('coreBtnCyan');
+      const btnPink = document.getElementById('coreBtnPink');
+      const chosenBtn = choice === 'cyan' ? btnCyan : btnPink;
+
+      btnCyan.style.pointerEvents = 'none';
+      btnPink.style.pointerEvents = 'none';
+
+      const winningCore = Math.random() > 0.5 ? 'cyan' : 'pink';
+
+      if (choice === winningCore) {
+        chosenBtn.classList.add('correct-win');
+        gamblePool *= 2;
+        playTone(740, 'triangle', 0.25, 0.12);
+        document.getElementById('cashoutAmount').innerText = `${gamblePool.toLocaleString()} 🪙`;
+        showToast('ЯДРО ВЗЛОМАНО!', `Куш удвоен: ${gamblePool.toLocaleString()} 🪙`, '🔥');
+
+        setTimeout(() => {
+          chosenBtn.classList.remove('correct-win');
+          btnCyan.style.pointerEvents = 'auto';
+          btnPink.style.pointerEvents = 'auto';
+        }, 900);
+      } else {
+        chosenBtn.classList.add('exploded');
+        playTone(95, 'sawtooth', 0.45, 0.18);
+        showToast('ПЕРЕГРУЗКА ЯДРА!', 'Куш сгорел во взрыве', '💥');
+
+        setTimeout(() => {
+          gamblePool = 0;
+          document.getElementById('gamblePanel').style.display = 'none';
+        }, 950);
+      }
+    }
+
+    function takeGambleWin() {
+      if (gamblePool > 0) {
+        updateBalance(gamblePool);
+        totalWon += gamblePool;
+        saveStats();
+        showToast('КУШ ЗАБРАН', `+${gamblePool.toLocaleString()} 🪙 зачислено на счет`, '🪙');
+        playTone(550, 'sine', 0.15);
+      }
+      gamblePool = 0;
+      document.getElementById('gamblePanel').style.display = 'none';
+    }
+
+    // ==============================================
+    // 7. КРАШ-РАКЕТА (ГИПЕРЗВУКОВОЙ УЛЕТ В КОСМОС И НЕОНОВЫЙ ХВОСТ)
+    // ==============================================
+    let crashBet = 100;
+    let autoCashoutX = 0;
+    let crashState = 'idle'; // idle, flying, warping_out, crashed
+    let crashMult = 1.00;
+    let crashLimit = 1.00;
+    let crashAnim = null;
+    let rCanvas, rCtx;
+    let particles = [], debris = [];
+    let rocketTrailPoints = [];
+    let warpX = 0, warpY = 0, warpAngle = 0;
+
+    class Debris {
+      constructor(x, y, color) {
+        this.x = x; this.y = y; this.color = color;
+        this.vx = (Math.random() - 0.5) * 10;
+        this.vy = (Math.random() - 0.5) * 10 - 2;
+        this.grav = 0.2;
+        this.life = 40 + Math.random() * 30;
+        this.angle = Math.random() * Math.PI * 2;
+        this.spin = (Math.random() - 0.5) * 0.25;
+        this.size = 3 + Math.random() * 4;
+      }
+      update() {
+        this.x += this.vx; this.vy += this.grav; this.y += this.vy;
+        this.angle += this.spin; this.life--;
+      }
+      draw(c) {
+        if (this.life <= 0) return;
+        c.fillStyle = this.color;
+        c.save();
+        c.translate(this.x, this.y);
+        c.rotate(this.angle);
+        c.fillRect(-this.size/2, -this.size/2, this.size, this.size);
+        c.restore();
+      }
+    }
+
+    function initCrashCanvas() {
+      rCanvas = document.getElementById('rocketCanvas');
+      if (!rCanvas) return;
+      rCanvas.width = rCanvas.parentElement.clientWidth;
+      rCanvas.height = rCanvas.parentElement.clientHeight;
+      rCtx = rCanvas.getContext('2d');
+      drawCrashStatic();
+    }
+
+    function setCrashBetAmt(amt, btn) {
+      if (crashState === 'flying' || crashState === 'warping_out') return;
+      haptic('light');
+      crashBet = amt;
+      document.getElementById('crashBetInput').value = amt;
+      document.querySelectorAll('#view-crash .bet-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('rocketActionBtn').innerText = `ВЗЛЕТ (${crashBet} 🪙)`;
+    }
+
+    function resetAutoCashout() {
+      document.getElementById('crashAutoInput').value = '';
+      autoCashoutX = 0;
+      showToast('СВОБОДНЫЙ ПОЛЕТ', 'Автозабор отключен', '💸');
+    }
+
+    function drawCrashStatic() {
+      if (!rCtx) return;
+      const w = rCanvas.width, h = rCanvas.height;
+      rCtx.clearRect(0, 0, w, h);
+      rCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      for (let y = 0; y < h; y += 40) {
+        rCtx.beginPath(); rCtx.moveTo(0, y); rCtx.lineTo(w, y); rCtx.stroke();
+      }
+    }
+
+    function runCrashScene() {
+      if (!rCtx || crashState === 'idle') return;
+      const w = rCanvas.width, h = rCanvas.height;
+
+      drawCrashStatic();
+
+      let curX, curY, curAngle;
+
+      if (crashState === 'flying') {
+        const progress = Math.min(1, (crashMult - 1) / 5);
+        curX = 25 + progress * (w - 75);
+        curY = (h - 25) - Math.pow(progress, 1.25) * (h - 60);
+        curAngle = -Math.PI / 4 * progress;
+
+        warpX = curX; warpY = curY; warpAngle = curAngle;
+        rocketTrailPoints.push({ x: curX, y: curY });
+
+        // Огонь из сопла
+        for (let i = 0; i < 3; i++) {
+          particles.push({
+            x: curX - 8, y: curY + 3,
+            vx: - (2 + Math.random() * 2.5),
+            vy: (Math.random() - 0.5) * 1.5,
+            life: 18, maxLife: 18, size: 4,
+            color: Math.random() > 0.4 ? '#ff7a18' : '#ffc837'
+          });
+        }
+      } else if (crashState === 'warping_out') {
+        // УЛЕТ В КОСМОС НА ГИПЕРЗВУКЕ
+        warpX += 16;
+        warpY -= 14;
+        curX = warpX; curY = warpY; curAngle = warpAngle;
+        rocketTrailPoints.push({ x: curX, y: curY });
+
+        // Форсажное пламя
+        for (let i = 0; i < 6; i++) {
+          particles.push({
+            x: curX - 10, y: curY + 5,
+            vx: - (4 + Math.random() * 5),
+            vy: (Math.random() - 0.5) * 3,
+            life: 25, maxLife: 25, size: 6,
+            color: '#00d8f6'
+          });
+        }
+
+        // Вылетела за экран
+        if (curX > w + 40 || curY < -40) {
+          finishWarpOut();
+        }
+      }
+
+      // ЯРКИЙ НЕОНОВЫЙ ШЛЕЙФ
+      if (rocketTrailPoints.length > 1) {
+        rCtx.save();
+        rCtx.shadowBlur = 18;
+        rCtx.shadowColor = '#00d8f6';
+        rCtx.strokeStyle = 'rgba(0, 216, 246, 0.9)';
+        rCtx.lineWidth = 6;
+        rCtx.lineCap = 'round';
+        rCtx.beginPath();
+        rCtx.moveTo(rocketTrailPoints[0].x, rocketTrailPoints[0].y);
+        for (let i = 1; i < rocketTrailPoints.length; i++) {
+          rCtx.lineTo(rocketTrailPoints[i].x, rocketTrailPoints[i].y);
+        }
+        rCtx.stroke();
+
+        // Белое ядро шлейфа
+        rCtx.shadowBlur = 4;
+        rCtx.shadowColor = '#ffffff';
+        rCtx.strokeStyle = '#ffffff';
+        rCtx.lineWidth = 2.5;
+        rCtx.stroke();
+        rCtx.restore();
+      }
+
+      // Частицы
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.life--;
+        rCtx.fillStyle = p.color;
+        rCtx.beginPath();
+        rCtx.arc(p.x, p.y, Math.max(1, p.size * (p.life / p.maxLife)), 0, Math.PI * 2);
+        rCtx.fill();
+      });
+      particles = particles.filter(p => p.life > 0);
+
+      // Ракета
+      if (crashState === 'flying' || crashState === 'warping_out') {
+        rCtx.save();
+        rCtx.translate(curX, curY);
+        rCtx.rotate(curAngle);
+
+        rCtx.fillStyle = '#f1f5f9';
+        rCtx.fillRect(-12, -5, 20, 10);
+        rCtx.beginPath(); rCtx.moveTo(8, -5); rCtx.lineTo(16, 0); rCtx.lineTo(8, 5); rCtx.fillStyle = '#ff2a85'; rCtx.fill();
+        rCtx.fillStyle = '#00d8f6';
+        rCtx.fillRect(-12, -8, 5, 3);
+        rCtx.fillRect(-12, 5, 5, 3);
+        rCtx.restore();
+      }
+
+      // Осколки при краше
+      if (crashState === 'crashed') {
+        debris.forEach(d => { d.update(); d.draw(rCtx); });
+        debris = debris.filter(d => d.life > 0);
+      }
+
+      crashAnim = requestAnimationFrame(runCrashScene);
+    }
+
+    function handleCrashAction() {
+      const btn = document.getElementById('rocketActionBtn');
+
+      if (crashState === 'idle') {
+        const betInp = document.getElementById('crashBetInput');
+        const autoInp = document.getElementById('crashAutoInput');
+
+        crashBet = parseInt(betInp.value) || 100;
+        autoCashoutX = parseFloat(autoInp.value) || 0;
+
+        if (balance < crashBet) {
+          showToast('НЕДОСТАТОЧНО МОНЕТ', 'Пополните баланс в Магазине', '⚠️');
+          return;
+        }
+
+        haptic('heavy');
+        updateBalance(-crashBet);
+        totalSpent += crashBet;
+        saveStats();
+
+        crashState = 'flying';
+        crashMult = 1.00;
+        particles = []; debris = []; rocketTrailPoints = [];
+
+        const r = Math.random();
+        if (r < 0.12) crashLimit = 1.05;
+        else crashLimit = +(1.15 + Math.random() * 4.2).toFixed(2);
+
+        btn.innerText = `ЗАБРАТЬ ${crashBet} 🪙 (1.00x)`;
+        btn.classList.add('flying');
+        document.getElementById('rocketMultText').classList.remove('crashed');
+
+        const startTime = performance.now();
+        if (!crashAnim) crashAnim = requestAnimationFrame(runCrashScene);
+
+        function loop(now) {
+          if (crashState !== 'flying') return;
+          const sec = (now - startTime) / 1000;
+          crashMult = +(1.00 + sec * 0.28).toFixed(2);
+
+          document.getElementById('rocketMultText').innerText = crashMult.toFixed(2) + 'x';
+          btn.innerText = `ЗАБРАТЬ ${Math.floor(crashBet * crashMult).toLocaleString()} 🪙 (${crashMult.toFixed(2)}x)`;
+
+          if (autoCashoutX > 0 && crashMult >= autoCashoutX) {
+            cashOutSuccess(true);
+            return;
+          }
+
+          if (crashMult >= crashLimit) {
+            triggerCrashExplosion();
+          } else {
+            requestAnimationFrame(loop);
+          }
+        }
+        requestAnimationFrame(loop);
+
+      } else if (crashState === 'flying') {
+        cashOutSuccess(false);
+      }
+    }
+
+    function cashOutSuccess(isAuto) {
+      if (crashState !== 'flying') return;
+      haptic('heavy');
+      crashState = 'warping_out'; // РАКЕТА УЛЕТАЕТ В КОСМОС
+
+      const won = Math.floor(crashBet * crashMult);
+      updateBalance(won);
+      totalWon += won;
+      saveStats();
+
+      playTone(660, 'sine', 0.2);
+      showToast(isAuto ? 'АВТОЗАБОР ✓' : 'КУШ ЗАБРАН!', `+${won.toLocaleString()} 🪙 (${crashMult.toFixed(2)}x)`, '💰');
+      addCrashBadge(crashMult, false);
+
+      const btn = document.getElementById('rocketActionBtn');
+      btn.innerText = `УЛЕТ В КОСМОС...`;
+      btn.classList.remove('flying');
+      btn.disabled = true;
+    }
+
+    function finishWarpOut() {
+      crashState = 'idle';
+      const btn = document.getElementById('rocketActionBtn');
+      btn.disabled = false;
+      btn.innerText = `ВЗЛЕТ (${crashBet} 🪙)`;
+      document.getElementById('rocketMultText').innerText = '1.00x'; // ОБНУЛЕНИЕ
+      cancelAnimationFrame(crashAnim); crashAnim = null;
+      drawCrashStatic();
+    }
+
+    function triggerCrashExplosion() {
+      if (crashState !== 'flying') return;
+      crashState = 'crashed';
+
+      // Проверка бонуса Пасса: Квантовый Щит (возврат 50% ставки при раннем краше)
+      if (activePassRewards.includes('quantum_shield') && crashLimit <= 1.20) {
+        const refund = Math.floor(crashBet * 0.5);
+        updateBalance(refund);
+        showToast('КВАНТОВЫЙ ЩИТ!', `Возврат 50% ставки (+${refund} 🪙)`, '🛡️');
+      }
+
+      const hud = document.getElementById('rocketMultText');
+      hud.innerText = crashLimit.toFixed(2) + 'x';
+      hud.classList.add('crashed');
+
+      const btn = document.getElementById('rocketActionBtn');
+      btn.innerText = `КРАШ (${crashLimit.toFixed(2)}x)`;
+      btn.classList.remove('flying');
+      btn.disabled = true;
+
+      const w = rCanvas.width, h = rCanvas.height;
+      const progress = Math.min(1, (crashLimit - 1) / 5);
+      const curX = 25 + progress * (w - 75);
+      const curY = (h - 25) - Math.pow(progress, 1.25) * (h - 60);
+
+      debris = [];
+      for (let i = 0; i < 35; i++) debris.push(new Debris(curX, curY, Math.random() > 0.4 ? '#ff2a85' : '#f1f5f9'));
+      playTone(90, 'sawtooth', 0.45, 0.22);
+
+      addCrashBadge(crashLimit, true);
+
+      setTimeout(() => {
+        crashState = 'idle';
+        btn.disabled = false;
+        btn.innerText = `ВЗЛЕТ (${crashBet} 🪙)`;
+        hud.classList.remove('crashed');
+        hud.innerText = '1.00x'; // ОБНУЛЕНИЕ
+        cancelAnimationFrame(crashAnim); crashAnim = null;
+        drawCrashStatic();
+      }, 1800);
+    }
+
+    function addCrashBadge(val, isCrashed) {
+      const bar = document.getElementById('crashHistoryBar');
+      const b = document.createElement('span');
+      b.className = 'crash-badge' + (isCrashed ? ' crashed' : '');
+      b.innerText = val.toFixed(2) + 'x';
+      bar.insertBefore(b, bar.firstChild);
+      if (bar.children.length > 7) bar.removeChild(bar.lastChild);
+    }
+
+    // ==============================================
+    // 8. КИБЕР-ПАСС С РЕАЛЬНОЙ АКТИВАЦИЕЙ НАГРАД
+    // ==============================================
+    const passData = [
+      { id: 'ticket_room', lvl: 2, reward: '+5 000 🪙', exclusive: '🎟️ Билет в Секретную Комнату (x2 джекпот)' },
+      { id: 'quantum_shield', lvl: 5, reward: '+15 000 🪙', exclusive: '🛡️ Квантовый Щит (возврат 50% при краше < 1.2x)' },
+      { id: 'frame_noir', lvl: 10, reward: '+40 000 🪙', exclusive: '🔮 Голографическая рамка «Синдикат Нуар»' },
+      { id: 'safe_boost', lvl: 15, reward: '+80 000 🪙', exclusive: '💼 Золотой Сейф (+10% со спинов вместо 5%)' },
+      { id: 'title_overlord', lvl: 20, reward: '+200 000 🪙', exclusive: '👑 Статус «Властелин Матрицы»' }
+    ];
+
+    function buildPassTrack() {
+      const track = document.getElementById('passTrack');
+      track.innerHTML = '';
+      passData.forEach(p => {
+        const isUnlocked = currentLvl >= p.lvl;
+        const isActive = activePassRewards.includes(p.id);
+
+        const row = document.createElement('div');
+        row.className = `track-row ${isUnlocked ? 'unlocked' : ''}`;
+        row.innerHTML = `
+          <div class="track-left">
+            <span class="track-lvl">УРОВЕНЬ ${p.lvl}</span>
+            <div class="track-rewards-grid">
+              <span class="track-reward-item">Базовая: ${p.reward}</span>
+              <span class="track-reward-item exclusive">${p.exclusive}</span>
+            </div>
+          </div>
+          <div>
+            ${!isUnlocked 
+              ? '<button class="pass-act-btn locked">🔒 ЗАКРЫТО</button>'
+              : (isActive 
+                  ? `<button class="pass-act-btn active" onclick="togglePassReward('${p.id}')">АКТИВЕН ✓</button>`
+                  : `<button class="pass-act-btn ready" onclick="togglePassReward('${p.id}')">ВКЛЮЧИТЬ</button>`)}
+          </div>
+        `;
+        track.appendChild(row);
+      });
+    }
+
+    function togglePassReward(rewardId) {
+      haptic('medium');
+      if (activePassRewards.includes(rewardId)) {
+        activePassRewards = activePassRewards.filter(r => r !== rewardId);
+        showToast('ДЕАКТИВИРОВАНО', 'Модификатор отключен', 'ℹ️');
+      } else {
+        activePassRewards.push(rewardId);
+        showToast('АКТИВИРОВАНО!', 'Модификатор вступил в силу', '⚡');
+
+        // Моментальный эффект для косметических наград
+        if (rewardId === 'frame_noir') {
+          equippedFrame = 'frame-noir';
+          localStorage.setItem('tron_equipped_frame', 'frame-noir');
+          updateRankVisuals();
+        }
+        if (rewardId === 'title_overlord') {
+          equippedNameStyle = 'name-overlord';
+          localStorage.setItem('tron_equipped_name', 'name-overlord');
+          updateRankVisuals();
+        }
+      }
+      localStorage.setItem('tron_pass_active', JSON.stringify(activePassRewards));
+      updateRankVisuals();
+      buildPassTrack();
+    }
+
+    function requestVipPassPayment() {
+      openPayment('Активация VIP PASS (Сезон 1)', '150 ⭐', () => {
+        isVipPassActive = true;
+        localStorage.setItem('tron_vip_pass', 'true');
+        document.getElementById('vipPassBtn').innerText = 'VIP АКТИВИРОВАН ✓';
+        document.getElementById('vipPassBtn').classList.add('claimed');
+        updateBalance(25000);
+        showToast('VIP АКТИВИРОВАН', '+25 000 🪙 и все модификаторы!', '👑');
+      });
+    }
+
+    // ==============================================
+    // 9. МАГАЗИН КАСТОМИЗАЦИИ (СТИЛЬ)
+    // ==============================================
+    const cosmeticsData = {
+      frames: [
+        { id: 'frame-default', name: 'Базовая рамка', price: 0, reqLvl: 1 },
+        { id: 'frame-neon', name: 'Неон Нео-Токио', price: 5000, reqLvl: 5 },
+        { id: 'frame-gold', name: 'Золотой Синдикат', price: 20000, reqLvl: 10 },
+        { id: 'frame-noir', name: 'Синдикат Нуар (Пасс)', price: 0, reqLvl: 10, fromPass: true },
+        { id: 'frame-plasma', name: 'Плазменный Огонь', price: 50000, reqLvl: 20 }
+      ],
+      names: [
+        { id: '', name: 'Стандартный ник', price: 0, reqLvl: 1 },
+        { id: 'name-cyan', name: 'Кибер Сияние', price: 4000, reqLvl: 5 },
+        { id: 'name-gold', name: 'Золотой Шрифт', price: 15000, reqLvl: 10 },
+        { id: 'name-fire', name: 'Пламя Синдиката', price: 35000, reqLvl: 15 },
+        { id: 'name-overlord', name: 'Синдикат Оверлорд', price: 75000, reqLvl: 20 }
+      ]
+    };
+
+    function buildCosmeticsShop() {
+      const fList = document.getElementById('avatarFrameList');
+      fList.innerHTML = '';
+      cosmeticsData.frames.forEach(f => {
+        const owned = ownedCosmetics.includes(f.id) || (f.fromPass && activePassRewards.includes('frame_noir'));
+        const active = equippedFrame === f.id;
+        const levelLocked = currentLvl < f.reqLvl;
+
+        const row = document.createElement('div');
+        row.className = `cosmetic-row ${active ? 'active-item' : ''} ${levelLocked ? 'locked-item' : ''}`;
+        row.innerHTML = `
+          <div class="cosmetic-info">
+            <div class="cosmetic-preview-box">
+              <div class="avatar-frame ${f.id}" style="width:36px; height:36px;">
+                <div class="avatar" style="font-size:13px;">${document.getElementById('avatarLetter').innerText}</div>
+              </div>
+            </div>
+            <div class="cosmetic-text-meta">
+              <span class="cosmetic-name">${f.name}</span>
+              <span class="cosmetic-price">${levelLocked ? `Доступно с Ур. ${f.reqLvl}` : (owned ? 'В коллекции' : f.price.toLocaleString() + ' 🪙')}</span>
+            </div>
+          </div>
+          ${active ? '<button class="cosmetic-btn active">Выбрано</button>' : (levelLocked ? `<button class="cosmetic-btn locked">🔒 С ${f.reqLvl} ур.</button>` : (owned ? `<button class="cosmetic-btn equip" onclick="handleCosmetic('frame', '${f.id}', 0, 1)">Выбрать</button>` : `<button class="cosmetic-btn buy" onclick="handleCosmetic('frame', '${f.id}', ${f.price}, ${f.reqLvl})">Купить</button>`))}
+        `;
+        fList.appendChild(row);
+      });
+
+      const nList = document.getElementById('nameStyleList');
+      nList.innerHTML = '';
+      cosmeticsData.names.forEach(n => {
+        const owned = ownedCosmetics.includes(n.id) || (n.id === 'name-overlord' && activePassRewards.includes('title_overlord'));
+        const active = equippedNameStyle === n.id;
+        const levelLocked = currentLvl < n.reqLvl;
+
+        const row = document.createElement('div');
+        row.className = `cosmetic-row ${active ? 'active-item' : ''} ${levelLocked ? 'locked-item' : ''}`;
+        row.innerHTML = `
+          <div class="cosmetic-info">
+            <div class="cosmetic-text-meta">
+              <span class="user-name ${n.id}" style="font-size:14px;">${n.name} (Превью)</span>
+              <span class="cosmetic-price">${levelLocked ? `Доступно с Ур. ${n.reqLvl}` : (owned ? 'В коллекции' : n.price.toLocaleString() + ' 🪙')}</span>
+            </div>
+          </div>
+          ${active ? '<button class="cosmetic-btn active">Выбрано</button>' : (levelLocked ? `<button class="cosmetic-btn locked">🔒 С ${n.reqLvl} ур.</button>` : (owned ? `<button class="cosmetic-btn equip" onclick="handleCosmetic('name', '${n.id}', 0, 1)">Выбрать</button>` : `<button class="cosmetic-btn buy" onclick="handleCosmetic('name', '${n.id}', ${n.price}, ${n.reqLvl})">Купить</button>`))}
+        `;
+        nList.appendChild(row);
+      });
+    }
+
+    function handleCosmetic(type, id, price, reqLvl) {
+      if (currentLvl < reqLvl) {
+        showToast('НЕДОСТУПНО', `Требуется Уровень ${reqLvl}`, '🔒');
+        return;
+      }
+      haptic('light');
+      const owned = ownedCosmetics.includes(id) || (id === 'frame-noir' && activePassRewards.includes('frame_noir')) || (id === 'name-overlord' && activePassRewards.includes('title_overlord'));
+
+      if (owned) {
+        if (type === 'frame') { equippedFrame = id; localStorage.setItem('tron_equipped_frame', id); }
+        else { equippedNameStyle = id; localStorage.setItem('tron_equipped_name', id); }
+        updateRankVisuals();
+        buildCosmeticsShop();
+        showToast('СТИЛЬ ОБНОВЛЕН', 'Внешний вид профиля изменен!', '🎨');
+      } else {
+        if (balance < price) {
+          showToast('НЕДОСТАТОЧНО МОНЕТ', 'Пополните баланс фишек', '⚠️');
+          return;
+        }
+        updateBalance(-price);
+        ownedCosmetics.push(id);
+        localStorage.setItem('tron_owned_cosmetics', JSON.stringify(ownedCosmetics));
+        if (type === 'frame') equippedFrame = id;
+        else equippedNameStyle = id;
+        updateRankVisuals();
+        buildCosmeticsShop();
+        showToast('УСПЕШНО', 'Предмет приобретен и применен', '🛍️');
+        playTone(600, 'sine', 0.15);
+      }
+    }
+
+    // 10. ОПЛАТА TELEGRAM STARS
+    let pendingCallback = null;
+    let pendingTitle = '';
+
+    function openPayment(title, price, cb) {
+      haptic('medium');
+      pendingTitle = title;
+      pendingCallback = cb;
+      document.getElementById('payItemTitle').innerText = title;
+      document.getElementById('payItemPrice').innerText = price;
+      document.getElementById('paymentModal').style.display = 'flex';
+    }
+
+    function executeStarsPayment() {
+      haptic('heavy');
+      closeModal('paymentModal');
+      if (pendingCallback) {
+        pendingCallback();
+        pendingCallback = null;
+      }
+      showToast('ОПЛАТА УСПЕШНА!', `${pendingTitle} зачислено`, '⭐');
+      playTone(880, 'square', 0.25, 0.12);
+    }
+
+    function crackSafeCallback() {
+      const won = safeBalance;
+      updateBalance(won);
+      safeBalance = 0;
+      updateSafe(0);
+      showToast('СЕЙФ ВЗЛОМАН!', `+${won.toLocaleString()} 🪙 зачислено на баланс!`, '💼');
+    }
+
+    function openProfile() {
+      haptic('medium');
+      document.getElementById('statSpent').innerText = totalSpent.toLocaleString() + ' 🪙';
+      document.getElementById('statWon').innerText = totalWon.toLocaleString() + ' 🪙';
+      document.getElementById('statSpins').innerText = totalSpins.toLocaleString();
+      document.getElementById('statJackpots').innerText = totalJackpots.toLocaleString();
+      document.getElementById('profileModal').style.display = 'flex';
+    }
+
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function switchTab(tab, el) {
+      haptic('light');
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.tabbar .tab-item').forEach(t => t.classList.remove('active'));
+      document.getElementById('view-' + tab).classList.add('active');
+      el.classList.add('active');
+
+      if (tab === 'crash') setTimeout(initCrashCanvas, 50);
+      if (tab === 'pass') buildPassTrack();
+      if (tab === 'style') buildCosmeticsShop();
+    }
+
+    // ИНИЦИАЛИЗАЦИЯ
+    initReels();
+    updateBalance(0);
+    updateSafe(0);
+    addExperience(0);
+    updateRankVisuals();
+    buildPassTrack();
+    buildCosmeticsShop();
+  </script>
+</body>
+</html>
