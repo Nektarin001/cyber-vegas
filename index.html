@@ -2306,19 +2306,21 @@ function spinWheel(isVip = false) {
         updateBalance(won.val);
       } else if (typeof balance !== 'undefined') {
         balance += won.val;
-        if (typeof updateBalanceUI === 'function') updateBalanceUI();
+        if (typeof updateBalanceUI === 'function') {
+          updateBalanceUI();
+        }
       }
       updateWheelTimer();
     }
-  }
+    }
 
   requestAnimationFrame(animate);
 }
 
-setTimeout(() => {
+setTimeout(function() {
   drawWheel(false);
   updateWheelTimer();
-}, 200);
+}, 300);
   </script>
 </body>
 </html>
