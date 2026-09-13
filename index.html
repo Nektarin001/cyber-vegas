@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>КИБЕР ВЕГАС 2077 // OVERLORD</title>
+  <title>КИБЕР ВЕГАС 2077</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
@@ -882,7 +882,6 @@
 
     <!-- ВКЛАДКА 1: СЛОТЫ 3х3 -->
     <main class="view active" id="view-slots">
-      <!-- КИБЕР-КОЛЕСО ФОРТУНЫ -->
       <div class="wheel-card" style="background: var(--card-bg, #111424); border: 1px solid var(--border, #00f0ff33); border-radius: 16px; padding: 16px; text-align: center; box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);">
         <div style="font-size: 15px; font-weight: 800; color: #fff; letter-spacing: 1px; margin-bottom: 2px;">КИБЕР-КОЛЕСО ФОРТУНЫ</div>
         <div id="wheel-timer-text" style="font-size: 11px; color: #8892b0; margin-bottom: 12px;">Бесплатный спин раз в 12 часов</div>
@@ -954,7 +953,7 @@
       </div>
     </main>
 
-    <!-- ВКЛАДКА 2: КРАШ-РАКЕТА (ПРЯМОЙ РАУНД) -->
+    <!-- ВКЛАДКА 2: КРАШ-РАКЕТА -->
     <main class="view" id="view-crash">
       <div class="crash-box">
         <div class="crash-meta-bar">
@@ -997,7 +996,7 @@
       </div>
     </main>
 
-    <!-- ВКЛАДКА 3: КИБЕР-ПАСС С РАЗДЕЛЕНИЕМ FREE И VIP -->
+    <!-- ВКЛАДКА 3: КИБЕР-ПАСС -->
     <main class="view" id="view-pass">
       <div class="pass-container">
         <div class="pass-header">
@@ -1084,9 +1083,7 @@
   </div>
 
   <script>
-    /* =========================================================
-       1. ГОРОДСКОЙ ФОН TRON
-    ========================================================= */
+    /* 1. ГОРОДСКОЙ ФОН */
     const cityCanvas = document.getElementById('cityCanvas');
     const cityCtx = cityCanvas.getContext('2d');
     let cw, ch;
@@ -1190,9 +1187,7 @@
     }
     renderTronCity();
 
-    /* =========================================================
-       2. TELEGRAM SDK И АУДИО
-    ========================================================= */
+    /* 2. TELEGRAM SDK И ЗВУК */
     const tgApp = window.Telegram?.WebApp;
     if (tgApp) {
       try {
@@ -1238,9 +1233,7 @@
       toastTimer = setTimeout(() => { toast.classList.remove('show'); }, 2200);
     }
 
-    /* =========================================================
-       3. СТЕЙТ ПОЛЬЗОВАТЕЛЯ
-    ========================================================= */
+    /* 3. СТЕЙТ ПОЛЬЗОВАТЕЛЯ */
     let balance = parseInt(localStorage.getItem('tron_bal') || '5000', 10);
     let currentLvl = parseInt(localStorage.getItem('tron_lvl') || '1', 10);
     let currentXp = parseInt(localStorage.getItem('tron_xp') || '0', 10);
@@ -1319,9 +1312,7 @@
       }
     }
 
-    /* =========================================================
-       4. СЛОТЫ 3х3 И ДЖЕКПОТ БЕЗ УТЕЧКИ
-    ========================================================= */
+    /* 4. СЛОТЫ 3х3 И ДЖЕКПОТ БЕЗ УТЕЧКИ */
     const symbols = ['⚡', '💎', '🍒', '🍋', '🍇', '7️⃣'];
     let currentBet = 50;
     let isSlotSpinning = false;
@@ -1436,10 +1427,6 @@
         if (res[0] === '💎') mult = 25;
         const win = currentBet * mult;
 
-        totalWon += win;
-        totalJackpots++;
-        saveStats();
-
         msg.innerText = `КВАНТОВЫЙ ВЫИГРЫШ +${win}`;
         msg.style.color = 'var(--yellow)';
         triggerJackpotCelebration(win);
@@ -1535,10 +1522,13 @@
     function claimJackpotWithoutRisk() {
       const overlay = document.getElementById('jackpotOverlay');
       overlay.style.display = 'none';
-      cancelAnimationFrame(coinAnimFrame);
+      if (coinAnimFrame) cancelAnimationFrame(coinAnimFrame);
 
       if (pendingJackpotWin > 0) {
         updateBalance(pendingJackpotWin);
+        totalWon += pendingJackpotWin;
+        totalJackpots++;
+        saveStats();
         showToast('ДЖЕКПОТ ЗАБРАН!', `+${pendingJackpotWin.toLocaleString()} 🪙 на балансе`, '💎');
         pendingJackpotWin = 0;
       }
@@ -1547,7 +1537,7 @@
     function startGambleFromJackpot() {
       const overlay = document.getElementById('jackpotOverlay');
       overlay.style.display = 'none';
-      cancelAnimationFrame(coinAnimFrame);
+      if (coinAnimFrame) cancelAnimationFrame(coinAnimFrame);
 
       if (pendingJackpotWin > 0) {
         const amt = pendingJackpotWin;
@@ -1626,9 +1616,7 @@
       document.getElementById('gamblePanel').style.display = 'none';
     }
 
-    /* =========================================================
-       5. КРАШ-РАКЕТА (ЖЕСТКАЯ ОСТАНОВКА, ЧИСТЫЙ СБРОС И КУЛДАУН 3 СЕК)
-    ========================================================= */
+    /* 5. КРАШ-РАКЕТА (НАДЁЖНЫЙ ЦИКЛ БЕЗ ФРИЗОВ) */
     let animId = null;
     let isRoundActive = false;
     let isCashedOut = false;
@@ -1645,7 +1633,7 @@
     const rCtx = rCanvas.getContext('2d');
 
     function resizeCrashCanvas() {
-      if (!rCanvas) return;
+      if (!rCanvas || !rCanvas.parentElement) return;
       rCanvas.width = rCanvas.parentElement.clientWidth;
       rCanvas.height = rCanvas.parentElement.clientHeight;
       if (!isRoundActive) {
@@ -1667,11 +1655,11 @@
       for (let y = 0; y < h; y += 36) { rCtx.moveTo(0, y); rCtx.lineTo(w, y); }
       rCtx.stroke();
 
-      drawRocketFrame(0, h, false);
+      drawRocketFrame(24, h - 24, false);
     }
 
     function setCrashBetAmt(amt, btn) {
-      if (isRoundActive || animId !== null) return;
+      if (isRoundActive || animId !== null || cooldownInterval !== null) return;
       haptic('light');
       crashBet = amt;
       document.getElementById('crashBetInput').value = amt;
@@ -1687,6 +1675,8 @@
     }
 
     function handleCrashActionBtn() {
+      if (cooldownInterval !== null) return;
+
       if (!isRoundActive) {
         if (animId !== null) return;
         startCrashRound();
@@ -1698,7 +1688,7 @@
     }
 
     function startCrashRound() {
-      if (animId !== null || isRoundActive) return;
+      if (animId !== null || isRoundActive || cooldownInterval !== null) return;
 
       const betInp = document.getElementById('crashBetInput');
       const autoInp = document.getElementById('crashAutoInput');
@@ -1719,11 +1709,16 @@
       totalSpent += crashBet;
       saveStats();
 
-      // ЧИСТЫЙ СБРОС (RESET) ПЕРЕД СТАРТОМ
+      // Очистка и сброс состояния
+      if (animId !== null) {
+        cancelAnimationFrame(animId);
+        animId = null;
+      }
+
       const w = rCanvas.width;
       const h = rCanvas.height;
       rCtx.clearRect(0, 0, w, h);
-      points = [{ x: 0, y: h }];
+      points = [{ x: 24, y: h - 24 }];
       currentMultiplier = 1.00;
       startTime = performance.now();
 
@@ -1747,17 +1742,17 @@
       actBtn.disabled = false;
 
       const rand = Math.random();
-      if (rand < 0.07) {
+      if (rand < 0.05) {
         targetCrashMultiplier = 1.00;
       } else {
-        targetCrashMultiplier = +(0.94 / (1 - rand)).toFixed(2);
+        targetCrashMultiplier = +(0.95 / (1 - rand)).toFixed(2);
       }
 
       function flightLoop(now) {
         if (!isRoundActive) return;
 
         const elapsedSec = Math.max(0, (now - startTime) / 1000);
-        currentMultiplier = +(Math.pow(Math.E, 0.08 * elapsedSec)).toFixed(2);
+        currentMultiplier = +(Math.pow(Math.E, 0.085 * elapsedSec)).toFixed(2);
 
         if (!isCashedOut) {
           if (autoCashoutVal >= 1.01 && currentMultiplier >= autoCashoutVal) {
@@ -1797,12 +1792,11 @@
 
       const actBtn = document.getElementById('rocketActionBtn');
       actBtn.className = 'crash-btn-action disabled-state';
-      actBtn.innerText = `ВЫИГРЫШ ЗАБРАН (+${won})`;
+      actBtn.innerText = `ВЫИГРЫШ ЗАБРАН (+${won.toLocaleString()})`;
       actBtn.disabled = true;
     }
 
     function triggerCrashEnd(finalMult) {
-      // ПОЛНАЯ ОСТАНОВКА ЦИКЛА АНИМАЦИИ
       if (animId !== null) {
         cancelAnimationFrame(animId);
         animId = null;
@@ -1883,12 +1877,12 @@
       const safeM = (Number.isFinite(mult) && mult >= 1.00) ? mult : 1.00;
       const progress = Math.min((safeM - 1.00) / 4.00, 1.00);
 
-      const curX = progress * (w - 30);
-      const curY = h - Math.pow(progress, 1.32) * (h - 30);
+      const curX = 24 + progress * (w - 54);
+      const curY = (h - 24) - Math.pow(progress, 1.35) * (h - 54);
 
       if (Number.isFinite(curX) && Number.isFinite(curY)) {
         points.push({ x: curX, y: curY });
-        if (points.length > 60) points.shift();
+        if (points.length > 70) points.shift();
       }
 
       if (points.length > 1) {
@@ -1896,7 +1890,7 @@
         rCtx.strokeStyle = '#00d8f6';
         rCtx.lineWidth = 3.5;
         rCtx.shadowColor = '#00d8f6';
-        rCtx.shadowBlur = 10;
+        rCtx.shadowBlur = 12;
         rCtx.beginPath();
         rCtx.moveTo(points[0].x, points[0].y);
         for (let i = 1; i < points.length; i++) {
@@ -1952,9 +1946,7 @@
       if (bar.children.length > 8) bar.removeChild(bar.lastChild);
     }
 
-    /* =========================================================
-       6. БОЕВОЙ ПАСС (VIP НАГРАДЫ СТРОГО ПО hasPass)
-    ========================================================= */
+    /* 6. БОЕВОЙ ПАСС */
     const passTiers = [
       { 
         lvl: 2, 
@@ -2033,7 +2025,7 @@
             </div>
           </div>
 
-          <!-- VIP НАГРАДА (СТРОГО isVipPassActive) -->
+          <!-- VIP НАГРАДА -->
           <div class="reward-slot-box vip-slot ${!isVipPassActive ? 'locked-pass' : ''}">
             <div class="reward-slot-info">
               <span class="reward-type-label vip">VIP СИНДИКАТ ⭐</span>
@@ -2134,9 +2126,7 @@
       });
     }
 
-    /* =========================================================
-       7. МАГАЗИН КАСТОМИЗАЦИИ
-    ========================================================= */
+    /* 7. МАГАЗИН КАСТОМИЗАЦИИ */
     const cosmeticsData = {
       frames: [
         { id: 'frame-default', name: 'Базовая рамка', price: 0, reqLvl: 1 },
@@ -2234,9 +2224,7 @@
       }
     }
 
-    /* =========================================================
-       8. ОПЛАТА TELEGRAM STARS
-    ========================================================= */
+    /* 8. ОПЛАТА TELEGRAM STARS */
     let pendingCallback = null;
     let pendingTitle = '';
 
@@ -2355,9 +2343,7 @@
       }
     }
 
-    /* =========================================================
-       9. КИБЕР-КОЛЕСО ФОРТУНЫ
-    ========================================================= */
+    /* 9. КИБЕР-КОЛЕСО ФОРТУНЫ */
     const PRIZES_FREE = [
       { label: '1 000 🪙', val: 1000, color: '#161b33' },
       { label: '2 500 🪙', val: 2500, color: '#1c2346' },
@@ -2493,9 +2479,7 @@
       requestAnimationFrame(animate);
     }
 
-    /* =========================================================
-       10. СТАРТ ИНИЦИАЛИЗАЦИИ
-    ========================================================= */
+    /* 10. СТАРТ */
     initReels();
     updateBalance(0);
     updateSafe(0);
