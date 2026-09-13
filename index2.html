@@ -3,703 +3,1152 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Minecraft Slots</title>
+  <title>Cyber Vegas 2077</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
   
   <style>
     :root {
-      --mc-gui: #c6c6c6;
-      --mc-border-light: #ffffff;
-      --mc-border-dark: #555555;
-      --mc-green: #55ff55;
-      --mc-gold: #ffaa00;
-      /* Адаптивный размер ячейки: не ломается на узких экранах */
-      --cell-size: clamp(52px, 14vw, 62px);
+      --bg-color: #080811;
+      --card-bg: rgba(18, 18, 32, 0.85);
+      --neon-yellow: #fcee0a;
+      --neon-cyan: #00f0ff;
+      --neon-pink: #ff003c;
+      --neon-purple: #9d00ff;
+      --neon-green: #05ffa1;
+      --text-main: #e0e6ed;
+      --border-color: rgba(0, 240, 255, 0.25);
     }
 
     * {
       box-sizing: border-box;
-      user-select: none;
-      -webkit-user-select: none;
       margin: 0;
       padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     body {
-      background-color: #141414;
-      background-image: 
-        radial-gradient(#262626 15%, transparent 16%),
-        radial-gradient(#1e1e1e 15%, transparent 16%);
-      background-size: 16px 16px;
-      font-family: 'Press Start 2P', monospace, sans-serif;
-      color: #fff;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
       overflow-x: hidden;
-      font-size: 10px;
+      background-image: 
+        radial-gradient(circle at 50% 10%, rgba(157, 0, 255, 0.15) 0%, transparent 60%),
+        linear-gradient(rgba(8, 8, 17, 0.92), rgba(8, 8, 17, 0.92));
     }
 
     #app {
       width: 100%;
-      max-width: 420px;
+      max-width: 440px;
       min-height: 100vh;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+
+    /* Шапка приложения */
+    .cyber-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 10px 14px;
+      border-radius: 4px;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+      position: relative;
+    }
+
+    .cyber-header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 4px; height: 100%;
+      background: var(--neon-cyan);
+    }
+
+    .title-logo {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing: 1px;
+      color: var(--neon-yellow);
+      text-shadow: 0 0 8px rgba(252, 238, 10, 0.6);
+    }
+
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+    }
+
+    .balance-chip {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--neon-cyan);
+      padding: 4px 8px;
+      border-radius: 3px;
+      color: var(--neon-cyan);
+    }
+
+    .pass-status-pill {
+      font-size: 9px;
+      padding: 3px 6px;
+      border-radius: 2px;
+      font-weight: bold;
+    }
+    .pass-status-pill.active {
+      background: var(--neon-yellow);
+      color: #000;
+      box-shadow: 0 0 8px var(--neon-yellow);
+    }
+    .pass-status-pill.inactive {
+      background: #333;
+      color: #888;
+    }
+
+    /* Табы навигации */
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      background: rgba(0,0,0,0.4);
+      padding: 4px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px 4px;
+      background: transparent;
+      border: none;
+      color: #8a99a8;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      color: var(--neon-cyan);
+      border-bottom: 2px solid var(--neon-cyan);
+      text-shadow: 0 0 6px var(--neon-cyan);
+    }
+
+    .view-section {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+    .view-section.active {
+      display: flex;
+    }
+
+    /* ============================================================ */
+    /* СТИЛИ: ИГРА КРАШ (РАКЕТА)                                    */
+    /* ============================================================ */
+    .crash-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
       padding: 12px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      box-sizing: border-box;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }
 
-    /* Шапка */
-    .header-bar {
-      width: 100%;
+    .history-row {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
     }
-
-    .title-banner {
-      background: #2b2b2b;
-      color: var(--mc-gold);
-      border: 3px solid #000;
-      padding: 8px 10px;
+    .history-chip {
+      padding: 3px 6px;
       font-size: 10px;
-      text-shadow: 2px 2px #000;
+      font-family: 'Orbitron', sans-serif;
+      background: #101020;
+      border-radius: 3px;
+      border: 1px solid #2d2d48;
+      color: #9aa;
+    }
+    .history-chip.high {
+      border-color: var(--neon-green);
+      color: var(--neon-green);
+    }
+    .history-chip.mid {
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+    .history-chip.low {
+      border-color: var(--neon-pink);
+      color: var(--neon-pink);
     }
 
-    .bonus-badge {
-      background: #a800a8;
-      color: #fff;
-      padding: 8px;
-      border: 3px solid #000;
-      display: none;
-      font-size: 8px;
-      animation: pulse 1s infinite alternate;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); filter: drop-shadow(0 0 2px #ff55ff); }
-      100% { transform: scale(1.05); filter: drop-shadow(0 0 6px #ff55ff); }
-    }
-
-    /* Слот машина (Сетка 5х3) */
-    .slot-machine {
-      background: #8b8b8b;
-      border: 4px solid #373737;
-      box-shadow: 
-        inset -4px -4px 0px #ffffff,
-        inset 4px 4px 0px #373737;
-      padding: 6px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: auto 0;
-    }
-
-    .reels-container {
-      display: flex;
-      gap: 4px;
-      background: #111;
-      padding: 4px;
-      border: 3px solid #000;
-      overflow: hidden;
-    }
-
-    .reel {
-      width: var(--cell-size);
-      height: calc(var(--cell-size) * 3);
-      overflow: hidden;
-      position: relative;
-      background: #222;
-      flex: 0 0 var(--cell-size);
-      box-shadow: inset 0 0 6px #000;
-    }
-
-    .reel-strip {
-      display: flex;
-      flex-direction: column;
-      position: absolute;
-      top: 0;
-      left: 0;
+    .canvas-container {
       width: 100%;
-      will-change: transform;
+      height: 220px;
+      background: radial-gradient(circle at bottom left, #161233 0%, #090915 70%);
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
     }
 
-    .symbol {
-      width: var(--cell-size);
-      height: var(--cell-size);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-sizing: border-box;
-      padding: 6px;
-    }
-
-    .symbol svg {
+    canvas {
       width: 100%;
       height: 100%;
-      filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.7));
+      display: block;
     }
 
-    .symbol.highlight {
-      background: rgba(85, 255, 85, 0.35);
-      outline: 2px dashed var(--mc-green);
-    }
-
-    /* Инфо-панель */
-    .stats-panel {
-      width: 100%;
+    .multiplier-overlay {
+      position: absolute;
+      inset: 0;
       display: flex;
-      justify-content: space-between;
-      gap: 6px;
-      margin: 10px 0;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      pointer-events: none;
     }
 
-    .stat-card {
-      flex: 1;
-      background: #1e1e1e;
-      border: 3px solid #000;
-      box-shadow: inset 2px 2px 0px #111, inset -2px -2px 0px #444;
-      padding: 8px 4px;
-      text-align: center;
-    }
-
-    .stat-label {
-      font-size: 7px;
-      color: #999;
-      margin-bottom: 4px;
-    }
-
-    .stat-val {
-      font-size: 11px;
+    .multiplier-number {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 38px;
+      font-weight: 900;
       color: #fff;
+      text-shadow: 0 0 15px rgba(255,255,255,0.4);
     }
 
-    .stat-val.win {
-      color: var(--mc-green);
+    .crash-status-sub {
+      font-size: 12px;
+      letter-spacing: 2px;
+      font-family: 'Orbitron', sans-serif;
+      color: #7d8b99;
+      margin-top: -4px;
     }
 
-    /* Панель управления */
-    .controls {
-      width: 100%;
+    .crash-controls {
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
 
-    .bet-control {
+    .inputs-grid {
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .input-wrap label {
+      font-size: 10px;
+      color: #8a99a8;
+      letter-spacing: 1px;
+    }
+
+    .cyber-input {
+      background: #0d0d1a;
+      border: 1px solid #2a2a48;
+      padding: 8px 10px;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      border-radius: 3px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .cyber-input:focus {
+      border-color: var(--neon-cyan);
+    }
+    .cyber-input:disabled {
+      opacity: 0.5;
+    }
+
+    .cyber-btn {
+      padding: 14px;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 13px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.15s;
+    }
+
+    .cyber-btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-bet {
+      background: var(--neon-yellow);
+      color: #000;
+      box-shadow: 0 0 15px rgba(252, 238, 10, 0.4);
+    }
+
+    .btn-cashout {
+      background: var(--neon-green);
+      color: #000;
+      box-shadow: 0 0 15px rgba(5, 255, 161, 0.5);
+    }
+
+    .btn-crashed {
+      background: var(--neon-pink);
+      color: #fff;
+      box-shadow: 0 0 15px rgba(255, 0, 60, 0.5);
+    }
+
+    .btn-disabled {
+      background: #232338;
+      color: #72728f;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* ============================================================ */
+    /* СТИЛИ: БОЕВОЙ ПАСС (BATTLE PASS)                             */
+    /* ============================================================ */
+    .bp-header-card {
+      background: linear-gradient(135deg, rgba(157, 0, 255, 0.2), rgba(0, 240, 255, 0.1));
+      border: 1px solid var(--neon-purple);
+      padding: 12px;
+      border-radius: 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: var(--mc-gui);
-      padding: 6px 10px;
-      border: 3px solid #000;
-      color: #222;
     }
 
-    .btn-pixel {
-      background: #8b8b8b;
-      border: 3px solid #000;
-      box-shadow: inset 3px 3px 0 #fff, inset -3px -3px 0 #4a4a4a;
-      color: #fff;
-      font-family: 'Press Start 2P', monospace;
-      padding: 8px 14px;
-      font-size: 10px;
-      cursor: pointer;
-      text-shadow: 1px 1px #000;
-      outline: none;
-    }
-
-    .btn-pixel:active {
-      box-shadow: inset -3px -3px 0 #fff, inset 3px 3px 0 #4a4a4a;
-      transform: translateY(2px);
-    }
-
-    .btn-pixel:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .btn-spin {
-      background: #4caf50;
-      box-shadow: inset 4px 4px 0 #a5d6a7, inset -4px -4px 0 #1b5e20;
+    .bp-title-wrap h3 {
+      font-family: 'Orbitron', sans-serif;
       font-size: 14px;
-      padding: 16px;
       color: #fff;
-      width: 100%;
+    }
+    .bp-title-wrap p {
+      font-size: 11px;
+      color: #aab;
     }
 
-    .btn-spin:active {
-      box-shadow: inset -4px -4px 0 #a5d6a7, inset 4px 4px 0 #1b5e20;
+    .btn-buy-pass {
+      background: linear-gradient(90deg, #ff003c, #9d00ff);
+      border: none;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: bold;
+      font-size: 10px;
+      padding: 8px 12px;
+      border-radius: 3px;
+      cursor: pointer;
+      box-shadow: 0 0 12px rgba(157, 0, 255, 0.6);
     }
 
-    .btn-spin.freespin-mode {
-      background: #ab47bc;
-      box-shadow: inset 4px 4px 0 #e1bee7, inset -4px -4px 0 #4a148c;
+    .bp-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    /* Модальное окно */
-    .modal {
+    .bp-tier-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+    }
+
+    .bp-tier-card.locked {
+      opacity: 0.65;
+    }
+
+    .bp-tier-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 6px;
+    }
+
+    .bp-lvl-tag {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: bold;
+      color: var(--neon-cyan);
+    }
+
+    .bp-status-lbl {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #889;
+    }
+
+    .reward-slot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 4px;
+      border: 1px solid transparent;
+    }
+
+    .reward-slot.free-slot {
+      border-left: 3px solid var(--neon-cyan);
+    }
+
+    .reward-slot.premium-slot {
+      border-left: 3px solid var(--neon-purple);
+      background: rgba(157, 0, 255, 0.05);
+    }
+
+    .reward-slot.pass-locked {
+      filter: grayscale(0.85);
+      background: rgba(10, 10, 15, 0.5);
+    }
+
+    .reward-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .reward-type-tag {
+      font-size: 8px;
+      font-family: 'Orbitron', sans-serif;
+      color: #778;
+    }
+    .reward-type-tag.prem {
+      color: var(--neon-yellow);
+    }
+
+    .reward-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .btn-claim {
+      background: #1b1b30;
+      border: 1px solid #3d3d66;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      padding: 6px 12px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .btn-claim.ready {
+      background: var(--neon-cyan);
+      border-color: var(--neon-cyan);
+      color: #000;
+      font-weight: bold;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+    }
+
+    .btn-claim.claimed {
+      background: transparent;
+      border-color: #333;
+      color: #556;
+      cursor: default;
+    }
+
+    .btn-unlock-pass {
+      background: linear-gradient(90deg, #ff003c, #9d00ff);
+      border: none;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      padding: 6px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    /* Модалка покупки */
+    .cyber-modal {
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(4px);
       display: flex;
       justify-content: center;
       align-items: center;
-      z-index: 100;
       padding: 20px;
+      z-index: 1000;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s ease;
     }
-
-    .modal.active {
+    .cyber-modal.active {
       opacity: 1;
       pointer-events: auto;
     }
 
-    .modal-content {
-      background: var(--mc-gui);
-      border: 4px solid #000;
+    .modal-box {
+      background: #0f0f1c;
+      border: 2px solid var(--neon-purple);
+      border-radius: 6px;
       padding: 20px;
-      box-shadow: inset 4px 4px 0px #fff, inset -4px -4px 0px #555;
+      width: 100%;
       max-width: 320px;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 0 25px rgba(157, 0, 255, 0.4);
     }
 
-    .modal h2 {
-      font-size: 13px;
-      color: #800080;
-      margin-bottom: 12px;
-      text-shadow: 1px 1px #fff;
+    .modal-box h3 {
+      font-family: 'Orbitron', sans-serif;
+      color: var(--neon-yellow);
+      font-size: 16px;
     }
 
-    .modal p {
-      font-size: 9px;
-      color: #222;
-      line-height: 1.6;
-      margin-bottom: 16px;
+    .modal-box p {
+      font-size: 12px;
+      line-height: 1.5;
+      color: #bbc;
     }
   </style>
 </head>
 <body>
 
   <div id="app">
-    <header class="header-bar">
-      <div class="title-banner">⛏️ CRAFT SLOTS</div>
-      <div id="bonusBadge" class="bonus-badge">⚡ FS: <span id="fsCount">0</span> (x<span id="fsMult">1</span>)</div>
+    <!-- Шапка -->
+    <header class="cyber-header">
+      <div>
+        <div class="title-logo">CYBER VEGAS 2077</div>
+        <div style="font-size: 10px; color: #7f8c9b;" id="userLvlDisplay">LEVEL 2 OPERATOR</div>
+      </div>
+      <div class="user-badge">
+        <span class="balance-chip" id="balanceText">10,000 ED</span>
+        <span class="pass-status-pill inactive" id="passPill">FREE PASS</span>
+      </div>
     </header>
 
-    <main class="slot-machine">
-      <div class="reels-container" id="reelsContainer"></div>
-    </main>
+    <!-- Навигация -->
+    <nav class="tab-bar">
+      <button class="tab-btn active" id="tabCrashBtn">🚀 КРАШ (РАКЕТА)</button>
+      <button class="tab-btn" id="tabPassBtn">🎫 BATTLE PASS</button>
+    </nav>
 
-    <section class="stats-panel">
-      <div class="stat-card">
-        <div class="stat-label">БАЛАНС</div>
-        <div class="stat-val" id="balanceDisplay">1000</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">ВЫИГРЫШ</div>
-        <div class="stat-val win" id="winDisplay">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">ЛИНИЙ</div>
-        <div class="stat-val">15</div>
+    <!-- СЕКЦИЯ 1: ИГРА КРАШ -->
+    <section class="view-section active" id="crashView">
+      <div class="crash-card">
+        <!-- История коэффициентов -->
+        <div class="history-row" id="crashHistoryRow">
+          <span class="history-chip high">2.45x</span>
+          <span class="history-chip low">1.12x</span>
+          <span class="history-chip mid">1.84x</span>
+          <span class="history-chip high">5.20x</span>
+        </div>
+
+        <!-- Канвас полета ракеты -->
+        <div class="canvas-container">
+          <canvas id="rocketCanvas" width="400" height="220"></canvas>
+          <div class="multiplier-overlay">
+            <div class="multiplier-number" id="multValue">1.00x</div>
+            <div class="crash-status-sub" id="crashStatusSub">ОЖИДАНИЕ СТАВОК</div>
+          </div>
+        </div>
+
+        <!-- Панель ставок -->
+        <div class="crash-controls">
+          <div class="inputs-grid">
+            <div class="input-wrap">
+              <label>СТАВКА (ED)</label>
+              <input type="number" class="cyber-input" id="betAmountInput" value="500" min="50" step="50" />
+            </div>
+            <div class="input-wrap">
+              <label>АВТО-ВЫВОД</label>
+              <input type="number" class="cyber-input" id="autoCashoutInput" value="2.00" min="1.05" step="0.1" />
+            </div>
+          </div>
+
+          <button class="cyber-btn btn-bet" id="btnCrashAction">СТАВКА</button>
+        </div>
       </div>
     </section>
 
-    <footer class="controls">
-      <div class="bet-control">
-        <span style="font-size: 9px;">СТАВКА: <strong id="betDisplay">15</strong></span>
-        <div>
-          <button class="btn-pixel" id="btnBetDown">-</button>
-          <button class="btn-pixel" id="btnBetUp">+</button>
+    <!-- СЕКЦИЯ 2: БОЕВОЙ ПАСС -->
+    <section class="view-section" id="passView">
+      <div class="bp-header-card">
+        <div class="bp-title-wrap">
+          <h3>СЕЗОН 1: НЕОНОВЫЙ ВЗЛОМ</h3>
+          <p id="bpProgressText">Твой уровень: 2 • Пропуск не активен</p>
         </div>
+        <button class="btn-buy-pass" id="btnBuySeasonPass">🌟 300 STARS</button>
       </div>
-      <button class="btn-pixel btn-spin" id="btnSpin">КРУТИТЬ</button>
-    </footer>
+
+      <div class="bp-list" id="bpListContainer">
+        <!-- Уровни генерируются скриптом -->
+      </div>
+    </section>
   </div>
 
-  <div id="fsModal" class="modal">
-    <div class="modal-content">
-      <h2>ПОРТАЛ В ЭНД!</h2>
-      <p>Найдено 3+ Ока Края!<br><br>Начислено: <strong>10 ФРИСПИНОВ</strong>.<br>Каждый результативный спин даёт <strong>+1x</strong> к множителю!</p>
-      <button class="btn-pixel" id="btnCloseModal" style="background:#4caf50;">ПОЕХАЛИ</button>
+  <!-- Модальное окно покупки Пасса -->
+  <div class="cyber-modal" id="passModal">
+    <div class="modal-box">
+      <h3>АКТИВАЦИЯ CYBER PASS</h3>
+      <p>Разблокируйте эксклюзивные модификаторы для всех игр:<br>
+      • Квантовый щит в игре "Краш"<br>
+      • Билеты в Секретную VIP-комнату<br>
+      • Множители взлома сейфа x2</p>
+      <button class="cyber-btn btn-bet" id="btnConfirmBuyPass">ОПЛАТИТЬ 300 STARS</button>
+      <button class="cyber-btn btn-disabled" id="btnCloseModal">ОТМЕНА</button>
     </div>
   </div>
 
   <script>
-    // 1. Безопасная инициализация Telegram
-    let tg = null;
-    try {
-      if (window.Telegram && window.Telegram.WebApp) {
-        tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-      }
-    } catch (e) {
-      console.warn("Telegram WebApp API недоступен:", e);
+    /* ===================================================================
+       0. ИНИЦИАЛИЗАЦИЯ TELEGRAM WEBAPP
+    =================================================================== */
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
     }
 
     const triggerHaptic = (type = 'light') => {
       try {
-        if (tg && tg.HapticFeedback) {
+        if (tg?.HapticFeedback) {
           if (type === 'win') tg.HapticFeedback.notificationOccurred('success');
-          else if (type === 'bonus') tg.HapticFeedback.notificationOccurred('warning');
+          else if (type === 'crash') tg.HapticFeedback.notificationOccurred('error');
           else tg.HapticFeedback.impactOccurred(type);
         }
       } catch (e) {}
     };
 
-    // 2. Векторные SVG символы
-    const SYMBOL_SVGS = {
-      cobble: `<svg viewBox="0 0 32 32"><rect width="32" height="32" fill="#7d7d7d"/><rect x="4" y="4" width="8" height="6" fill="#5a5a5a"/><rect x="18" y="2" width="10" height="8" fill="#9e9e9e"/><rect x="10" y="12" width="12" height="8" fill="#4a4a4a"/><rect x="2" y="22" width="12" height="6" fill="#666666"/><rect x="18" y="20" width="10" height="8" fill="#3a3a3a"/></svg>`,
-      iron: `<svg viewBox="0 0 32 32"><polygon points="6,24 22,24 26,14 10,14" fill="#d8d8d8"/><polygon points="10,14 26,14 22,8 6,8" fill="#f0f0f0"/><polygon points="6,8 6,24 10,14" fill="#aeaeae"/><polygon points="22,8 26,14 22,24" fill="#8a8a8a"/></svg>`,
-      gold: `<svg viewBox="0 0 32 32"><polygon points="6,24 22,24 26,14 10,14" fill="#e5b300"/><polygon points="10,14 26,14 22,8 6,8" fill="#fff066"/><polygon points="6,8 6,24 10,14" fill="#c69200"/><polygon points="22,8 26,14 22,24" fill="#946d00"/></svg>`,
-      diamond: `<svg viewBox="0 0 32 32"><polygon points="16,2 26,10 16,30 6,10" fill="#4dedf4"/><polygon points="16,2 21,10 16,24 11,10" fill="#a9faff"/><polygon points="16,24 16,30 6,10 11,10" fill="#1cb8c2"/><polygon points="16,24 26,10 21,10" fill="#2ac1cb"/></svg>`,
-      netherite: `<svg viewBox="0 0 32 32"><rect x="4" y="6" width="24" height="20" rx="2" fill="#31292a"/><rect x="6" y="8" width="20" height="6" fill="#493e40"/><rect x="6" y="16" width="20" height="8" fill="#211b1c"/><path d="M4 6 L10 6 L8 26 L4 26 Z" fill="#1b1516"/><path d="M12 8 L18 8 L18 14 L12 14 Z" fill="#655659"/></svg>`,
-      wild: `<svg viewBox="0 0 32 32"><rect x="10" y="2" width="12" height="12" fill="#e5b300"/><rect x="8" y="14" width="16" height="10" fill="#c69200"/><rect x="4" y="8" width="4" height="10" fill="#e5b300"/><rect x="24" y="8" width="4" height="10" fill="#e5b300"/><rect x="12" y="5" width="3" height="3" fill="#3cd662"/><rect x="17" y="5" width="3" height="3" fill="#3cd662"/><rect x="12" y="24" width="8" height="6" fill="#e5b300"/></svg>`,
-      scatter: `<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="#0b4d42"/><circle cx="16" cy="16" r="10" fill="#17836d"/><ellipse cx="16" cy="16" rx="4" ry="7" fill="#000000"/><circle cx="16" cy="14" r="2" fill="#a4fbe8"/></svg>`
+    /* ===================================================================
+       1. СТЕЙТ ПОЛЬЗОВАТЕЛЯ И ДАННЫЕ
+    =================================================================== */
+    const USER_STATE = {
+      level: 2,
+      balance: 10000,
+      hasPass: false,
+      claimedRewards: [] // ID полученных наград
     };
 
-    const SYMBOLS = [
-      { id: 'cobble', name: 'Булыжник', weight: 38, pays: { 3: 1.5, 4: 3, 5: 5 } },
-      { id: 'iron', name: 'Железо', weight: 26, pays: { 3: 2, 4: 5, 5: 10 } },
-      { id: 'gold', name: 'Золото', weight: 16, pays: { 3: 3, 4: 8, 5: 20 } },
-      { id: 'diamond', name: 'Алмаз', weight: 9, pays: { 3: 5, 4: 15, 5: 50 } },
-      { id: 'netherite', name: 'Незерит', weight: 4, pays: { 3: 10, 4: 30, 5: 100 } },
-      { id: 'wild', name: 'Wild', weight: 4, isWild: true },
-      { id: 'scatter', name: 'Scatter', weight: 3, isScatter: true }
+    const BATTLE_PASS_TIERS = [
+      {
+        level: 1,
+        freeReward: { id: 'free_1', title: '5,000 ED', amount: 5000 },
+        premiumReward: { id: 'prem_1', title: '🎛️ Взлом Сейфа x2', desc: 'Удваивает куш сейфа' }
+      },
+      {
+        level: 2,
+        freeReward: { id: 'free_2', title: '15,000 ED', amount: 15000 },
+        premiumReward: { id: 'prem_2', title: '🎟️ VIP-Билет', desc: 'Проходка в спец-комнату' }
+      },
+      {
+        level: 3,
+        freeReward: { id: 'free_3', title: '30,000 ED', amount: 30000 },
+        premiumReward: { id: 'prem_3', title: '🛡️ Квантовый Щит', desc: 'Спасает ставку при краше < 1.2x' }
+      }
     ];
 
-    const PAYLINES = [
-      [1, 1, 1, 1, 1],
-      [0, 0, 0, 0, 0],
-      [2, 2, 2, 2, 2],
-      [0, 1, 2, 1, 0],
-      [2, 1, 0, 1, 2],
-      [0, 0, 1, 2, 2],
-      [2, 2, 1, 0, 0],
-      [1, 0, 0, 0, 1],
-      [1, 2, 2, 2, 1],
-      [0, 1, 0, 1, 0],
-      [2, 1, 2, 1, 2],
-      [1, 0, 1, 0, 1],
-      [1, 2, 1, 2, 1],
-      [0, 1, 1, 1, 0],
-      [2, 1, 1, 1, 2]
-    ];
+    /* ===================================================================
+       2. МОДУЛЬ БОЕВОГО ПАССА (ИСПРАВЛЕННАЯ ЛОГИКА)
+    =================================================================== */
+    function renderBattlePass() {
+      const container = document.getElementById('bpListContainer');
+      container.innerHTML = '';
 
-    const BET_LEVELS = [15, 30, 45, 75, 150, 300, 750];
-    let currentBetIndex = 0;
-    let balance = 1000;
-    let isSpinning = false;
-    let freeSpinsRemaining = 0;
-    let freeSpinMultiplier = 1;
+      document.getElementById('passPill').className = `pass-status-pill ${USER_STATE.hasPass ? 'active' : 'inactive'}`;
+      document.getElementById('passPill').innerText = USER_STATE.hasPass ? 'PREMIUM PASS' : 'FREE PASS';
+      document.getElementById('bpProgressText').innerText = `Твой уровень: ${USER_STATE.level} • ${USER_STATE.hasPass ? 'Пасс активен' : 'Пасс не куплен'}`;
 
-    const REEL_COUNT = 5;
-    const ROW_COUNT = 3;
-    let currentGrid = [];
-
-    function getRandomSymbol() {
-      const totalWeight = SYMBOLS.reduce((acc, s) => acc + s.weight, 0);
-      let rand = Math.random() * totalWeight;
-      for (const sym of SYMBOLS) {
-        if (rand < sym.weight) return sym;
-        rand -= sym.weight;
+      if (USER_STATE.hasPass) {
+        document.getElementById('btnBuySeasonPass').style.display = 'none';
       }
-      return SYMBOLS[0];
+
+      BATTLE_PASS_TIERS.forEach(tier => {
+        const isReached = USER_STATE.level >= tier.level;
+        const isFreeClaimed = USER_STATE.claimedRewards.includes(tier.freeReward.id);
+        const isPremClaimed = USER_STATE.claimedRewards.includes(tier.premiumReward.id);
+
+        const card = document.createElement('div');
+        card.className = `bp-tier-card ${isReached ? 'reached' : 'locked'}`;
+
+        card.innerHTML = `
+          <div class="bp-tier-header">
+            <span class="bp-lvl-tag">УРОВЕНЬ ${tier.level}</span>
+            <span class="bp-status-lbl">${isReached ? 'ДОСТИГНУТ' : 'ЗАБЛОКИРОВАН'}</span>
+          </div>
+
+          <!-- БАЗОВАЯ НАГРАДА: Доступна БЕЗ покупки пасса -->
+          <div class="reward-slot free-slot">
+            <div class="reward-meta">
+              <span class="reward-type-tag">БАЗОВАЯ НАГРАДА</span>
+              <span class="reward-name">🪙 ${tier.freeReward.title}</span>
+            </div>
+            <div>
+              ${isFreeClaimed ? `
+                <button class="btn-claim claimed" disabled>ПОЛУЧЕНО</button>
+              ` : `
+                <button class="btn-claim ${isReached ? 'ready' : ''}" 
+                  ${!isReached ? 'disabled' : ''} 
+                  onclick="claimReward('${tier.freeReward.id}', 'FREE', ${tier.freeReward.amount})">
+                  ${isReached ? 'ЗАБРАТЬ' : 'ЗАКРЫТО'}
+                </button>
+              `}
+            </div>
+          </div>
+
+          <!-- ЭКСКЛЮЗИВ ПАССА: Строгое условие hasPass === true -->
+          <div class="reward-slot premium-slot ${!USER_STATE.hasPass ? 'pass-locked' : ''}">
+            <div class="reward-meta">
+              <span class="reward-type-tag prem">CYBER PASS ⭐</span>
+              <span class="reward-name">${tier.premiumReward.title}</span>
+            </div>
+            <div>
+              ${!USER_STATE.hasPass ? `
+                <button class="btn-unlock-pass" onclick="openPassModal()">🔒 КУПИТЬ PASS</button>
+              ` : isPremClaimed ? `
+                <button class="btn-claim claimed" disabled>ПОЛУЧЕНО</button>
+              ` : `
+                <button class="btn-claim ${isReached ? 'ready' : ''}" 
+                  ${!isReached ? 'disabled' : ''} 
+                  onclick="claimReward('${tier.premiumReward.id}', 'PREMIUM', 0)">
+                  ${isReached ? 'АКТИВИРОВАТЬ' : 'ЗАКРЫТО'}
+                </button>
+              `}
+            </div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
     }
 
-    function createSymbolElement(sym) {
-      const cell = document.createElement('div');
-      cell.className = 'symbol';
-      cell.dataset.id = sym.id;
-      cell.innerHTML = SYMBOL_SVGS[sym.id] || '';
-      return cell;
-    }
+    // Защищенный метод получения наград
+    window.claimReward = function(rewardId, type, amount) {
+      if (USER_STATE.claimedRewards.includes(rewardId)) return;
 
-    function initReels() {
-      const reelsContainer = document.getElementById('reelsContainer');
-      if (!reelsContainer) return;
-      
-      reelsContainer.innerHTML = '';
-      currentGrid = [];
-
-      for (let r = 0; r < REEL_COUNT; r++) {
-        const reel = document.createElement('div');
-        reel.className = 'reel';
-        reel.id = `reel-${r}`;
-
-        const strip = document.createElement('div');
-        strip.className = 'reel-strip';
-        strip.id = `strip-${r}`;
-
-        const reelSymbols = [];
-        for (let row = 0; row < ROW_COUNT; row++) {
-          const sym = getRandomSymbol();
-          reelSymbols.push(sym);
-          strip.appendChild(createSymbolElement(sym));
-        }
-
-        currentGrid.push(reelSymbols);
-        reel.appendChild(strip);
-        reelsContainer.appendChild(reel);
-      }
-    }
-
-    async function spin() {
-      const currentBet = BET_LEVELS[currentBetIndex];
-      if (isSpinning) return;
-      if (freeSpinsRemaining === 0 && balance < currentBet) {
-        alert('Недостаточно монет!');
+      // КРИТИЧЕСКАЯ ЗАЩИТА: Нельзя забрать премиум без флага hasPass
+      if (type === 'PREMIUM' && !USER_STATE.hasPass) {
+        alert('Ошибка доступа! Требуется Cyber Pass за 300 Stars.');
         return;
       }
 
-      isSpinning = true;
-      toggleControls(false);
-      clearHighlights();
-      document.getElementById('winDisplay').innerText = '0';
-
-      if (freeSpinsRemaining === 0) {
-        balance -= currentBet;
-      } else {
-        freeSpinsRemaining--;
-        updateFSBadge();
-      }
-      updateStats();
-      triggerHaptic('light');
-
-      const nextGrid = [];
-      for (let r = 0; r < REEL_COUNT; r++) {
-        const col = [];
-        for (let row = 0; row < ROW_COUNT; row++) {
-          col.push(getRandomSymbol());
-        }
-        nextGrid.push(col);
+      USER_STATE.claimedRewards.push(rewardId);
+      if (amount > 0) {
+        USER_STATE.balance += amount;
+        updateUI();
       }
 
-      const animationPromises = [];
-      const SPIN_COUNT = 20;
+      triggerHaptic('win');
+      renderBattlePass();
+    };
 
-      for (let r = 0; r < REEL_COUNT; r++) {
-        const strip = document.getElementById(`strip-${r}`);
-        const reel = document.getElementById(`reel-${r}`);
-        const cellHeight = reel.clientHeight / 3;
+    window.openPassModal = function() {
+      document.getElementById('passModal').classList.add('active');
+    };
 
-        strip.innerHTML = '';
-        currentGrid[r].forEach(s => strip.appendChild(createSymbolElement(s)));
+    document.getElementById('btnCloseModal').onclick = () => {
+      document.getElementById('passModal').classList.remove('active');
+    };
 
-        for (let i = 0; i < SPIN_COUNT; i++) {
-          strip.appendChild(createSymbolElement(getRandomSymbol()));
-        }
+    document.getElementById('btnBuySeasonPass').onclick = openPassModal;
 
-        nextGrid[r].forEach(s => strip.appendChild(createSymbolElement(s)));
-
-        const duration = 1.0 + r * 0.22;
-        const totalDistance = (SPIN_COUNT + ROW_COUNT) * cellHeight;
-
-        strip.style.transition = `transform ${duration}s cubic-bezier(0.2, 0.85, 0.35, 1.0)`;
-        strip.style.transform = `translateY(-${totalDistance}px)`;
-
-        const promise = new Promise(resolve => {
-          setTimeout(() => {
-            triggerHaptic('selection');
-            strip.style.transition = 'none';
-            strip.style.transform = 'translateY(0px)';
-            strip.innerHTML = '';
-            nextGrid[r].forEach(s => strip.appendChild(createSymbolElement(s)));
-            resolve();
-          }, duration * 1000);
-        });
-
-        animationPromises.push(promise);
+    document.getElementById('btnConfirmBuyPass').onclick = () => {
+      // Имитация или реальный invoice
+      if (tg && tg.openInvoice) {
+        // tg.openInvoice('INVOICE_URL', (status) => { ... })
       }
 
-      await Promise.all(animationPromises);
-      currentGrid = nextGrid;
-      evaluateResults(currentBet);
-    }
+      USER_STATE.hasPass = true;
+      triggerHaptic('win');
+      document.getElementById('passModal').classList.remove('active');
+      renderBattlePass();
+    };
 
-    function evaluateResults(totalBet) {
-      const lineBet = totalBet / PAYLINES.length;
-      let totalWin = 0;
-      let winningCoords = [];
+    /* ===================================================================
+       3. МОДУЛЬ ИГРЫ КРАШ (РАКЕТА) — СИНХРОНИЗАЦИЯ И FSM
+    =================================================================== */
+    const CRASH_STATES = {
+      IDLE: 'IDLE',
+      STARTING: 'STARTING',
+      FLYING: 'FLYING',
+      CRASHED: 'CRASHED',
+      COOLDOWN: 'COOLDOWN'
+    };
 
-      PAYLINES.forEach((line) => {
-        let firstSym = null;
-        let matchCount = 0;
-        let coords = [];
+    class CrashEngine {
+      constructor() {
+        this.state = CRASH_STATES.IDLE;
+        this.multiplier = 1.00;
+        this.crashTarget = 0;
+        
+        this.userBet = 0;
+        this.hasBet = false;
+        this.hasCashedOut = false;
 
-        for (let reelIdx = 0; reelIdx < REEL_COUNT; reelIdx++) {
-          const rowIdx = line[reelIdx];
-          const sym = currentGrid[reelIdx][rowIdx];
+        this.rafId = null;
+        this.startTime = 0;
+        this.cooldownTimer = null;
+        this.watchdogTimer = null;
 
-          if (sym.isScatter) break;
+        // DOM
+        this.canvas = document.getElementById('rocketCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.btnAction = document.getElementById('btnCrashAction');
+        this.multDisplay = document.getElementById('multValue');
+        this.statusSub = document.getElementById('crashStatusSub');
+        this.betInput = document.getElementById('betAmountInput');
+        this.autoCashInput = document.getElementById('autoCashoutInput');
+        this.historyRow = document.getElementById('crashHistoryRow');
 
-          if (!firstSym) {
-            firstSym = sym;
-            matchCount++;
-            coords.push({ reel: reelIdx, row: rowIdx });
-          } else if (sym.id === firstSym.id || sym.isWild || firstSym.isWild) {
-            if (firstSym.isWild && !sym.isWild) firstSym = sym;
-            matchCount++;
-            coords.push({ reel: reelIdx, row: rowIdx });
-          } else {
+        this.btnAction.onclick = () => this.handleButtonClick();
+        this.setFSMState(CRASH_STATES.IDLE);
+      }
+
+      setFSMState(newState, payload = {}) {
+        this.state = newState;
+
+        switch (newState) {
+          case CRASH_STATES.IDLE:
+            this.cleanupLoop();
+            this.multiplier = 1.00;
+            this.hasBet = false;
+            this.hasCashedOut = false;
+
+            this.multDisplay.innerText = '1.00x';
+            this.multDisplay.style.color = '#fff';
+            this.statusSub.innerText = 'ОЖИДАНИЕ СТАВОК';
+
+            this.btnAction.disabled = false;
+            this.btnAction.innerText = 'СТАВКА';
+            this.btnAction.className = 'cyber-btn btn-bet';
+            this.betInput.disabled = false;
+            this.autoCashInput.disabled = false;
+            this.drawRocket(0, 1.00);
             break;
-          }
-        }
 
-        if (matchCount >= 3 && firstSym && !firstSym.isScatter) {
-          const baseSym = firstSym.isWild ? SYMBOLS.find(s => s.id === 'netherite') : firstSym;
-          const mult = baseSym.pays[matchCount] || 0;
-          if (mult > 0) {
-            totalWin += lineBet * mult;
-            winningCoords = winningCoords.concat(coords);
-          }
-        }
-      });
+          case CRASH_STATES.STARTING:
+            this.statusSub.innerText = `СТАРТ ЧЕРЕЗ ${payload.sec}с`;
+            if (this.hasBet) {
+              this.btnAction.innerText = 'В ИГРЕ';
+              this.btnAction.disabled = true;
+              this.btnAction.className = 'cyber-btn btn-disabled';
+            }
+            this.betInput.disabled = true;
+            this.autoCashInput.disabled = true;
+            break;
 
-      let scatterCoords = [];
-      for (let r = 0; r < REEL_COUNT; r++) {
-        for (let row = 0; row < ROW_COUNT; row++) {
-          if (currentGrid[r][row].isScatter) {
-            scatterCoords.push({ reel: r, row });
-          }
+          case CRASH_STATES.FLYING:
+            this.statusSub.innerText = 'ПОЛЁТ В КОСМОС...';
+            if (this.hasBet && !this.hasCashedOut) {
+              this.btnAction.disabled = false;
+              this.btnAction.innerText = 'ЗАБРАТЬ';
+              this.btnAction.className = 'cyber-btn btn-cashout';
+            } else {
+              this.btnAction.disabled = true;
+              this.btnAction.innerText = 'УЛЁТ В КОСМОС...';
+              this.btnAction.className = 'cyber-btn btn-disabled';
+            }
+            break;
+
+          case CRASH_STATES.CRASHED:
+            this.cleanupLoop();
+            this.clearWatchdog();
+
+            const finalM = payload.finalMultiplier || this.multiplier;
+            this.multDisplay.innerText = `${finalM.toFixed(2)}x`;
+            this.multDisplay.style.color = 'var(--neon-pink)';
+            this.statusSub.innerText = 'КРАШ! СВЯЗЬ ПОТЕРЯНА';
+
+            this.btnAction.disabled = true;
+            this.btnAction.innerText = 'АВАРИЯ!';
+            this.btnAction.className = 'cyber-btn btn-crashed';
+
+            triggerHaptic('crash');
+            this.addHistory(finalM);
+
+            // Кулдаун 3.5 секунды с гарантированным возвратом в IDLE
+            this.startCooldown(3500);
+            break;
+
+          case CRASH_STATES.COOLDOWN:
+            this.btnAction.disabled = true;
+            this.btnAction.className = 'cyber-btn btn-disabled';
+            break;
         }
       }
 
-      if (freeSpinsRemaining > 0 || freeSpinMultiplier > 1) {
-        totalWin *= freeSpinMultiplier;
+      handleButtonClick() {
+        if (this.state === CRASH_STATES.IDLE) {
+          const val = parseFloat(this.betInput.value);
+          if (isNaN(val) || val <= 0 || val > USER_STATE.balance) {
+            alert('Недостаточно кредитов ED!');
+            return;
+          }
+
+          USER_STATE.balance -= val;
+          this.userBet = val;
+          this.hasBet = true;
+          this.hasCashedOut = false;
+          updateUI();
+          triggerHaptic('light');
+
+          this.btnAction.innerText = 'В ИГРЕ';
+          this.btnAction.disabled = true;
+          this.btnAction.className = 'cyber-btn btn-disabled';
+
+          // Запуск отсчета
+          this.startRoundCountdown();
+        } else if (this.state === CRASH_STATES.FLYING && this.hasBet && !this.hasCashedOut) {
+          // Кэшаут
+          this.cashout();
+        }
       }
 
-      if (winningCoords.length > 0) {
-        highlightSymbols(winningCoords);
+      cashout() {
+        if (this.hasCashedOut || this.state !== CRASH_STATES.FLYING) return;
+        this.hasCashedOut = true;
+
+        const win = Math.floor(this.userBet * this.multiplier);
+        USER_STATE.balance += win;
+        updateUI();
         triggerHaptic('win');
+
+        this.btnAction.disabled = true;
+        this.btnAction.innerText = `ВЗЯТО +${win}`;
+        this.btnAction.className = 'cyber-btn btn-cashout';
       }
 
-      if (scatterCoords.length >= 3) {
-        highlightSymbols(scatterCoords);
-        triggerHaptic('bonus');
-        setTimeout(() => triggerBonusMode(), 500);
+      startRoundCountdown() {
+        this.setFSMState(CRASH_STATES.STARTING, { sec: 3 });
+        let sec = 3;
+        const interval = setInterval(() => {
+          sec--;
+          if (sec > 0) {
+            this.statusSub.innerText = `СТАРТ ЧЕРЕЗ ${sec}с`;
+          } else {
+            clearInterval(interval);
+            this.startFlight();
+          }
+        }, 1000);
       }
 
-      if (freeSpinsRemaining > 0) {
-        if (totalWin > 0) {
-          freeSpinMultiplier++;
-          updateFSBadge();
+      startFlight() {
+        // Генерация точки краша по классическому алгоритму
+        const rand = Math.random();
+        // 5% шанс моментального краша на 1.00
+        if (rand < 0.05) {
+          this.crashTarget = 1.00;
+        } else {
+          this.crashTarget = parseFloat((0.95 / (1 - rand)).toFixed(2));
         }
-      } else if (freeSpinsRemaining === 0 && freeSpinMultiplier > 1) {
-        freeSpinMultiplier = 1;
-        updateFSBadge();
+
+        this.setFSMState(CRASH_STATES.FLYING);
+        this.startTime = performance.now();
+
+        // Запуск Watchdog: если через рассчитанное время ракета еще не крашнулась - форсировать
+        this.armWatchdog();
+
+        this.loop = this.loop.bind(this);
+        this.rafId = requestAnimationFrame(this.loop);
       }
 
-      balance += Math.round(totalWin);
-      document.getElementById('winDisplay').innerText = Math.round(totalWin);
-      updateStats();
+      loop(now) {
+        if (this.state !== CRASH_STATES.FLYING) return;
 
-      isSpinning = false;
-      toggleControls(true);
+        try {
+          const elapsed = (now - this.startTime) / 1000;
+          // Плавная экспонента роста
+          this.multiplier = parseFloat(Math.pow(Math.E, 0.07 * elapsed).toFixed(2));
 
-      if (freeSpinsRemaining > 0) {
-        setTimeout(() => {
-          if (!isSpinning) spin();
-        }, 1100);
+          // Проверка на авто-кэшаут
+          const autoM = parseFloat(this.autoCashInput.value);
+          if (this.hasBet && !this.hasCashedOut && autoM && this.multiplier >= autoM) {
+            this.cashout();
+          }
+
+          // Проверка наступления краша
+          if (this.multiplier >= this.crashTarget) {
+            this.setFSMState(CRASH_STATES.CRASHED, { finalMultiplier: this.crashTarget });
+            return;
+          }
+
+          this.multDisplay.innerText = `${this.multiplier.toFixed(2)}x`;
+          this.drawRocket(elapsed, this.multiplier);
+
+          this.rafId = requestAnimationFrame(this.loop);
+        } catch (err) {
+          console.error('[Crash] Error in tick, forcing crash:', err);
+          this.forceCrash(this.multiplier);
+        }
+      }
+
+      // Страховочный Watchdog-таймер (на случай сетевого бага или пропуска кадров)
+      armWatchdog() {
+        this.clearWatchdog();
+        // Расчетная длительность полета + 500мс запас
+        const expectedDurationMs = (Math.log(this.crashTarget) / 0.07) * 1000 + 500;
+        this.watchdogTimer = setTimeout(() => {
+          if (this.state === CRASH_STATES.FLYING) {
+            console.warn('[Watchdog] Force crashing hanging rocket.');
+            this.forceCrash(this.crashTarget);
+          }
+        }, Math.min(expectedDurationMs, 25000));
+      }
+
+      clearWatchdog() {
+        if (this.watchdogTimer) {
+          clearTimeout(this.watchdogTimer);
+          this.watchdogTimer = null;
+        }
+      }
+
+      forceCrash(finalM) {
+        this.cleanupLoop();
+        this.setFSMState(CRASH_STATES.CRASHED, { finalMultiplier: finalM });
+      }
+
+      cleanupLoop() {
+        if (this.rafId) {
+          cancelAnimationFrame(this.rafId);
+          this.rafId = null;
+        }
+      }
+
+      startCooldown(ms) {
+        this.setFSMState(CRASH_STATES.COOLDOWN);
+        let left = ms;
+        const step = 200;
+
+        this.cooldownTimer = setInterval(() => {
+          left -= step;
+          if (left <= 0) {
+            clearInterval(this.cooldownTimer);
+            this.cooldownTimer = null;
+            this.setFSMState(CRASH_STATES.IDLE);
+          } else {
+            this.btnAction.innerText = `РАУНД (${(left/1000).toFixed(1)}с)`;
+          }
+        }, step);
+      }
+
+      addHistory(mult) {
+        const chip = document.createElement('span');
+        chip.className = `history-chip ${mult >= 2.0 ? 'high' : mult >= 1.5 ? 'mid' : 'low'}`;
+        chip.innerText = `${mult.toFixed(2)}x`;
+        this.historyRow.insertBefore(chip, this.historyRow.firstChild);
+        if (this.historyRow.children.length > 7) {
+          this.historyRow.removeChild(this.historyRow.lastChild);
+        }
+      }
+
+      drawRocket(time, mult) {
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        const ctx = this.ctx;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Координаты полета по кривой Безье
+        const progress = Math.min((mult - 1) / 3, 1);
+        const x = 30 + progress * (w - 80);
+        const y = (h - 30) - Math.pow(progress, 1.4) * (h - 70);
+
+        // Сетка
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let i = 0; i < w; i += 40) { ctx.moveTo(i, 0); ctx.lineTo(i, h); }
+        for (let j = 0; j < h; j += 40) { ctx.moveTo(0, j); ctx.lineTo(w, j); }
+        ctx.stroke();
+
+        // Траектория
+        ctx.strokeStyle = 'var(--neon-cyan)';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.moveTo(30, h - 30);
+        ctx.quadraticCurveTo(w * 0.35, h - 30, x, y);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Ракета (треугольный спрайт)
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(-Math.PI / 4);
+        ctx.fillStyle = 'var(--neon-yellow)';
+        ctx.beginPath();
+        ctx.moveTo(0, -10);
+        ctx.lineTo(8, 10);
+        ctx.lineTo(-8, 10);
+        ctx.closePath();
+        ctx.fill();
+
+        // Огонь из сопла
+        ctx.fillStyle = 'var(--neon-pink)';
+        ctx.beginPath();
+        ctx.moveTo(-4, 10);
+        ctx.lineTo(4, 10);
+        ctx.lineTo(0, 10 + Math.random() * 12);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
       }
     }
 
-    function triggerBonusMode() {
-      freeSpinsRemaining += 10;
-      updateFSBadge();
-      document.getElementById('fsModal').classList.add('active');
+    /* ===================================================================
+       4. УПРАВЛЕНИЕ ИНТЕРФЕЙСОМ И ТАБАМИ
+    =================================================================== */
+    function updateUI() {
+      document.getElementById('balanceText').innerText = `${USER_STATE.balance.toLocaleString()} ED`;
+      document.getElementById('userLvlDisplay').innerText = `LEVEL ${USER_STATE.level} OPERATOR`;
     }
 
-    function updateFSBadge() {
-      const badge = document.getElementById('bonusBadge');
-      const countSpan = document.getElementById('fsCount');
-      const multSpan = document.getElementById('fsMult');
-      const spinBtn = document.getElementById('btnSpin');
+    const tabCrashBtn = document.getElementById('tabCrashBtn');
+    const tabPassBtn = document.getElementById('tabPassBtn');
+    const crashView = document.getElementById('crashView');
+    const passView = document.getElementById('passView');
 
-      if (freeSpinsRemaining > 0) {
-        badge.style.display = 'block';
-        countSpan.innerText = freeSpinsRemaining;
-        multSpan.innerText = freeSpinMultiplier;
-        spinBtn.innerText = `FREE SPIN (${freeSpinsRemaining})`;
-        spinBtn.classList.add('freespin-mode');
-      } else {
-        badge.style.display = 'none';
-        spinBtn.innerText = 'КРУТИТЬ';
-        spinBtn.classList.remove('freespin-mode');
-      }
-    }
+    tabCrashBtn.onclick = () => {
+      tabCrashBtn.classList.add('active');
+      tabPassBtn.classList.remove('active');
+      crashView.classList.add('active');
+      passView.classList.remove('active');
+    };
 
-    function highlightSymbols(coords) {
-      coords.forEach(c => {
-        const strip = document.getElementById(`strip-${c.reel}`);
-        if (strip && strip.children[c.row]) {
-          strip.children[c.row].classList.add('highlight');
-        }
-      });
-    }
+    tabPassBtn.onclick = () => {
+      tabPassBtn.classList.add('active');
+      tabCrashBtn.classList.remove('active');
+      passView.classList.add('active');
+      crashView.classList.remove('active');
+      renderBattlePass();
+    };
 
-    function clearHighlights() {
-      document.querySelectorAll('.symbol.highlight').forEach(el => el.classList.remove('highlight'));
-    }
-
-    function updateStats() {
-      document.getElementById('balanceDisplay').innerText = balance;
-      document.getElementById('betDisplay').innerText = BET_LEVELS[currentBetIndex];
-    }
-
-    function toggleControls(enable) {
-      document.getElementById('btnSpin').disabled = !enable;
-      document.getElementById('btnBetUp').disabled = !enable || freeSpinsRemaining > 0;
-      document.getElementById('btnBetDown').disabled = !enable || freeSpinsRemaining > 0;
-    }
-
-    // Инициализация при полной готовности DOM
-    function initGame() {
-      initReels();
-      updateStats();
-
-      document.getElementById('btnSpin').addEventListener('click', () => spin());
-      
-      document.getElementById('btnBetUp').addEventListener('click', () => {
-        if (currentBetIndex < BET_LEVELS.length - 1) {
-          currentBetIndex++;
-          updateStats();
-          triggerHaptic('light');
-        }
-      });
-
-      document.getElementById('btnBetDown').addEventListener('click', () => {
-        if (currentBetIndex > 0) {
-          currentBetIndex--;
-          updateStats();
-          triggerHaptic('light');
-        }
-      });
-
-      document.getElementById('btnCloseModal').addEventListener('click', () => {
-        document.getElementById('fsModal').classList.remove('active');
-        if (freeSpinsRemaining > 0 && !isSpinning) spin();
-      });
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initGame);
-    } else {
-      initGame();
-    }
+    // Старт игры при загрузке
+    document.addEventListener('DOMContentLoaded', () => {
+      updateUI();
+      renderBattlePass();
+      new CrashEngine();
+    });
   </script>
 </body>
 </html>
