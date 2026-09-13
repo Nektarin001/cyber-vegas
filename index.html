@@ -703,7 +703,7 @@
     .cosmetic-btn.active { background: var(--green); color: #031408; cursor: default; }
     .cosmetic-btn.locked { background: #1e293b; color: #64748b; cursor: not-allowed; }
 
-    /* НАВИГАЦИЯ */
+    /* НАВИГАЦИЯ (6 ВКЛАДОК) */
     .tabbar {
       position: fixed;
       bottom: 0;
@@ -775,6 +775,19 @@
       width: 100%;
     }
 
+    .reset-progress-btn {
+      background: rgba(255, 42, 133, 0.15);
+      border: 1px solid var(--pink);
+      color: var(--pink);
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      text-transform: uppercase;
+    }
+
     .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .stat-card { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 4px; }
     .stat-title { font-size: 10px; color: #94a3b8; font-weight: 500; }
@@ -837,6 +850,7 @@
         <div class="stat-card"><span class="stat-title">СПИНОВ</span><span class="stat-val" id="statSpins">0</span></div>
         <div class="stat-card"><span class="stat-title">ДЖЕКПОТЫ</span><span class="stat-val" id="statJackpots">0</span></div>
       </div>
+      <button class="reset-progress-btn" onclick="resetEconomyProgress()">СБРОСИТЬ БАЛАНС (ДО 1 500 🪙)</button>
       <button class="modal-btn-close" onclick="closeModal('profileModal')">ЗАКРЫТЬ</button>
     </div>
   </div>
@@ -876,31 +890,18 @@
       </div>
       <div class="balance-badge">
         <span>🪙</span>
-        <span class="balance-val" id="balanceText">1 000</span>
+        <span class="balance-val" id="balanceText">1 500</span>
       </div>
     </header>
 
-    <!-- ВКЛАДКА 1: СЛОТЫ 3х3 -->
+    <!-- ВКЛАДКА 1: ЧИСТЫЕ СЛОТЫ 3х3 (БЕЗ КОЛЕСА) -->
     <main class="view active" id="view-slots">
-      <div class="wheel-card" style="background: var(--card-bg, #111424); border: 1px solid var(--border, #00f0ff33); border-radius: 16px; padding: 16px; text-align: center; box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);">
-        <div style="font-size: 15px; font-weight: 800; color: #fff; letter-spacing: 1px; margin-bottom: 2px;">КИБЕР-КОЛЕСО ФОРТУНЫ</div>
-        <div id="wheel-timer-text" style="font-size: 11px; color: #8892b0; margin-bottom: 12px;">Бесплатный спин раз в 12 часов</div>
-
-        <div style="position: relative; width: 220px; height: 220px; margin: 0 auto 12px auto;">
-          <div style="position: absolute; top: -8px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 18px solid #ff0055; z-index: 10; filter: drop-shadow(0 0 6px #ff0055);"></div>
-          <canvas id="wheelCanvas" width="220" height="220" style="border-radius: 50%; box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);"></canvas>
-        </div>
-
-        <button id="btnFreeSpin" onclick="spinWheel(false)" style="background: linear-gradient(90deg, #00f0ff, #7000ff); border: none; color: #000; font-weight: 800; font-size: 13px; padding: 11px 20px; border-radius: 10px; cursor: pointer; width: 100%; box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); text-transform: uppercase;">Крутить бесплатно</button>
-        <button id="btnPaidSpin" onclick="openPayment('Премиум-спин Колеса', '15 ⭐', () => spinWheel(true))" style="display: none; background: rgba(255, 184, 0, 0.15); border: 1px solid #ffb800; color: #ffb800; font-weight: 800; font-size: 13px; padding: 11px 20px; border-radius: 10px; cursor: pointer; width: 100%;">Крутить за 15 ⭐ (VIP Джекпот)</button>
-      </div>
-
       <div class="safe-banner">
         <div class="safe-left">
           <span class="safe-icon">💼</span>
           <div>
             <div class="safe-title" id="safeTitleTxt">КИБЕР-СЕЙФ (5% СО СПИНОВ)</div>
-            <div class="safe-val" id="safeVal">2 500 🪙</div>
+            <div class="safe-val" id="safeVal">500 🪙</div>
           </div>
         </div>
         <button class="safe-crack-btn" onclick="openPayment('Взлом Сейфа-Копилки', '50 ⭐', crackSafeCallback)">ВЗЛОМАТЬ (50 ⭐)</button>
@@ -942,10 +943,10 @@
         </div>
 
         <div class="bet-selector">
-          <button class="bet-btn active" onclick="setSlotBet(50, this)">50</button>
+          <button class="bet-btn active" onclick="setSlotBet(25, this)">25</button>
+          <button class="bet-btn" onclick="setSlotBet(50, this)">50</button>
           <button class="bet-btn" onclick="setSlotBet(100, this)">100</button>
           <button class="bet-btn" onclick="setSlotBet(250, this)">250</button>
-          <button class="bet-btn" onclick="setSlotBet(500, this)">500</button>
           <button class="bet-btn max-bet" id="maxBetBtn" onclick="setSlotBet('MAX', this)">MAX</button>
         </div>
 
@@ -974,7 +975,7 @@
         <div class="crash-inputs-grid">
           <div class="crash-input-box">
             <span class="crash-input-label">СТАВКА (МОНЕТ)</span>
-            <input type="number" class="crash-num-input" id="crashBetInput" value="100" min="10" step="10">
+            <input type="number" class="crash-num-input" id="crashBetInput" value="50" min="10" step="10">
           </div>
           <div class="crash-input-box">
             <span class="crash-input-label">АВТОЗАБОР (X)</span>
@@ -983,20 +984,36 @@
         </div>
 
         <div class="bet-selector">
-          <button class="bet-btn active" onclick="setCrashBetAmt(100, this)">100</button>
+          <button class="bet-btn active" onclick="setCrashBetAmt(50, this)">50</button>
+          <button class="bet-btn" onclick="setCrashBetAmt(100, this)">100</button>
+          <button class="bet-btn" onclick="setCrashBetAmt(250, this)">250</button>
           <button class="bet-btn" onclick="setCrashBetAmt(500, this)">500</button>
-          <button class="bet-btn" onclick="setCrashBetAmt(1000, this)">1K</button>
-          <button class="bet-btn" onclick="setCrashBetAmt(5000, this)">5K</button>
         </div>
 
         <div class="crash-actions">
-          <button class="crash-btn-action ready" id="rocketActionBtn" onclick="handleCrashActionBtn()">ПОСТАВИТЬ (100 🪙)</button>
+          <button class="crash-btn-action ready" id="rocketActionBtn" onclick="handleCrashActionBtn()">ПОСТАВИТЬ (50 🪙)</button>
           <button class="crash-free-btn" onclick="resetAutoCashout()" title="Сбросить автозабор">💸</button>
         </div>
       </div>
     </main>
 
-    <!-- ВКЛАДКА 3: КИБЕР-ПАСС -->
+    <!-- ВКЛАДКА 3: ВЫДЕЛЕННОЕ КОЛЕСО ФОРТУНЫ -->
+    <main class="view" id="view-wheel">
+      <div class="wheel-card" style="background: var(--card-bg, #111424); border: 1.5px solid var(--border, #00f0ff33); border-radius: 16px; padding: 20px 16px; text-align: center; box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);">
+        <div style="font-size: 16px; font-weight: 900; color: #fff; letter-spacing: 1.5px; margin-bottom: 4px;">КИБЕР-КОЛЕСО ФОРТУНЫ</div>
+        <div id="wheel-timer-text" style="font-size: 11px; color: #8892b0; margin-bottom: 16px;">Бесплатный спин раз в 12 часов</div>
+
+        <div style="position: relative; width: 230px; height: 230px; margin: 0 auto 16px auto;">
+          <div style="position: absolute; top: -8px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 18px solid #ff0055; z-index: 10; filter: drop-shadow(0 0 6px #ff0055);"></div>
+          <canvas id="wheelCanvas" width="230" height="230" style="border-radius: 50%; box-shadow: 0 0 25px rgba(0, 240, 255, 0.35);"></canvas>
+        </div>
+
+        <button id="btnFreeSpin" onclick="spinWheel(false)" style="background: linear-gradient(90deg, #00f0ff, #7000ff); border: none; color: #000; font-weight: 800; font-size: 13px; padding: 13px 20px; border-radius: 10px; cursor: pointer; width: 100%; box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); text-transform: uppercase;">Крутить бесплатно</button>
+        <button id="btnPaidSpin" onclick="openPayment('Премиум-спин Колеса', '15 ⭐', () => spinWheel(true))" style="display: none; background: rgba(255, 184, 0, 0.15); border: 1.5px solid #ffb800; color: #ffb800; font-weight: 800; font-size: 13px; padding: 13px 20px; border-radius: 10px; cursor: pointer; width: 100%;">Крутить за 15 ⭐ (VIP Джекпот)</button>
+      </div>
+    </main>
+
+    <!-- ВКЛАДКА 4: КИБЕР-ПАСС -->
     <main class="view" id="view-pass">
       <div class="pass-container">
         <div class="pass-header">
@@ -1010,7 +1027,7 @@
       </div>
     </main>
 
-    <!-- ВКЛАДКА 4: СТИЛЬ И КАСТОМИЗАЦИЯ -->
+    <!-- ВКЛАДКА 5: СТИЛЬ И КАСТОМИЗАЦИЯ -->
     <main class="view" id="view-style">
       <div class="custom-sec-title">РАМКИ АВАТАРКИ (ПРЕВЬЮ)</div>
       <div class="cosmetic-list" id="avatarFrameList"></div>
@@ -1019,7 +1036,7 @@
       <div class="cosmetic-list" id="nameStyleList"></div>
     </main>
 
-    <!-- ВКЛАДКА 5: МАГАЗИН МОНЕТ -->
+    <!-- ВКЛАДКА 6: МАГАЗИН МОНЕТ -->
     <main class="view" id="view-shop">
       <div style="display: flex; flex-direction: column; gap: 10px;">
         <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;">
@@ -1027,7 +1044,7 @@
             <span style="font-size: 24px;">🔋</span>
             <div>
               <div style="font-size: 13px; font-weight: 700; color: #fff;">ПАК «НОВИЧОК»</div>
-              <div style="font-size: 11px; color: var(--cyan); font-weight: 600;">+5 000 МОНЕТ</div>
+              <div style="font-size: 11px; color: var(--cyan); font-weight: 600;">+2 500 МОНЕТ</div>
             </div>
           </div>
           <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;" onclick="processPayment('novice')">50 ⭐</button>
@@ -1038,7 +1055,7 @@
             <span style="font-size: 24px;">💎</span>
             <div>
               <div style="font-size: 13px; font-weight: 700; color: #fff;">ПАК «ХАКЕР ВЕГАСА»</div>
-              <div style="font-size: 11px; color: var(--cyan); font-weight: 600;">+35 000 МОНЕТ</div>
+              <div style="font-size: 11px; color: var(--cyan); font-weight: 600;">+10 000 МОНЕТ</div>
             </div>
           </div>
           <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;" onclick="processPayment('hacker')">150 ⭐</button>
@@ -1049,7 +1066,7 @@
             <span style="font-size: 24px;">👑</span>
             <div>
               <div style="font-size: 13px; font-weight: 700; color: #fff;">МАТРИЦА СИНДИКАТА</div>
-              <div style="font-size: 11px; color: var(--cyan); font-weight: 600;">+120 000 МОНЕТ</div>
+              <div style="font-size: 11px; color: var(--cyan); font-weight: 600;">+35 000 МОНЕТ</div>
             </div>
           </div>
           <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;" onclick="processPayment('syndicate')">400 ⭐</button>
@@ -1067,6 +1084,10 @@
         <div class="tab-icon">🚀</div>
         <span>КРАШ</span>
       </div>
+      <div class="tab-item" onclick="switchTab('wheel', this)">
+        <div class="tab-icon">🎡</div>
+        <span>КОЛЕСО</span>
+      </div>
       <div class="tab-item" onclick="switchTab('pass', this)">
         <div class="tab-icon">🎖️</div>
         <span>ПАСС</span>
@@ -1083,7 +1104,7 @@
   </div>
 
   <script>
-    /* 1. ГОРОДСКОЙ ФОН */
+    /* 1. TRON ГОРОДСКОЙ ФОН */
     const cityCanvas = document.getElementById('cityCanvas');
     const cityCtx = cityCanvas.getContext('2d');
     let cw, ch;
@@ -1233,11 +1254,11 @@
       toastTimer = setTimeout(() => { toast.classList.remove('show'); }, 2200);
     }
 
-    /* 3. СТЕЙТ ПОЛЬЗОВАТЕЛЯ */
-    let balance = parseInt(localStorage.getItem('tron_bal') || '5000', 10);
+    /* 3. СТЕЙТ ПОЛЬЗОВАТЕЛЯ И НОВАЯ ЭКОНОМИКА */
+    let balance = parseInt(localStorage.getItem('tron_bal') || '1500', 10);
     let currentLvl = parseInt(localStorage.getItem('tron_lvl') || '1', 10);
     let currentXp = parseInt(localStorage.getItem('tron_xp') || '0', 10);
-    let safeBalance = parseInt(localStorage.getItem('tron_safe') || '2500', 10);
+    let safeBalance = parseInt(localStorage.getItem('tron_safe') || '500', 10);
     let isVipPassActive = localStorage.getItem('tron_vip_pass') === 'true';
 
     let claimedFreeRewards = JSON.parse(localStorage.getItem('tron_pass_claimed_free') || '[]');
@@ -1272,16 +1293,28 @@
       document.getElementById('safeVal').innerText = safeBalance.toLocaleString() + ' 🪙';
     }
 
+    function resetEconomyProgress() {
+      if (!confirm('Сбросить баланс до 1 500 монет для тестирования экономики?')) return;
+      balance = 1500;
+      safeBalance = 500;
+      localStorage.setItem('tron_bal', '1500');
+      localStorage.setItem('tron_safe', '500');
+      document.getElementById('balanceText').innerText = '1 500';
+      document.getElementById('safeVal').innerText = '500 🪙';
+      closeModal('profileModal');
+      showToast('СБРОС ВЫПОЛНЕН', 'Баланс установлен на 1 500 🪙', '🔄');
+    }
+
     function addExperience(amount) {
       currentXp += amount;
-      let needed = Math.floor(300 * Math.pow(1.55, currentLvl - 1));
+      let needed = Math.floor(250 * Math.pow(1.5, currentLvl - 1));
 
       while (currentXp >= needed) {
         currentXp -= needed;
         currentLvl++;
-        needed = Math.floor(300 * Math.pow(1.55, currentLvl - 1));
-        updateBalance(1000);
-        showToast('НОВЫЙ УРОВЕНЬ!', `Достигнут Уровень ${currentLvl} (+1 000 🪙)`, '⚡');
+        needed = Math.floor(250 * Math.pow(1.5, currentLvl - 1));
+        updateBalance(250);
+        showToast('НОВЫЙ УРОВЕНЬ!', `Достигнут Уровень ${currentLvl} (+250 🪙)`, '⚡');
         playTone(740, 'square', 0.25, 0.1);
         updateRankVisuals();
         buildPassTrack();
@@ -1312,9 +1345,9 @@
       }
     }
 
-    /* 4. СЛОТЫ 3х3 И ДЖЕКПОТ БЕЗ УТЕЧКИ */
+    /* 4. СЛОТЫ 3х3 (СБАЛАНСИРОВАННЫЕ КОЭФФИЦИЕНТЫ) */
     const symbols = ['⚡', '💎', '🍒', '🍋', '🍇', '7️⃣'];
-    let currentBet = 50;
+    let currentBet = 25;
     let isSlotSpinning = false;
     let gamblePool = 0;
     let pendingJackpotWin = 0;
@@ -1344,7 +1377,7 @@
       haptic('light');
       document.querySelectorAll('#view-slots .bet-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      if (val === 'MAX') currentBet = 10000;
+      if (val === 'MAX') currentBet = 1000;
       else currentBet = val;
     }
 
@@ -1375,7 +1408,7 @@
       const safePercent = (isVipPassActive && activeModifiers.includes('safe_boost')) ? 0.10 : 0.05;
       updateSafe(Math.max(1, Math.floor(currentBet * safePercent)));
 
-      const xpGain = Math.max(3, Math.floor(Math.sqrt(currentBet) * 1.4));
+      const xpGain = Math.max(2, Math.floor(Math.sqrt(currentBet) * 1.1));
       addExperience(xpGain);
 
       isSlotSpinning = true;
@@ -1384,7 +1417,7 @@
       document.getElementById('termMsg').style.color = 'var(--cyan)';
 
       const hasTicket = isVipPassActive && activeModifiers.includes('ticket_room');
-      const isJackpotForce = hasTicket && Math.random() < 0.22;
+      const isJackpotForce = hasTicket && Math.random() < 0.18;
 
       let results;
       if (isJackpotForce) {
@@ -1422,16 +1455,16 @@
       const msg = document.getElementById('termMsg');
 
       if (res[0] === res[1] && res[1] === res[2]) {
-        let mult = 15;
-        if (res[0] === '7️⃣') mult = 50;
-        if (res[0] === '💎') mult = 25;
+        let mult = 10;
+        if (res[0] === '7️⃣') mult = 25;
+        if (res[0] === '💎') mult = 16;
         const win = currentBet * mult;
 
         msg.innerText = `КВАНТОВЫЙ ВЫИГРЫШ +${win}`;
         msg.style.color = 'var(--yellow)';
         triggerJackpotCelebration(win);
       } else if (res[0] === res[1] || res[1] === res[2] || res[0] === res[2]) {
-        const win = Math.floor(currentBet * 1.8);
+        const win = Math.floor(currentBet * 1.2);
         totalWon += win;
         saveStats();
         updateBalance(win);
@@ -1441,7 +1474,7 @@
         showToast('СОВПАДЕНИЕ ПАРЫ', `Начислено +${win} кредитов`, '⚡');
         playTone(480, 'sine', 0.15, 0.1);
 
-        if (win >= 500) {
+        if (win >= 200) {
           openGamble(win);
         }
       } else {
@@ -1616,13 +1649,13 @@
       document.getElementById('gamblePanel').style.display = 'none';
     }
 
-    /* 5. КРАШ-РАКЕТА (НАДЁЖНЫЙ ЦИКЛ БЕЗ ФРИЗОВ) */
+    /* 5. КРАШ-РАКЕТА (НАДЕЖНЫЙ ДВИЖОК) */
     let animId = null;
     let isRoundActive = false;
     let isCashedOut = false;
     let cooldownInterval = null;
 
-    let crashBet = 100;
+    let crashBet = 50;
     let autoCashoutVal = 0;
     let currentMultiplier = 1.00;
     let targetCrashMultiplier = 1.00;
@@ -1709,7 +1742,6 @@
       totalSpent += crashBet;
       saveStats();
 
-      // Очистка и сброс состояния
       if (animId !== null) {
         cancelAnimationFrame(animId);
         animId = null;
@@ -1742,10 +1774,10 @@
       actBtn.disabled = false;
 
       const rand = Math.random();
-      if (rand < 0.05) {
+      if (rand < 0.06) {
         targetCrashMultiplier = 1.00;
       } else {
-        targetCrashMultiplier = +(0.95 / (1 - rand)).toFixed(2);
+        targetCrashMultiplier = +(0.94 / (1 - rand)).toFixed(2);
       }
 
       function flightLoop(now) {
@@ -1946,31 +1978,167 @@
       if (bar.children.length > 8) bar.removeChild(bar.lastChild);
     }
 
-    /* 6. БОЕВОЙ ПАСС */
+    /* 6. КИБЕР-КОЛЕСО ФОРТУНЫ (БАЛАНСНЫЕ ПРИЗЫ) */
+    const PRIZES_FREE = [
+      { label: '100 🪙', val: 100, color: '#161b33' },
+      { label: '250 🪙', val: 250, color: '#1c2346' },
+      { label: '500 🪙', val: 500, color: '#161b33' },
+      { label: '750 🪙', val: 750, color: '#1c2346' },
+      { label: '1 000 🪙', val: 1000, color: '#161b33' },
+      { label: '2 500 🪙 🔥', val: 2500, color: '#7000ff' }
+    ];
+
+    const PRIZES_VIP = [
+      { label: '2 000 🪙', val: 2000, color: '#2a1a40' },
+      { label: '3 500 🪙', val: 3500, color: '#3d1c5a' },
+      { label: '5 000 🪙', val: 5000, color: '#2a1a40' },
+      { label: '7 500 🪙', val: 7500, color: '#3d1c5a' },
+      { label: '10 000 🪙 👑', val: 10000, color: '#ff0055' },
+      { label: '20 000 🪙 💎', val: 20000, color: '#ffb800' }
+    ];
+
+    let wheelAngle = 0;
+    let isWheelSpinning = false;
+    const FREE_COOLDOWN_MS = 12 * 60 * 60 * 1000;
+
+    function drawWheel(isVip = false) {
+      const canvas = document.getElementById('wheelCanvas');
+      if (!canvas) return;
+      const ctxW = canvas.getContext('2d');
+      const items = isVip ? PRIZES_VIP : PRIZES_FREE;
+      const numSlices = items.length;
+      const sliceAngle = (2 * Math.PI) / numSlices;
+
+      ctxW.clearRect(0, 0, canvas.width, canvas.height);
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const r = cx - 6;
+
+      ctxW.save();
+      ctxW.translate(cx, cy);
+      ctxW.rotate(wheelAngle);
+
+      for (let i = 0; i < numSlices; i++) {
+        const angle = i * sliceAngle;
+        ctxW.beginPath();
+        ctxW.moveTo(0, 0);
+        ctxW.arc(0, 0, r, angle, angle + sliceAngle);
+        ctxW.fillStyle = items[i].color;
+        ctxW.fill();
+        ctxW.lineWidth = 2;
+        ctxW.strokeStyle = '#00f0ff';
+        ctxW.stroke();
+
+        ctxW.save();
+        ctxW.rotate(angle + sliceAngle / 2);
+        ctxW.textAlign = 'right';
+        ctxW.fillStyle = '#ffffff';
+        ctxW.font = 'bold 11px sans-serif';
+        ctxW.fillText(items[i].label, r - 12, 4);
+        ctxW.restore();
+      }
+
+      ctxW.beginPath();
+      ctxW.arc(0, 0, 16, 0, 2 * Math.PI);
+      ctxW.fillStyle = '#00f0ff';
+      ctxW.fill();
+      ctxW.restore();
+    }
+
+    function updateWheelTimer() {
+      const lastSpin = parseInt(localStorage.getItem('last_free_spin') || '0', 10);
+      const now = Date.now();
+      const diff = now - lastSpin;
+      const btnFree = document.getElementById('btnFreeSpin');
+      const btnPaid = document.getElementById('btnPaidSpin');
+      const timerText = document.getElementById('wheel-timer-text');
+
+      if (diff >= FREE_COOLDOWN_MS) {
+        if (btnFree) { btnFree.disabled = false; btnFree.style.display = 'block'; }
+        if (btnPaid) btnPaid.style.display = 'none';
+        if (timerText) timerText.innerText = 'Бесплатный спин доступен!';
+      } else {
+        const remaining = FREE_COOLDOWN_MS - diff;
+        const hours = Math.floor(remaining / 3600000);
+        const mins = Math.floor((remaining % 3600000) / 60000);
+        const secs = Math.floor((remaining % 60000) / 1000);
+
+        if (btnFree) { btnFree.disabled = true; btnFree.style.display = 'none'; }
+        if (btnPaid) btnPaid.style.display = 'block';
+        if (timerText) {
+          timerText.innerText = `До бесплатного спина: ${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+      }
+    }
+    setInterval(updateWheelTimer, 1000);
+
+    function spinWheel(isVip = false) {
+      if (isWheelSpinning) return;
+
+      if (!isVip) {
+        const lastSpin = parseInt(localStorage.getItem('last_free_spin') || '0', 10);
+        if (Date.now() - lastSpin < FREE_COOLDOWN_MS) return;
+        localStorage.setItem('last_free_spin', Date.now().toString());
+      }
+
+      isWheelSpinning = true;
+      const items = isVip ? PRIZES_VIP : PRIZES_FREE;
+      const numSlices = items.length;
+      const sliceAngle = (2 * Math.PI) / numSlices;
+
+      const targetIndex = Math.floor(Math.random() * numSlices);
+      const fullRotations = (5 + Math.floor(Math.random() * 3)) * 2 * Math.PI;
+      const targetAngle = fullRotations + (numSlices - targetIndex - 0.5) * sliceAngle - (Math.PI / 2);
+
+      const startAngle = wheelAngle;
+      const duration = 4000;
+      const startTime = performance.now();
+
+      function animate(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        wheelAngle = startAngle + (targetAngle - startAngle) * easeOut;
+        drawWheel(isVip);
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          isWheelSpinning = false;
+          const won = items[targetIndex];
+          showToast('ВЫИГРЫШ!', `Получено: ${won.label}`, '🎁');
+          updateBalance(won.val);
+          updateWheelTimer();
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    /* 7. БОЕВОЙ ПАСС */
     const passTiers = [
       { 
         lvl: 2, 
-        freeReward: { title: '+5 000 🪙', val: 5000 },
+        freeReward: { title: '+1 500 🪙', val: 1500 },
         vipReward: { id: 'ticket_room', title: '🎟️ Билет в Секретную Комнату (x2 джекпот)' }
       },
       { 
         lvl: 5, 
-        freeReward: { title: '+15 000 🪙', val: 15000 },
+        freeReward: { title: '+4 000 🪙', val: 4000 },
         vipReward: { id: 'quantum_shield', title: '🛡️ Квантовый Щит (возврат 50% при краше <= 1.2x)' }
       },
       { 
         lvl: 10, 
-        freeReward: { title: '+40 000 🪙', val: 40000 },
+        freeReward: { title: '+10 000 🪙', val: 10000 },
         vipReward: { id: 'frame_noir', title: '🔮 Голографическая рамка «Синдикат Нуар»' }
       },
       { 
         lvl: 15, 
-        freeReward: { title: '+80 000 🪙', val: 80000 },
+        freeReward: { title: '+20 000 🪙', val: 20000 },
         vipReward: { id: 'safe_boost', title: '💼 Золотой Сейф (+10% со спинов вместо 5%)' }
       },
       { 
         lvl: 20, 
-        freeReward: { title: '+200 000 🪙', val: 200000 },
+        freeReward: { title: '+50 000 🪙', val: 50000 },
         vipReward: { id: 'title_overlord', title: '👑 Статус «Властелин Матрицы»' }
       }
     ];
@@ -2119,28 +2287,28 @@
       openPayment('Активация VIP PASS (Сезон 1)', '300 ⭐', () => {
         isVipPassActive = true;
         localStorage.setItem('tron_vip_pass', 'true');
-        updateBalance(25000);
-        showToast('VIP АКТИВИРОВАН!', '+25 000 🪙 и доступ ко всем модификаторам!', '👑');
+        updateBalance(10000);
+        showToast('VIP АКТИВИРОВАН!', '+10 000 🪙 и доступ ко всем модификаторам!', '👑');
         playTone(880, 'square', 0.25, 0.12);
         buildPassTrack();
       });
     }
 
-    /* 7. МАГАЗИН КАСТОМИЗАЦИИ */
+    /* 8. МАГАЗИН КАСТОМИЗАЦИИ */
     const cosmeticsData = {
       frames: [
         { id: 'frame-default', name: 'Базовая рамка', price: 0, reqLvl: 1 },
-        { id: 'frame-neon', name: 'Неон Нео-Токио', price: 5000, reqLvl: 5 },
-        { id: 'frame-gold', name: 'Золотой Синдикат', price: 20000, reqLvl: 10 },
+        { id: 'frame-neon', name: 'Неон Нео-Токио', price: 2500, reqLvl: 5 },
+        { id: 'frame-gold', name: 'Золотой Синдикат', price: 10000, reqLvl: 10 },
         { id: 'frame-noir', name: 'Синдикат Нуар (Пасс)', price: 0, reqLvl: 10, fromPass: true },
-        { id: 'frame-plasma', name: 'Плазменный Огонь', price: 50000, reqLvl: 20 }
+        { id: 'frame-plasma', name: 'Плазменный Огонь', price: 25000, reqLvl: 20 }
       ],
       names: [
         { id: '', name: 'Стандартный ник', price: 0, reqLvl: 1 },
-        { id: 'name-cyan', name: 'Кибер Сияние', price: 4000, reqLvl: 5 },
-        { id: 'name-gold', name: 'Золотой Шрифт', price: 15000, reqLvl: 10 },
-        { id: 'name-fire', name: 'Пламя Синдиката', price: 35000, reqLvl: 15 },
-        { id: 'name-overlord', name: 'Синдикат Оверлорд', price: 75000, reqLvl: 20 }
+        { id: 'name-cyan', name: 'Кибер Сияние', price: 2000, reqLvl: 5 },
+        { id: 'name-gold', name: 'Золотой Шрифт', price: 7500, reqLvl: 10 },
+        { id: 'name-fire', name: 'Пламя Синдиката', price: 15000, reqLvl: 15 },
+        { id: 'name-overlord', name: 'Синдикат Оверлорд', price: 35000, reqLvl: 20 }
       ]
     };
 
@@ -2224,7 +2392,7 @@
       }
     }
 
-    /* 8. ОПЛАТА TELEGRAM STARS */
+    /* 9. ОПЛАТА TELEGRAM STARS */
     let pendingCallback = null;
     let pendingTitle = '';
 
@@ -2306,14 +2474,17 @@
       if (tab === 'crash') {
         setTimeout(resizeCrashCanvas, 50);
       }
+      if (tab === 'wheel') {
+        setTimeout(() => drawWheel(false), 50);
+      }
       if (tab === 'pass') buildPassTrack();
       if (tab === 'style') buildCosmeticsShop();
     }
 
     const INVOICES = {
-      novice: { url: 'https://t.me/$49Q1qZJHKUmqFQAA89RD1n7Aaho', coins: 5000 },
-      hacker: { url: 'https://t.me/$JcYnvZJHKUmsFQAAelY7EtL5Dsw', coins: 35000 },
-      syndicate: { url: 'https://t.me/$VfeFKpJHKUmvFQAAD2jw_ZSlQss', coins: 120000 },
+      novice: { url: 'https://t.me/$49Q1qZJHKUmqFQAA89RD1n7Aaho', coins: 2500 },
+      hacker: { url: 'https://t.me/$JcYnvZJHKUmsFQAAelY7EtL5Dsw', coins: 10000 },
+      syndicate: { url: 'https://t.me/$VfeFKpJHKUmvFQAAD2jw_ZSlQss', coins: 35000 },
       vip_pass: { url: 'https://t.me/$iHbpJpJHKUmhFQAAB_mtvEzLZXY', type: 'pass' }
     };
 
@@ -2327,8 +2498,8 @@
             if (pack.type === 'pass') {
               isVipPassActive = true;
               localStorage.setItem('tron_vip_pass', 'true');
-              updateBalance(25000);
-              showToast('VIP АКТИВИРОВАН!', '+25 000 🪙 и доступ ко всем модификаторам!', '👑');
+              updateBalance(10000);
+              showToast('VIP АКТИВИРОВАН!', '+10 000 🪙 и доступ ко всем модификаторам!', '👑');
               buildPassTrack();
             } else {
               updateBalance(pack.coins);
@@ -2343,143 +2514,7 @@
       }
     }
 
-    /* 9. КИБЕР-КОЛЕСО ФОРТУНЫ */
-    const PRIZES_FREE = [
-      { label: '1 000 🪙', val: 1000, color: '#161b33' },
-      { label: '2 500 🪙', val: 2500, color: '#1c2346' },
-      { label: '5 000 🪙', val: 5000, color: '#161b33' },
-      { label: '7 500 🪙', val: 7500, color: '#1c2346' },
-      { label: '10 000 🪙', val: 10000, color: '#161b33' },
-      { label: '25 000 🪙 🔥', val: 25000, color: '#7000ff' }
-    ];
-
-    const PRIZES_VIP = [
-      { label: '15 000 🪙', val: 15000, color: '#2a1a40' },
-      { label: '25 000 🪙', val: 25000, color: '#3d1c5a' },
-      { label: '50 000 🪙', val: 50000, color: '#2a1a40' },
-      { label: '75 000 🪙', val: 75000, color: '#3d1c5a' },
-      { label: '100 000 🪙 👑', val: 100000, color: '#ff0055' },
-      { label: '150 000 🪙 💎', val: 150000, color: '#ffb800' }
-    ];
-
-    let wheelAngle = 0;
-    let isWheelSpinning = false;
-    const FREE_COOLDOWN_MS = 12 * 60 * 60 * 1000;
-
-    function drawWheel(isVip = false) {
-      const canvas = document.getElementById('wheelCanvas');
-      if (!canvas) return;
-      const ctxW = canvas.getContext('2d');
-      const items = isVip ? PRIZES_VIP : PRIZES_FREE;
-      const numSlices = items.length;
-      const sliceAngle = (2 * Math.PI) / numSlices;
-
-      ctxW.clearRect(0, 0, canvas.width, canvas.height);
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-      const r = cx - 5;
-
-      ctxW.save();
-      ctxW.translate(cx, cy);
-      ctxW.rotate(wheelAngle);
-
-      for (let i = 0; i < numSlices; i++) {
-        const angle = i * sliceAngle;
-        ctxW.beginPath();
-        ctxW.moveTo(0, 0);
-        ctxW.arc(0, 0, r, angle, angle + sliceAngle);
-        ctxW.fillStyle = items[i].color;
-        ctxW.fill();
-        ctxW.lineWidth = 2;
-        ctxW.strokeStyle = '#00f0ff';
-        ctxW.stroke();
-
-        ctxW.save();
-        ctxW.rotate(angle + sliceAngle / 2);
-        ctxW.textAlign = 'right';
-        ctxW.fillStyle = '#ffffff';
-        ctxW.font = 'bold 11px sans-serif';
-        ctxW.fillText(items[i].label, r - 12, 4);
-        ctxW.restore();
-      }
-
-      ctxW.beginPath();
-      ctxW.arc(0, 0, 16, 0, 2 * Math.PI);
-      ctxW.fillStyle = '#00f0ff';
-      ctxW.fill();
-      ctxW.restore();
-    }
-
-    function updateWheelTimer() {
-      const lastSpin = parseInt(localStorage.getItem('last_free_spin') || '0', 10);
-      const now = Date.now();
-      const diff = now - lastSpin;
-      const btnFree = document.getElementById('btnFreeSpin');
-      const btnPaid = document.getElementById('btnPaidSpin');
-      const timerText = document.getElementById('wheel-timer-text');
-
-      if (diff >= FREE_COOLDOWN_MS) {
-        if (btnFree) { btnFree.disabled = false; btnFree.style.display = 'block'; }
-        if (btnPaid) btnPaid.style.display = 'none';
-        if (timerText) timerText.innerText = 'Бесплатный спин доступен!';
-      } else {
-        const remaining = FREE_COOLDOWN_MS - diff;
-        const hours = Math.floor(remaining / 3600000);
-        const mins = Math.floor((remaining % 3600000) / 60000);
-        const secs = Math.floor((remaining % 60000) / 1000);
-
-        if (btnFree) { btnFree.disabled = true; btnFree.style.display = 'none'; }
-        if (btnPaid) btnPaid.style.display = 'block';
-        if (timerText) {
-          timerText.innerText = `До бесплатного спина: ${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-      }
-    }
-    setInterval(updateWheelTimer, 1000);
-
-    function spinWheel(isVip = false) {
-      if (isWheelSpinning) return;
-
-      if (!isVip) {
-        const lastSpin = parseInt(localStorage.getItem('last_free_spin') || '0', 10);
-        if (Date.now() - lastSpin < FREE_COOLDOWN_MS) return;
-        localStorage.setItem('last_free_spin', Date.now().toString());
-      }
-
-      isWheelSpinning = true;
-      const items = isVip ? PRIZES_VIP : PRIZES_FREE;
-      const numSlices = items.length;
-      const sliceAngle = (2 * Math.PI) / numSlices;
-
-      const targetIndex = Math.floor(Math.random() * numSlices);
-      const fullRotations = (5 + Math.floor(Math.random() * 3)) * 2 * Math.PI;
-      const targetAngle = fullRotations + (numSlices - targetIndex - 0.5) * sliceAngle - (Math.PI / 2);
-
-      const startAngle = wheelAngle;
-      const duration = 4000;
-      const startTime = performance.now();
-
-      function animate(now) {
-        const elapsed = now - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-        wheelAngle = startAngle + (targetAngle - startAngle) * easeOut;
-        drawWheel(isVip);
-
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          isWheelSpinning = false;
-          const won = items[targetIndex];
-          showToast('ВЫИГРЫШ!', `Получено: ${won.label}`, '🎁');
-          updateBalance(won.val);
-          updateWheelTimer();
-        }
-      }
-      requestAnimationFrame(animate);
-    }
-
-    /* 10. СТАРТ */
+    /* 10. ИНИЦИАЛИЗАЦИЯ */
     initReels();
     updateBalance(0);
     updateSafe(0);
