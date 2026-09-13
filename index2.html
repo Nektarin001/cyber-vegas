@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Cyber Vegas 2077 - Strict FSM Crash</title>
+  <title>Cyber Vegas 2077 - Rocket Crash</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #080811;
-      --card-bg: rgba(18, 18, 32, 0.9);
+      --bg-base: #06070d;
+      --bg-card: rgba(14, 16, 28, 0.94);
       --neon-yellow: #fcee0a;
       --neon-cyan: #00f0ff;
       --neon-pink: #ff003c;
-      --neon-purple: #9d00ff;
       --neon-green: #05ffa1;
-      --text-main: #e0e6ed;
-      --border-color: rgba(0, 240, 255, 0.25);
+      --neon-purple: #9d00ff;
+      --text-muted: #737994;
+      --text-main: #e6ebf5;
+      --border-cyber: rgba(0, 240, 255, 0.22);
     }
 
     * {
@@ -31,7 +31,7 @@
     }
 
     body {
-      background-color: var(--bg-color);
+      background-color: var(--bg-base);
       color: var(--text-main);
       font-family: 'Rajdhani', sans-serif;
       min-height: 100vh;
@@ -39,177 +39,123 @@
       justify-content: center;
       align-items: center;
       overflow-x: hidden;
-      background-image: 
-        radial-gradient(circle at 50% 10%, rgba(157, 0, 255, 0.15) 0%, transparent 60%),
-        linear-gradient(rgba(8, 8, 17, 0.92), rgba(8, 8, 17, 0.92));
+      background-image:
+        radial-gradient(circle at 50% 0%, rgba(157, 0, 255, 0.16) 0%, transparent 55%),
+        linear-gradient(rgba(6, 7, 13, 0.94), rgba(6, 7, 13, 0.94));
     }
 
     #app {
       width: 100%;
       max-width: 440px;
       min-height: 100vh;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      position: relative;
-    }
-
-    /* Шапка */
-    .cyber-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      padding: 10px 14px;
-      border-radius: 4px;
-      box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
-      position: relative;
-    }
-
-    .cyber-header::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; width: 4px; height: 100%;
-      background: var(--neon-cyan);
-    }
-
-    .title-logo {
-      font-family: 'Orbitron', sans-serif;
-      font-weight: 900;
-      font-size: 14px;
-      letter-spacing: 1px;
-      color: var(--neon-yellow);
-      text-shadow: 0 0 8px rgba(252, 238, 10, 0.6);
-    }
-
-    .user-badge {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .balance-chip {
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid var(--neon-cyan);
-      padding: 4px 10px;
-      border-radius: 3px;
-      color: var(--neon-cyan);
-      font-family: 'Orbitron', sans-serif;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .pass-status-pill {
-      font-size: 9px;
-      padding: 3px 6px;
-      border-radius: 2px;
-      font-family: 'Orbitron', sans-serif;
-      font-weight: bold;
-    }
-    .pass-status-pill.active {
-      background: var(--neon-purple);
-      color: #fff;
-      box-shadow: 0 0 8px var(--neon-purple);
-    }
-    .pass-status-pill.inactive {
-      background: #252538;
-      color: #889;
-    }
-
-    /* Навигация */
-    .tab-bar {
-      display: flex;
-      gap: 8px;
-      background: rgba(0,0,0,0.4);
-      padding: 4px;
-      border-radius: 4px;
-      border: 1px solid rgba(255,255,255,0.05);
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 8px 4px;
-      background: transparent;
-      border: none;
-      color: #8a99a8;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 11px;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s;
-    }
-
-    .tab-btn.active {
-      color: var(--neon-cyan);
-      border-bottom: 2px solid var(--neon-cyan);
-      text-shadow: 0 0 6px var(--neon-cyan);
-    }
-
-    .view-section {
-      display: none;
-      flex-direction: column;
-      gap: 12px;
-      flex: 1;
-    }
-    .view-section.active {
-      display: flex;
-    }
-
-    /* ============================================================ */
-    /* КАРТОЧКА КРАША                                               */
-    /* ============================================================ */
-    .crash-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
       padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }
 
-    .round-info-bar {
+    .header-panel {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border-cyber);
+      padding: 10px 12px;
+      border-radius: 6px;
+      position: relative;
+    }
+
+    .header-panel::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 3px;
+      height: 100%;
+      background: var(--neon-cyan);
+    }
+
+    .logo-box {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo-text {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--neon-yellow);
+      letter-spacing: 1px;
+      text-shadow: 0 0 8px rgba(252, 238, 10, 0.5);
+    }
+
+    .sub-title {
+      font-size: 9px;
+      color: var(--text-muted);
+      letter-spacing: 1.5px;
+    }
+
+    .balance-box {
+      background: rgba(0, 0, 0, 0.65);
+      border: 1px solid var(--neon-cyan);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--neon-cyan);
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.15);
+    }
+
+    .game-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-cyber);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .round-meta-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-family: 'Orbitron', sans-serif;
       font-size: 9px;
-      color: #6d7885;
+      color: var(--text-muted);
       padding: 0 2px;
     }
 
-    .history-row {
+    .history-tape {
       display: flex;
       gap: 6px;
       overflow-x: auto;
-      padding-bottom: 4px;
+      padding-bottom: 3px;
       scrollbar-width: none;
     }
-    .history-row::-webkit-scrollbar { display: none; }
+    .history-tape::-webkit-scrollbar { display: none; }
 
-    .history-chip {
-      padding: 3px 6px;
+    .history-item {
+      padding: 2px 6px;
       font-size: 10px;
       font-family: 'Orbitron', sans-serif;
-      background: #101020;
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid #23273a;
       border-radius: 3px;
-      border: 1px solid #2d2d48;
-      color: #9aa;
       white-space: nowrap;
     }
-    .history-chip.high { border-color: var(--neon-green); color: var(--neon-green); }
-    .history-chip.mid { border-color: var(--neon-cyan); color: var(--neon-cyan); }
-    .history-chip.low { border-color: var(--neon-pink); color: var(--neon-pink); }
+    .history-item.low { border-color: var(--neon-pink); color: var(--neon-pink); }
+    .history-item.mid { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+    .history-item.high { border-color: var(--neon-green); color: var(--neon-green); }
 
-    .canvas-container {
+    .canvas-viewport {
       width: 100%;
-      height: 220px;
-      background: radial-gradient(circle at bottom left, #161233 0%, #090915 75%);
-      border: 1px solid rgba(0, 240, 255, 0.15);
-      border-radius: 4px;
+      height: 230px;
+      background: radial-gradient(circle at 10% 90%, #15162a 0%, #080913 75%);
+      border: 1px solid rgba(0, 240, 255, 0.14);
+      border-radius: 5px;
       position: relative;
       overflow: hidden;
     }
@@ -220,7 +166,7 @@
       display: block;
     }
 
-    .multiplier-overlay {
+    .center-overlay {
       position: absolute;
       inset: 0;
       display: flex;
@@ -228,71 +174,65 @@
       justify-content: center;
       align-items: center;
       pointer-events: none;
+      z-index: 10;
     }
 
-    .multiplier-number {
+    .hud-multiplier {
       font-family: 'Orbitron', sans-serif;
-      font-size: 42px;
+      font-size: 44px;
       font-weight: 900;
-      color: #fff;
-      text-shadow: 0 0 15px rgba(255,255,255,0.4);
+      color: #ffffff;
+      text-shadow: 0 0 16px rgba(255, 255, 255, 0.45);
+      line-height: 1;
     }
-    .multiplier-number.crashed {
+    .hud-multiplier.crashed {
       color: var(--neon-pink) !important;
       text-shadow: 0 0 20px rgba(255, 0, 60, 0.8) !important;
     }
 
-    .crash-status-sub {
-      font-size: 11px;
-      letter-spacing: 2px;
+    .hud-status {
       font-family: 'Orbitron', sans-serif;
-      color: #7d8b99;
-      margin-top: 2px;
-      font-weight: bold;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-top: 6px;
     }
 
-    .shield-alert {
-      font-size: 11px;
-      color: var(--neon-cyan);
-      font-family: 'Orbitron', sans-serif;
-      font-weight: bold;
-      text-shadow: 0 0 8px var(--neon-cyan);
-      margin-top: 4px;
-      display: none;
-    }
-
-    .crash-controls {
+    .controls-wrapper {
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
 
-    .inputs-grid {
+    .bet-grid {
       display: flex;
       gap: 8px;
     }
 
-    .input-wrap {
+    .cyber-field {
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
     }
 
-    .input-wrap label {
+    .field-label {
       font-size: 10px;
-      color: #8a99a8;
-      letter-spacing: 1px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
     }
 
     .cyber-input {
-      background: #0d0d1a;
-      border: 1px solid #2a2a48;
-      padding: 8px 10px;
-      color: #fff;
+      background: #090a12;
+      border: 1px solid #23273a;
+      padding: 7px 9px;
+      color: #ffffff;
       font-family: 'Orbitron', sans-serif;
       font-size: 12px;
-      border-radius: 3px;
+      font-weight: 600;
+      border-radius: 4px;
       outline: none;
       transition: border-color 0.2s;
     }
@@ -301,819 +241,557 @@
     }
     .cyber-input:disabled {
       opacity: 0.45;
-      background: #06060c;
-      border-color: #1a1a2e;
+      border-color: #1a1c27;
+      background: #05060a;
     }
 
-    .cyber-btn {
+    .quick-chips {
+      display: flex;
+      gap: 6px;
+    }
+
+    .chip-btn {
+      flex: 1;
+      padding: 5px 0;
+      background: #111320;
+      border: 1px solid #23273a;
+      border-radius: 3px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      color: #9aa1ba;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .chip-btn:active:not(:disabled) {
+      border-color: var(--neon-cyan);
+      color: #ffffff;
+    }
+    .chip-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .action-button {
+      width: 100%;
       padding: 14px;
       border: none;
       border-radius: 4px;
       font-family: 'Orbitron', sans-serif;
-      font-weight: 900;
       font-size: 13px;
-      cursor: pointer;
-      text-transform: uppercase;
+      font-weight: 900;
       letter-spacing: 1px;
-      transition: all 0.15s;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.08s ease, filter 0.15s ease;
+    }
+    .action-button:active:not(:disabled) {
+      transform: scale(0.985);
     }
 
-    .cyber-btn:active:not(:disabled) {
-      transform: scale(0.98);
-    }
-
-    .btn-bet {
+    .btn-state-bet {
       background: var(--neon-yellow);
-      color: #000;
-      box-shadow: 0 0 15px rgba(252, 238, 10, 0.4);
+      color: #050608;
+      box-shadow: 0 0 16px rgba(252, 238, 10, 0.4);
     }
-
-    .btn-cashout {
+    .btn-state-cashout {
       background: var(--neon-green);
-      color: #000;
-      box-shadow: 0 0 15px rgba(5, 255, 161, 0.5);
+      color: #040806;
+      box-shadow: 0 0 16px rgba(5, 255, 161, 0.5);
     }
-
-    .btn-crashed {
-      background: var(--neon-pink);
-      color: #fff;
-      box-shadow: 0 0 15px rgba(255, 0, 60, 0.5);
-    }
-
-    .btn-disabled {
-      background: #1a1a2b;
-      color: #55556d;
-      cursor: not-allowed;
+    .btn-state-disabled {
+      background: #1a1c29;
+      color: #555c73;
       box-shadow: none;
+      cursor: not-allowed;
     }
-
-    .btn-taken {
-      background: rgba(5, 255, 161, 0.12);
+    .btn-state-crashed {
+      background: var(--neon-pink);
+      color: #ffffff;
+      box-shadow: 0 0 16px rgba(255, 0, 60, 0.45);
+      cursor: not-allowed;
+    }
+    .btn-state-taken {
+      background: rgba(5, 255, 161, 0.14);
       border: 1px solid var(--neon-green);
       color: var(--neon-green);
       cursor: not-allowed;
     }
-
-    /* ============================================================ */
-    /* БОЕВОЙ ПАСС                                                  */
-    /* ============================================================ */
-    .bp-header-card {
-      background: linear-gradient(135deg, rgba(157, 0, 255, 0.2), rgba(0, 240, 255, 0.1));
-      border: 1px solid var(--neon-purple);
-      padding: 12px;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .bp-title-wrap h3 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 13px;
-      color: #fff;
-    }
-    .bp-title-wrap p {
-      font-size: 11px;
-      color: #aab;
-    }
-
-    .btn-buy-pass {
-      background: linear-gradient(90deg, #ff003c, #9d00ff);
-      border: none;
-      color: #fff;
-      font-family: 'Orbitron', sans-serif;
-      font-weight: bold;
-      font-size: 10px;
-      padding: 8px 12px;
-      border-radius: 3px;
-      cursor: pointer;
-      box-shadow: 0 0 12px rgba(157, 0, 255, 0.6);
-    }
-
-    .bp-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .bp-tier-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .bp-tier-card.locked {
-      opacity: 0.6;
-    }
-
-    .bp-tier-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      padding-bottom: 6px;
-    }
-
-    .bp-lvl-tag {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 11px;
-      font-weight: bold;
-      color: var(--neon-cyan);
-    }
-
-    .bp-status-lbl {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #889;
-    }
-
-    .reward-slot {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 10px;
-      background: rgba(0, 0, 0, 0.35);
-      border-radius: 4px;
-    }
-
-    .reward-slot.free-slot {
-      border-left: 3px solid var(--neon-cyan);
-    }
-
-    .reward-slot.premium-slot {
-      border-left: 3px solid var(--neon-purple);
-      background: rgba(157, 0, 255, 0.05);
-    }
-
-    .reward-slot.pass-locked {
-      filter: grayscale(0.85);
-      background: rgba(10, 10, 15, 0.5);
-    }
-
-    .reward-meta {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .reward-type-tag {
-      font-size: 8px;
-      font-family: 'Orbitron', sans-serif;
-      color: #778;
-    }
-    .reward-type-tag.prem {
-      color: var(--neon-yellow);
-    }
-
-    .reward-name {
-      font-size: 12px;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .btn-claim {
-      background: #1b1b30;
-      border: 1px solid #3d3d66;
-      color: #fff;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 9px;
-      padding: 6px 12px;
-      border-radius: 3px;
-      cursor: pointer;
-    }
-
-    .btn-claim.ready {
-      background: var(--neon-cyan);
-      border-color: var(--neon-cyan);
-      color: #000;
-      font-weight: bold;
-      box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
-    }
-
-    .btn-claim.claimed {
-      background: transparent;
-      border-color: #333;
-      color: #556;
-      cursor: default;
-    }
-
-    .btn-unlock-pass {
-      background: linear-gradient(90deg, #ff003c, #9d00ff);
-      border: none;
-      color: #fff;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 9px;
-      padding: 6px 10px;
-      border-radius: 3px;
-      cursor: pointer;
-    }
-
-    /* Модалка покупки Пасса */
-    .cyber-modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(4px);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      z-index: 1000;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
-    }
-    .cyber-modal.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .modal-box {
-      background: #0f0f1c;
-      border: 2px solid var(--neon-purple);
-      border-radius: 6px;
-      padding: 20px;
-      width: 100%;
-      max-width: 320px;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 0 25px rgba(157, 0, 255, 0.4);
-    }
-
-    .modal-box h3 {
-      font-family: 'Orbitron', sans-serif;
-      color: var(--neon-yellow);
-      font-size: 15px;
-    }
-
-    .modal-box p {
-      font-size: 11px;
-      line-height: 1.5;
-      color: #bbc;
-      text-align: left;
-    }
   </style>
 </head>
 <body>
-
   <div id="app">
-    <!-- Шапка -->
-    <header class="cyber-header">
-      <div>
-        <div class="title-logo">CYBER VEGAS 2077</div>
-        <div style="font-size: 10px; color: #7f8c9b;" id="userLvlDisplay">LEVEL 2 OPERATOR</div>
+    <header class="header-panel">
+      <div class="logo-box">
+        <span class="logo-text">CYBER VEGAS 2077</span>
+        <span class="sub-title">CRASH ROCKET ENGINE</span>
       </div>
-      <div class="user-badge">
-        <span class="balance-chip" id="balanceText">10,000 ED</span>
-        <span class="pass-status-pill inactive" id="passPill">FREE PASS</span>
-      </div>
+      <div class="balance-box" id="hudBalance">10,000 ED</div>
     </header>
 
-    <!-- Табы -->
-    <nav class="tab-bar">
-      <button class="tab-btn active" id="tabCrashBtn">🚀 КРАШ (РАКЕТА)</button>
-      <button class="tab-btn" id="tabPassBtn">🎫 BATTLE PASS</button>
-    </nav>
+    <section class="game-card">
+      <div class="round-meta-bar">
+        <span id="hudRoundId">ROUND: #---</span>
+        <span id="hudStatePill">STATUS: BETTING</span>
+      </div>
 
-    <!-- Вкладка 1: Краш -->
-    <section class="view-section active" id="crashView">
-      <div class="crash-card">
-        <div class="round-info-bar">
-          <span id="roundIdDisplay">ROUND: #---</span>
-          <span id="roundStatePill">СТАТУС: BETTING</span>
+      <div class="history-tape" id="hudHistoryTape">
+        <span class="history-item high">4.22x</span>
+        <span class="history-item mid">1.84x</span>
+        <span class="history-item low">1.10x</span>
+        <span class="history-item high">2.75x</span>
+        <span class="history-item mid">1.54x</span>
+      </div>
+
+      <div class="canvas-viewport">
+        <canvas id="stageCanvas" width="414" height="230"></canvas>
+        <div class="center-overlay">
+          <div class="hud-multiplier" id="hudMultiplier">1.00x</div>
+          <div class="hud-status" id="hudStatus">ОКНО СТАВОК (5с)</div>
         </div>
+      </div>
 
-        <div class="history-row" id="crashHistoryRow">
-          <span class="history-chip high">2.45x</span>
-          <span class="history-chip low">1.12x</span>
-          <span class="history-chip mid">1.84x</span>
-          <span class="history-chip high">5.20x</span>
-        </div>
-
-        <div class="canvas-container">
-          <canvas id="rocketCanvas" width="400" height="220"></canvas>
-          <div class="multiplier-overlay">
-            <div class="multiplier-number" id="multValue">1.00x</div>
-            <div class="crash-status-sub" id="crashStatusSub">ОКНО СТАВОК (5с)</div>
-            <div class="shield-alert" id="shieldAlert">🛡️ КВАНТОВЫЙ ЩИТ СПАС СТАВКУ!</div>
+      <div class="controls-wrapper">
+        <div class="bet-grid">
+          <div class="cyber-field">
+            <span class="field-label">СТАВКА (ED)</span>
+            <input type="number" id="inputBet" class="cyber-input" value="500" min="10" step="10" />
+          </div>
+          <div class="cyber-field">
+            <span class="field-label">АВТО-ВЫВОД</span>
+            <input type="number" id="inputAutoCash" class="cyber-input" value="2.00" min="1.01" step="0.1" />
           </div>
         </div>
 
-        <div class="crash-controls">
-          <div class="inputs-grid">
-            <div class="input-wrap">
-              <label>СТАВКА (ED)</label>
-              <input type="number" class="cyber-input" id="betAmountInput" value="500" min="50" step="50" />
-            </div>
-            <div class="input-wrap">
-              <label>АВТО-ВЫВОД</label>
-              <input type="number" class="cyber-input" id="autoCashoutInput" value="2.00" min="1.05" step="0.1" />
-            </div>
-          </div>
-
-          <button class="cyber-btn btn-bet" id="btnCrashAction">ПОСТАВИТЬ</button>
+        <div class="quick-chips">
+          <button class="chip-btn" data-val="100">100</button>
+          <button class="chip-btn" data-val="500">500</button>
+          <button class="chip-btn" data-val="1000">1K</button>
+          <button class="chip-btn" data-val="5000">5K</button>
         </div>
+
+        <button id="btnAction" class="action-button btn-state-bet">СТАВКА</button>
       </div>
     </section>
-
-    <!-- Вкладка 2: Боевой Пасс -->
-    <section class="view-section" id="passView">
-      <div class="bp-header-card">
-        <div class="bp-title-wrap">
-          <h3>СЕЗОН 1: НЕОНОВЫЙ ВЗЛОМ</h3>
-          <p id="bpProgressText">Твой уровень: 2 • Пропуск не активен</p>
-        </div>
-        <button class="btn-buy-pass" id="btnBuySeasonPass">🌟 300 STARS</button>
-      </div>
-
-      <div class="bp-list" id="bpListContainer"></div>
-    </section>
-  </div>
-
-  <!-- Модалка покупки Cyber Pass -->
-  <div class="cyber-modal" id="passModal">
-    <div class="modal-box">
-      <h3>АКТИВАЦИЯ CYBER PASS</h3>
-      <p>Купите сезонный пропуск за 300 Stars и активируйте эксклюзивные модификаторы:<br><br>
-      • <strong>🛡️ Квантовый щит</strong> — спасает вашу ставку при раннем краше ракеты (&lt; 1.20x)<br>
-      • <strong>🎟️ VIP-Билет</strong> — допуск в секретную комнату с джекпотами<br>
-      • <strong>🎛️ Взлом сейфа x2</strong> — двойной профит во взломах</p>
-      <button class="cyber-btn btn-bet" id="btnConfirmBuyPass">ОПЛАТИТЬ 300 STARS</button>
-      <button class="cyber-btn btn-disabled" id="btnCloseModal">ОТМЕНА</button>
-    </div>
   </div>
 
   <script>
-    /* ===================================================================
-       1. TELEGRAM WEBAPP API & HAPTICS
-    =================================================================== */
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-    }
-
-    const triggerHaptic = (type = 'light') => {
-      try {
-        if (tg?.HapticFeedback) {
-          if (type === 'win') tg.HapticFeedback.notificationOccurred('success');
-          else if (type === 'crash') tg.HapticFeedback.notificationOccurred('error');
-          else tg.HapticFeedback.impactOccurred(type);
-        }
-      } catch (e) {}
-    };
-
-    /* ===================================================================
-       2. USER STATE
-    =================================================================== */
-    const USER = {
-      level: 2,
-      balance: 10000,
-      hasPass: false,
-      claimedRewards: [],
-      inventory: []
-    };
-
-    function updateHeaderUI() {
-      document.getElementById('balanceText').innerText = `${USER.balance.toLocaleString()} ED`;
-      document.getElementById('userLvlDisplay').innerText = `LEVEL ${USER.level} OPERATOR`;
-      const passPill = document.getElementById('passPill');
-      passPill.className = `pass-status-pill ${USER.hasPass ? 'active' : 'inactive'}`;
-      passPill.innerText = USER.hasPass ? 'CYBER PASS ⭐' : 'FREE PASS';
-    }
-
-    /* ===================================================================
-       3. BATTLE PASS (С СТРОГОЙ ЗАЩИТОЙ ДОСТУПА)
-    =================================================================== */
-    const BATTLE_PASS_TIERS = [
-      {
-        level: 1,
-        freeReward: { id: 'free_1', title: '5,000 ED', amount: 5000 },
-        premiumReward: { id: 'prem_1', title: '🎛️ Взлом Сейфа x2', key: 'SAFE_X2' }
-      },
-      {
-        level: 2,
-        freeReward: { id: 'free_2', title: '15,000 ED', amount: 15000 },
-        premiumReward: { id: 'prem_2', title: '🎟️ VIP-Билет', key: 'VIP_PASS' }
-      },
-      {
-        level: 3,
-        freeReward: { id: 'free_3', title: '30,000 ED', amount: 30000 },
-        premiumReward: { id: 'prem_3', title: '🛡️ Квантовый Щит', key: 'QUANTUM_SHIELD' }
-      }
-    ];
-
-    function renderBattlePass() {
-      const container = document.getElementById('bpListContainer');
-      container.innerHTML = '';
-
-      document.getElementById('bpProgressText').innerText = 
-        `Твой уровень: ${USER.level} • ${USER.hasPass ? 'Пропуск АКТИВЕН' : 'Пропуск НЕ куплен'}`;
-
-      if (USER.hasPass) {
-        document.getElementById('btnBuySeasonPass').style.display = 'none';
+    (function () {
+      const tg = window.Telegram?.WebApp;
+      if (tg) {
+        tg.ready();
+        tg.expand();
       }
 
-      BATTLE_PASS_TIERS.forEach(tier => {
-        const isReached = USER.level >= tier.level;
-        const isFreeClaimed = USER.claimedRewards.includes(tier.freeReward.id);
-        const isPremClaimed = USER.claimedRewards.includes(tier.premiumReward.id);
-
-        const card = document.createElement('div');
-        card.className = `bp-tier-card ${isReached ? 'reached' : 'locked'}`;
-
-        card.innerHTML = `
-          <div class="bp-tier-header">
-            <span class="bp-lvl-tag">УРОВЕНЬ ${tier.level}</span>
-            <span class="bp-status-lbl">${isReached ? 'ДОСТИГНУТ' : 'ЗАБЛОКИРОВАН'}</span>
-          </div>
-
-          <!-- БАЗОВАЯ НАГРАДА: Не требует покупки Пасса -->
-          <div class="reward-slot free-slot">
-            <div class="reward-meta">
-              <span class="reward-type-tag">БАЗОВАЯ НАГРАДА</span>
-              <span class="reward-name">🪙 ${tier.freeReward.title}</span>
-            </div>
-            <div>
-              ${isFreeClaimed ? `
-                <button class="btn-claim claimed" disabled>ПОЛУЧЕНО</button>
-              ` : `
-                <button class="btn-claim ${isReached ? 'ready' : ''}" 
-                  ${!isReached ? 'disabled' : ''} 
-                  onclick="claimReward('${tier.freeReward.id}', 'FREE', ${tier.freeReward.amount})">
-                  ${isReached ? 'ЗАБРАТЬ' : 'ЗАКРЫТО'}
-                </button>
-              `}
-            </div>
-          </div>
-
-          <!-- ПРЕМИУМ НАГРАДА: Доступна ТОЛЬКО при hasPass === true -->
-          <div class="reward-slot premium-slot ${!USER.hasPass ? 'pass-locked' : ''}">
-            <div class="reward-meta">
-              <span class="reward-type-tag prem">CYBER PASS ⭐</span>
-              <span class="reward-name">${tier.premiumReward.title}</span>
-            </div>
-            <div>
-              ${!USER.hasPass ? `
-                <button class="btn-unlock-pass" onclick="openPassModal()">🔒 КУПИТЬ PASS</button>
-              ` : isPremClaimed ? `
-                <button class="btn-claim claimed" disabled>ПОЛУЧЕНО</button>
-              ` : `
-                <button class="btn-claim ${isReached ? 'ready' : ''}" 
-                  ${!isReached ? 'disabled' : ''} 
-                  onclick="claimReward('${tier.premiumReward.id}', 'PREMIUM', 0, '${tier.premiumReward.key}')">
-                  ${isReached ? 'АКТИВИРОВАТЬ' : 'ЗАКРЫТО'}
-                </button>
-              `}
-            </div>
-          </div>
-        `;
-
-        container.appendChild(card);
-      });
-    }
-
-    window.claimReward = function(rewardId, type, amount, modKey) {
-      if (USER.claimedRewards.includes(rewardId)) return;
-
-      if (type === 'PREMIUM' && !USER.hasPass) {
-        alert('Ошибка! Купите Cyber Pass для разблокировки модификатора.');
-        return;
-      }
-
-      USER.claimedRewards.push(rewardId);
-      if (amount > 0) USER.balance += amount;
-      if (modKey) USER.inventory.push(modKey);
-
-      updateHeaderUI();
-      triggerHaptic('win');
-      renderBattlePass();
-    };
-
-    window.openPassModal = function() {
-      document.getElementById('passModal').classList.add('active');
-    };
-
-    document.getElementById('btnCloseModal').onclick = () => {
-      document.getElementById('passModal').classList.remove('active');
-    };
-    document.getElementById('btnBuySeasonPass').onclick = openPassModal;
-
-    document.getElementById('btnConfirmBuyPass').onclick = () => {
-      USER.hasPass = true;
-      triggerHaptic('win');
-      document.getElementById('passModal').classList.remove('active');
-      updateHeaderUI();
-      renderBattlePass();
-    };
-
-    /* ===================================================================
-       4. CRASH ENGINE: СТРОГАЯ FINITE STATE MACHINE (FSM)
-       Состояния: 'BETTING' -> 'FLYING' -> 'CRASHED' -> 'COOLDOWN'
-    =================================================================== */
-    class StrictCrashEngine {
-      constructor() {
-        // Текущий статус раунда (СТРОГИЙ ENUM)
-        this.state = 'BETTING'; // 'BETTING' | 'FLYING' | 'CRASHED' | 'COOLDOWN'
-        this.roundId = null;
-        this.currentMultiplier = 1.00;
-        this.crashMultiplier = 1.00;
-
-        // Личные данные игрока в текущем раунде
-        this.playerBet = 0;
-        this.hasBet = false;
-        this.hasCashedOut = false;
-
-        // Ссылки на циклы и таймеры
-        this.rafId = null;
-        this.flightStartTime = 0;
-        this.fsmTimer = null;
-
-        // DOM элементы
-        this.canvas = document.getElementById('rocketCanvas');
-        this.ctx = this.canvas.getContext('2d');
-        this.btnAction = document.getElementById('btnCrashAction');
-        this.multDisplay = document.getElementById('multValue');
-        this.statusSub = document.getElementById('crashStatusSub');
-        this.shieldAlert = document.getElementById('shieldAlert');
-        this.roundIdDisplay = document.getElementById('roundIdDisplay');
-        this.roundStatePill = document.getElementById('roundStatePill');
-        this.betInput = document.getElementById('betAmountInput');
-        this.autoCashInput = document.getElementById('autoCashoutInput');
-        this.historyRow = document.getElementById('crashHistoryRow');
-
-        this.btnAction.onclick = () => this.handleActionClick();
-
-        // Старт машины состояний
-        this.enterBettingPhase();
-      }
-
-      /* -------------------------------------------------------------
-         ОЧИСТКА ВСЕХ ЦИКЛОВ И ТАЙМЕРОВ
-      ------------------------------------------------------------- */
-      clearAllLoopsAndTimers() {
-        if (this.rafId) {
-          cancelAnimationFrame(this.rafId);
-          this.rafId = null;
-        }
-        if (this.fsmTimer) {
-          clearInterval(this.fsmTimer);
-          clearTimeout(this.fsmTimer);
-          this.fsmTimer = null;
-        }
-      }
-
-      /* -------------------------------------------------------------
-         ФАЗА 1: BETTING (5 СЕКУНД)
-      ------------------------------------------------------------- */
-      enterBettingPhase() {
-        this.clearAllLoopsAndTimers();
-        this.state = 'BETTING';
-
-        // Инициализация раунда
-        this.roundId = 'RND-' + Math.floor(100000 + Math.random() * 900000);
-        this.currentMultiplier = 1.00;
-        this.playerBet = 0;
-        this.hasBet = false;
-        this.hasCashedOut = false;
-
-        // Обновление UI
-        this.clearCanvas();
-        this.multDisplay.innerText = '1.00x';
-        this.multDisplay.className = 'multiplier-number';
-        this.shieldAlert.style.display = 'none';
-
-        this.roundIdDisplay.innerText = `ROUND: #${this.roundId}`;
-        this.roundStatePill.innerText = 'СТАТУС: BETTING';
-        this.roundStatePill.style.color = 'var(--neon-green)';
-
-        this.betInput.disabled = false;
-        this.autoCashInput.disabled = false;
-        this.btnAction.disabled = false;
-        this.btnAction.className = 'cyber-btn btn-bet';
-        this.btnAction.innerText = 'ПОСТАВИТЬ';
-
-        // 5-секундный таймер обратного отсчета
-        let timeLeftSec = 5;
-        this.statusSub.innerText = `СТАРТ ЧЕРЕЗ ${timeLeftSec}с...`;
-
-        this.fsmTimer = setInterval(() => {
-          timeLeftSec--;
-          if (timeLeftSec > 0) {
-            this.statusSub.innerText = `СТАРТ ЧЕРЕЗ ${timeLeftSec}с...`;
-          } else {
-            clearInterval(this.fsmTimer);
-            this.fsmTimer = null;
-            this.enterFlyingPhase();
-          }
-        }, 1000);
-      }
-
-      /* -------------------------------------------------------------
-         ФАЗА 2: FLYING (ПОЛЕТ РАКЕТЫ)
-      ------------------------------------------------------------- */
-      enterFlyingPhase() {
-        this.clearAllLoopsAndTimers();
-        this.state = 'FLYING';
-
-        this.roundStatePill.innerText = 'СТАТУС: FLYING';
-        this.roundStatePill.style.color = 'var(--neon-cyan)';
-        this.statusSub.innerText = 'ПОЛЁТ В КОСМОС...';
-
-        // Блокировка инпутов для всех
-        this.betInput.disabled = true;
-        this.autoCashInput.disabled = true;
-
-        // Расчет точки взрыва (краша)
-        const rand = Math.random();
-        if (rand < 0.05) {
-          this.crashMultiplier = 1.00;
-        } else {
-          this.crashMultiplier = parseFloat((0.95 / (1 - rand)).toFixed(2));
-        }
-
-        // Настройка кнопки под игрока
-        if (this.hasBet && !this.hasCashedOut) {
-          this.btnAction.disabled = false;
-          this.btnAction.className = 'cyber-btn btn-cashout';
-          const winPreview = Math.floor(this.playerBet * 1.00);
-          this.btnAction.innerText = `ЗАБРАТЬ ${winPreview} ED`;
-        } else {
-          this.btnAction.disabled = true;
-          this.btnAction.className = 'cyber-btn btn-disabled';
-          this.btnAction.innerText = 'РАУНД ИДЁТ...';
-        }
-
-        // Запуск полета
-        this.flightStartTime = performance.now();
-        this.flightLoop = this.flightLoop.bind(this);
-        this.rafId = requestAnimationFrame(this.flightLoop);
-      }
-
-      flightLoop(now) {
-        if (this.state !== 'FLYING') return;
-
+      function haptic(type) {
         try {
-          const elapsedSec = (now - this.flightStartTime) / 1000;
-          // Плавный экспоненциальный рост
-          this.currentMultiplier = parseFloat(Math.pow(Math.E, 0.07 * elapsedSec).toFixed(2));
+          if (!tg?.HapticFeedback) return;
+          if (type === 'cashout') tg.HapticFeedback.notificationOccurred('success');
+          else if (type === 'crash') tg.HapticFeedback.notificationOccurred('error');
+          else tg.HapticFeedback.impactOccurred('medium');
+        } catch (_) {}
+      }
 
-          // Проверка автокэшаута
-          const autoM = parseFloat(this.autoCashInput.value);
-          if (this.hasBet && !this.hasCashedOut && autoM && this.currentMultiplier >= autoM) {
-            this.cashout();
-          }
+      let userBalance = 10000;
 
-          // Обновление кнопки "ЗАБРАТЬ" если игрок в игре
-          if (this.hasBet && !this.hasCashedOut) {
-            const currentWin = Math.floor(this.playerBet * this.currentMultiplier);
-            this.btnAction.innerText = `ЗАБРАТЬ ${currentWin} ED`;
-          }
+      const dom = {
+        balance: document.getElementById('hudBalance'),
+        roundId: document.getElementById('hudRoundId'),
+        statePill: document.getElementById('hudStatePill'),
+        history: document.getElementById('hudHistoryTape'),
+        canvas: document.getElementById('stageCanvas'),
+        multiplier: document.getElementById('hudMultiplier'),
+        status: document.getElementById('hudStatus'),
+        inputBet: document.getElementById('inputBet'),
+        inputAutoCash: document.getElementById('inputAutoCash'),
+        chips: document.querySelectorAll('.chip-btn'),
+        btnAction: document.getElementById('btnAction')
+      };
 
-          // Проверка наступления взрыва
-          if (this.currentMultiplier >= this.crashMultiplier) {
-            this.currentMultiplier = this.crashMultiplier;
-            this.enterCrashedPhase();
-            return;
-          }
+      const ctx = dom.canvas.getContext('2d');
 
-          this.multDisplay.innerText = `${this.currentMultiplier.toFixed(2)}x`;
-          this.renderCanvas(this.currentMultiplier);
+      function syncBalanceUI() {
+        dom.balance.innerText = `${userBalance.toLocaleString('en-US')} ED`;
+      }
 
-          this.rafId = requestAnimationFrame(this.flightLoop);
-        } catch (e) {
-          console.error('[Crash Loop Error]', e);
-          this.enterCrashedPhase();
+      const FSM = {
+        BETTING: 'BETTING',
+        FLYING: 'FLYING',
+        CRASHED: 'CRASHED',
+        COOLDOWN: 'COOLDOWN'
+      };
+
+      let state = FSM.BETTING;
+      let roundId = null;
+      let crashTarget = 1.00;
+      let currentMultiplier = 1.00;
+
+      let playerHasBet = false;
+      let playerBetAmount = 0;
+      let playerHasCashedOut = false;
+
+      let timerId = null;
+      let rafId = null;
+      let flightStartTime = 0;
+
+      const pathHistory = [];
+
+      function clearTimersAndLoops() {
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+        if (timerId) {
+          clearInterval(timerId);
+          clearTimeout(timerId);
+          timerId = null;
         }
       }
 
-      /* -------------------------------------------------------------
-         ФАЗА 3: CRASHED (МОМЕНТ ВЗРЫВА)
-      ------------------------------------------------------------- */
-      enterCrashedPhase() {
-        this.clearAllLoopsAndTimers();
-        this.state = 'CRASHED';
+      function enterBetting() {
+        clearTimersAndLoops();
+        state = FSM.BETTING;
+        roundId = 'RND-' + Math.floor(100000 + Math.random() * 900000);
+        currentMultiplier = 1.00;
 
-        const finalMult = this.crashMultiplier;
+        playerHasBet = false;
+        playerBetAmount = 0;
+        playerHasCashedOut = false;
 
-        // Остановка и фиксация экрана
-        this.multDisplay.innerText = `КРАШ ${finalMult.toFixed(2)}x`;
-        this.multDisplay.className = 'multiplier-number crashed';
-        this.statusSub.innerText = 'АВАРИЯ!';
+        pathHistory.length = 0;
+        pathHistory.push({ x: 30, y: dom.canvas.height - 30 });
 
-        this.roundStatePill.innerText = 'СТАТУС: CRASHED';
-        this.roundStatePill.style.color = 'var(--neon-pink)';
+        dom.roundId.innerText = `ROUND: #${roundId}`;
+        dom.statePill.innerText = 'STATUS: BETTING';
+        dom.statePill.style.color = 'var(--neon-green)';
 
-        // Добавляем в историю раундов
-        this.addHistoryChip(finalMult);
-        triggerHaptic('crash');
+        dom.multiplier.innerText = '1.00x';
+        dom.multiplier.className = 'hud-multiplier';
 
-        // Проверка квантового щита (если игрок не забрал ставку)
-        if (this.hasBet && !this.hasCashedOut) {
-          const hasShield = USER.hasPass && USER.inventory.includes('QUANTUM_SHIELD');
-          if (hasShield && finalMult < 1.20) {
-            USER.balance += this.playerBet;
-            updateHeaderUI();
-            this.shieldAlert.style.display = 'block';
-            triggerHaptic('win');
-          }
-        }
+        dom.inputBet.disabled = false;
+        dom.inputAutoCash.disabled = false;
+        dom.chips.forEach(c => c.disabled = false);
 
-        // Мгновенный переход к кулдауну
-        this.enterCooldownPhase();
-      }
+        dom.btnAction.disabled = false;
+        dom.btnAction.className = 'action-button btn-state-bet';
+        dom.btnAction.innerText = 'СТАВКА';
 
-      /* -------------------------------------------------------------
-         ФАЗА 4: COOLDOWN (КУЛДАУН 5 СЕКУНД)
-      ------------------------------------------------------------- */
-      enterCooldownPhase() {
-        this.state = 'COOLDOWN';
+        renderCanvasFrame(0, 1.00, false);
 
-        this.roundStatePill.innerText = 'СТАТУС: COOLDOWN';
-        this.roundStatePill.style.color = 'var(--neon-yellow)';
+        let countdownSec = 5.0;
+        dom.status.innerText = `СТАРТ ЧЕРЕЗ 5.0с`;
 
-        this.betInput.disabled = true;
-        this.autoCashInput.disabled = true;
-        this.btnAction.disabled = true;
-        this.btnAction.className = 'cyber-btn btn-crashed';
-
-        let cooldownLeft = 5;
-        this.btnAction.innerText = `СЛЕДУЮЩИЙ РАУНД ЧЕРЕЗ ${cooldownLeft}с...`;
-
-        this.fsmTimer = setInterval(() => {
-          cooldownLeft--;
-          if (cooldownLeft > 0) {
-            this.btnAction.innerText = `СЛЕДУЮЩИЙ РАУНД ЧЕРЕЗ ${cooldownLeft}с...`;
+        timerId = setInterval(() => {
+          countdownSec -= 0.1;
+          if (countdownSec <= 0.05) {
+            clearInterval(timerId);
+            timerId = null;
+            enterFlying();
           } else {
-            clearInterval(this.fsmTimer);
-            this.fsmTimer = null;
-            // Переход на следующий круг машины состояний
-            this.enterBettingPhase();
+            dom.status.innerText = `СТАРТ ЧЕРЕЗ ${countdownSec.toFixed(1)}с`;
           }
-        }, 1000);
+        }, 100);
       }
 
-      /* -------------------------------------------------------------
-         ОБРАБОТКА ДЕЙСТВИЙ ИГРОКА (СТРОГО ПО СТЕЙТУ)
-      ------------------------------------------------------------- */
-      handleActionClick() {
-        // ДЕЙСТВИЕ 1: СТАВКА (РАЗРЕШЕНО ТОЛЬКО В ФАЗЕ 'BETTING')
-        if (this.state === 'BETTING') {
-          if (this.hasBet) return;
+      function enterFlying() {
+        clearTimersAndLoops();
+        state = FSM.FLYING;
 
-          const amount = parseFloat(this.betInput.value);
-          if (isNaN(amount) || amount <= 0) return;
+        dom.statePill.innerText = 'STATUS: FLYING';
+        dom.statePill.style.color = 'var(--neon-cyan)';
+        dom.status.innerText = 'РАКЕТА ЛЕТИТ...';
 
-          if (USER.balance < amount) {
-            alert('Недостаточно кредитов ED!');
+        dom.inputBet.disabled = true;
+        dom.inputAutoCash.disabled = true;
+        dom.chips.forEach(c => c.disabled = true);
+
+        const rand = Math.random();
+        if (rand < 0.06) {
+          crashTarget = 1.00;
+        } else {
+          crashTarget = parseFloat((0.94 / (1 - rand)).toFixed(2));
+        }
+
+        if (playerHasBet) {
+          dom.btnAction.disabled = false;
+          dom.btnAction.className = 'action-button btn-state-cashout';
+          dom.btnAction.innerText = `ЗАБРАТЬ ${(playerBetAmount * 1.00).toFixed(0)} ED`;
+        } else {
+          dom.btnAction.disabled = true;
+          dom.btnAction.className = 'action-button btn-state-disabled';
+          dom.btnAction.innerText = 'РАУНД ИДЁТ...';
+        }
+
+        flightStartTime = performance.now();
+
+        function frame(now) {
+          if (state !== FSM.FLYING) return;
+
+          try {
+            const elapsed = Math.max(0, (now - flightStartTime) / 1000);
+            const nextMult = parseFloat(Math.pow(Math.E, 0.08 * elapsed).toFixed(2));
+
+            if (!Number.isFinite(nextMult) || Number.isNaN(nextMult)) {
+              enterCrashed(currentMultiplier);
+              return;
+            }
+
+            currentMultiplier = nextMult;
+
+            const autoCashLimit = parseFloat(dom.inputAutoCash.value);
+            if (
+              playerHasBet &&
+              !playerHasCashedOut &&
+              Number.isFinite(autoCashLimit) &&
+              autoCashLimit >= 1.01 &&
+              currentMultiplier >= autoCashLimit
+            ) {
+              cashout();
+            }
+
+            if (playerHasBet && !playerHasCashedOut) {
+              const liveWin = Math.floor(playerBetAmount * currentMultiplier);
+              dom.btnAction.innerText = `ЗАБРАТЬ ${liveWin} ED`;
+            }
+
+            if (currentMultiplier >= crashTarget) {
+              currentMultiplier = crashTarget;
+              enterCrashed(crashTarget);
+              return;
+            }
+
+            dom.multiplier.innerText = `${currentMultiplier.toFixed(2)}x`;
+            renderCanvasFrame(elapsed, currentMultiplier, true);
+
+            rafId = requestAnimationFrame(frame);
+          } catch (err) {
+            enterCrashed(currentMultiplier);
+          }
+        }
+
+        rafId = requestAnimationFrame(frame);
+      }
+
+      function enterCrashed(finalMult) {
+        clearTimersAndLoops();
+        state = FSM.CRASHED;
+
+        const safeMult = (Number.isFinite(finalMult) && finalMult >= 1.00) ? finalMult : 1.00;
+
+        dom.statePill.innerText = 'STATUS: CRASHED';
+        dom.statePill.style.color = 'var(--neon-pink)';
+
+        dom.multiplier.innerText = `КРАШ ${safeMult.toFixed(2)}x`;
+        dom.multiplier.className = 'hud-multiplier crashed';
+
+        dom.status.innerText = 'РАКЕТА ВЗОРВАЛАСЬ!';
+
+        dom.btnAction.disabled = true;
+        dom.btnAction.className = 'action-button btn-state-crashed';
+        dom.btnAction.innerText = 'ВЗРЫВ!';
+
+        haptic('crash');
+        pushHistory(safeMult);
+
+        enterCooldown();
+      }
+
+      function enterCooldown() {
+        state = FSM.COOLDOWN;
+
+        dom.statePill.innerText = 'STATUS: COOLDOWN';
+        dom.statePill.style.color = 'var(--neon-yellow)';
+
+        let cooldownSeconds = 5.0;
+        dom.btnAction.innerText = `СЛЕД. РАУНД ЧЕРЕЗ 5.0с`;
+
+        timerId = setInterval(() => {
+          cooldownSeconds -= 0.1;
+          if (cooldownSeconds <= 0.05) {
+            clearInterval(timerId);
+            timerId = null;
+            enterBetting();
+          } else {
+            dom.btnAction.innerText = `СЛЕД. РАУНД ЧЕРЕЗ ${cooldownSeconds.toFixed(1)}с`;
+          }
+        }, 100);
+      }
+
+      function cashout() {
+        if (playerHasCashedOut || !playerHasBet || state !== FSM.FLYING) return;
+
+        playerHasCashedOut = true;
+        const profit = Math.floor(playerBetAmount * currentMultiplier);
+
+        userBalance += profit;
+        syncBalanceUI();
+        haptic('cashout');
+
+        dom.btnAction.disabled = true;
+        dom.btnAction.className = 'action-button btn-state-taken';
+        dom.btnAction.innerText = `ВЫИГРЫШ ЗАБРАН (+${profit})`;
+        dom.status.innerText = 'ОЖИДАНИЕ КОНЦА РАУНДА';
+      }
+
+      function handleActionClick() {
+        if (state === FSM.BETTING) {
+          if (playerHasBet) return;
+
+          const rawBet = parseFloat(dom.inputBet.value);
+          if (!Number.isFinite(rawBet) || rawBet <= 0) return;
+
+          const finalBet = Math.floor(rawBet);
+          if (userBalance < finalBet) {
+            alert('Недостаточно средств!');
             return;
           }
 
-          USER.balance -= amount;
-          this.playerBet = amount;
-          this.hasBet = true;
-          this.hasCashedOut = false;
-          updateHeaderUI();
-          triggerHaptic('light');
+          userBalance -= finalBet;
+          syncBalanceUI();
 
-          this.betInput.disabled = true;
-          this.autoCashInput.disabled = true;
-          this.btnAction.disabled = true;
-          this.btnAction.className = 'cyber-btn btn-disabled';
-          this.btnAction.innerText = 'СТАВКА ПРИНЯТА';
-        }
-        // ДЕЙСТВИЕ 2: ЗАБРАТЬ ВЫИГРЫШ (РАЗРЕШЕНО ТОЛЬКО В ФАЗЕ 'FLYING')
-        else if (this.state === 'FLYING') {
-          if (this.hasBet && !this.hasCashedOut) {
-            this.cashout();
+          playerHasBet = true;
+          playerBetAmount = finalBet;
+          playerHasCashedOut = false;
+
+          haptic('click');
+
+          dom.inputBet.disabled = true;
+          dom.chips.forEach(c => c.disabled = true);
+
+          dom.btnAction.disabled = true;
+          dom.btnAction.className = 'action-button btn-state-disabled';
+          dom.btnAction.innerText = 'СТАВКА ПРИНЯТА';
+        } else if (state === FSM.FLYING) {
+          if (playerHasBet && !playerHasCashedOut) {
+            cashout();
           }
         }
       }
 
-      cashout() {
-        if (this.hasCashedOut || this.state !== 'FLYING') return;
-        this.hasCashedOut = true;
+      dom.btnAction.addEventListener('click', handleActionClick);
 
-        const winAmount = Math.floor(this.playerBet * this.currentMultiplier);
-        USER.balance += winAmount;
-        updateHeaderUI();
-        triggerHaptic('win');
+      dom.chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          if (state !== FSM.BETTING || playerHasBet) return;
+          const val = chip.getAttribute('data-val');
+          dom.inputBet.value = val;
+          haptic('click');
+        });
+      });
 
-        // ВАЖНО: Полет НЕ прерывается, ставка заблокирована до конца раунда
-        this.statusSub.innerText = 'ВЫИГРЫШ ЗАБРАН!';
-        this.btnAction.disabled = true;
-        this.btnAction.className = 'cyber-btn btn-taken';
-        this.btnAction.innerText = `ВЗЯТО +${winAmount} ED`;
+      function pushHistory(mult) {
+        const item = document.createElement('span');
+        let colorClass = 'low';
+        if (mult >= 2.0) colorClass = 'high';
+        else if (mult >= 1.5) colorClass = 'mid';
+
+        item.className = `history-item ${colorClass}`;
+        item.innerText = `${mult.toFixed(2)}x`;
+
+        dom.history.insertBefore(item, dom.history.firstChild);
+        if (dom.history.children.length > 8) {
+          dom.history.removeChild(dom.history.lastChild);
+        }
       }
 
-      /* -------------------------------------------------------------
-         ГРАФИКА CANVAS & ИСТОРИЯ
-      ------------------------------------------------------------- */
-      addHistory
+      function renderCanvasFrame(elapsedSec, mult, isFlying) {
+        const w = dom.canvas.width;
+        const h = dom.canvas.height;
+
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.06)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let x = 0; x < w; x += 36) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+        for (let y = 0; y < h; y += 36) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(30, h - 30);
+        ctx.lineTo(w - 10, h - 30);
+        ctx.moveTo(30, h - 30);
+        ctx.lineTo(30, 10);
+        ctx.stroke();
+
+        const safeMult = (Number.isFinite(mult) && mult >= 1.00) ? mult : 1.00;
+        const progress = Math.min((safeMult - 1.00) / 3.00, 1.00);
+
+        const curX = 30 + progress * (w - 70);
+        const curY = (h - 30) - Math.pow(progress, 1.35) * (h - 60);
+
+        if (Number.isFinite(curX) && Number.isFinite(curY)) {
+          pathHistory.push({ x: curX, y: curY });
+          if (pathHistory.length > 60) pathHistory.shift();
+        }
+
+        if (pathHistory.length > 1) {
+          ctx.strokeStyle = '#00f0ff';
+          ctx.lineWidth = 3;
+          ctx.shadowColor = '#00f0ff';
+          ctx.shadowBlur = 10;
+          ctx.beginPath();
+          ctx.moveTo(pathHistory[0].x, pathHistory[0].y);
+          for (let i = 1; i < pathHistory.length; i++) {
+            ctx.lineTo(pathHistory[i].x, pathHistory[i].y);
+          }
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+
+        drawRocketSprite(curX, curY, isFlying);
+      }
+
+      function drawRocketSprite(x, y, withFire) {
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(-Math.PI / 4.2);
+
+        ctx.fillStyle = '#fcee0a';
+        ctx.beginPath();
+        ctx.moveTo(0, -9);
+        ctx.lineTo(7, 9);
+        ctx.lineTo(-7, 9);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#ff003c';
+        ctx.beginPath();
+        ctx.moveTo(-5, 5);
+        ctx.lineTo(-10, 10);
+        ctx.lineTo(-4, 9);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(5, 5);
+        ctx.lineTo(10, 10);
+        ctx.lineTo(4, 9);
+        ctx.closePath();
+        ctx.fill();
+
+        if (withFire) {
+          ctx.fillStyle = '#05ffa1';
+          ctx.beginPath();
+          ctx.moveTo(-3, 9);
+          ctx.lineTo(3, 9);
+          ctx.lineTo(0, 9 + Math.random() * 12);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+
+      window.addEventListener('beforeunload', clearTimersAndLoops);
+
+      syncBalanceUI();
+      enterBetting();
+    })();
+  </script>
+</body>
+</html>
