@@ -504,7 +504,7 @@
     .spin-btn:active { transform: scale(0.98); }
     .spin-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* КРАШ-РАКЕТА (ЛИНЕЙНАЯ FSM) */
+    /* КРАШ-РАКЕТА */
     .crash-box {
       background: var(--card-bg);
       border-radius: 14px;
@@ -600,7 +600,7 @@
 
     .crash-free-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 0 14px; color: #fff; font-size: 18px; cursor: pointer; }
 
-    /* БОЕВОЙ ПАСС (РАЗДЕЛЕНИЕ FREE / VIP) */
+    /* БОЕВОЙ ПАСС */
     .pass-container { display: flex; flex-direction: column; gap: 10px; }
     .pass-header {
       background: linear-gradient(135deg, rgba(132, 61, 255, 0.25), rgba(0, 216, 246, 0.15));
@@ -954,7 +954,7 @@
       </div>
     </main>
 
-    <!-- ВКЛАДКА 2: КРАШ-РАКЕТА (СТРОГАЯ ЛИНЕЙНАЯ СТЕЙТ-МАШИНА) -->
+    <!-- ВКЛАДКА 2: КРАШ-РАКЕТА (ПРЯМОЙ РАУНД) -->
     <main class="view" id="view-crash">
       <div class="crash-box">
         <div class="crash-meta-bar">
@@ -968,7 +968,7 @@
           <canvas id="rocketCanvas"></canvas>
           <div class="crash-hud-overlay">
             <div class="crash-mult-hud" id="rocketMultText">1.00x</div>
-            <div class="crash-sub-hud" id="rocketStatusSub">ОКНО СТАВОК (5.0с)</div>
+            <div class="crash-sub-hud" id="rocketStatusSub">ГОТОВ К СТАРТУ</div>
           </div>
         </div>
 
@@ -997,7 +997,7 @@
       </div>
     </main>
 
-    <!-- ВКЛАДКА 3: КИБЕР-ПАСС (ЧЕСТНОЕ РАЗДЕЛЕНИЕ ПРАВ) -->
+    <!-- ВКЛАДКА 3: КИБЕР-ПАСС С РАЗДЕЛЕНИЕМ FREE И VIP -->
     <main class="view" id="view-pass">
       <div class="pass-container">
         <div class="pass-header">
@@ -1551,7 +1551,7 @@
 
       if (pendingJackpotWin > 0) {
         const amt = pendingJackpotWin;
-        pendingJackpotWin = 0; // Сбрасываем буфер, деньги теперь в пуле риска
+        pendingJackpotWin = 0;
         openGamble(amt);
       }
     }
@@ -1603,7 +1603,6 @@
         playTone(95, 'sawtooth', 0.45, 0.18);
         showToast('ПЕРЕГРУЗКА ЯДРА!', 'Куш сгорел во взрыве', '💥');
 
-        // ЖЕСТКИЙ СБРОС И СПИСАНИЕ
         gamblePool = 0;
         pendingJackpotWin = 0;
 
@@ -1628,30 +1627,19 @@
     }
 
     /* =========================================================
-       5. КРАШ-РАКЕТА (ЛИНЕЙНАЯ СТЕЙТ-МАШИНА)
-       BETTING (5c) -> FLYING -> CRASHED -> COOLDOWN (5c) -> BETTING
+       5. КРАШ-РАКЕТА (ЖЕСТКАЯ ОСТАНОВКА, ЧИСТЫЙ СБРОС И КУЛДАУН 3 СЕК)
     ========================================================= */
-    const CRASH_FSM = {
-      BETTING: 'BETTING',
-      FLYING: 'FLYING',
-      CRASHED: 'CRASHED',
-      COOLDOWN: 'COOLDOWN'
-    };
+    let animId = null;
+    let isRoundActive = false;
+    let isCashedOut = false;
+    let cooldownInterval = null;
 
-    let crashFsmState = CRASH_FSM.BETTING;
-    let crashRoundId = null;
-    let crashMultiplier = 1.00;
-    let crashTargetMultiplier = 1.00;
-
-    let crashUserBet = 100;
-    let crashUserHasBet = false;
-    let crashUserCashedOut = false;
-    let crashAutoTarget = 0;
-
-    let crashFsmTimer = null;
-    let crashRafId = null;
-    let crashStartTime = 0;
-    let rocketTrajectory = [];
+    let crashBet = 100;
+    let autoCashoutVal = 0;
+    let currentMultiplier = 1.00;
+    let targetCrashMultiplier = 1.00;
+    let startTime = 0;
+    let points = [];
 
     const rCanvas = document.getElementById('rocketCanvas');
     const rCtx = rCanvas.getContext('2d');
@@ -1660,290 +1648,299 @@
       if (!rCanvas) return;
       rCanvas.width = rCanvas.parentElement.clientWidth;
       rCanvas.height = rCanvas.parentElement.clientHeight;
-      if (crashFsmState === CRASH_FSM.BETTING || crashFsmState === CRASH_FSM.COOLDOWN) {
-        drawCrashCanvasFrame(1.00, false);
+      if (!isRoundActive) {
+        resetCanvasView();
       }
     }
     window.addEventListener('resize', resizeCrashCanvas);
 
-    function stopCrashLoops() {
-      if (crashRafId) {
-        cancelAnimationFrame(crashRafId);
-        crashRafId = null;
-      }
-      if (crashFsmTimer) {
-        clearInterval(crashFsmTimer);
-        clearTimeout(crashFsmTimer);
-        crashFsmTimer = null;
-      }
+    function resetCanvasView() {
+      if (!rCtx || !rCanvas) return;
+      const w = rCanvas.width;
+      const h = rCanvas.height;
+      rCtx.clearRect(0, 0, w, h);
+
+      rCtx.strokeStyle = 'rgba(0, 216, 246, 0.07)';
+      rCtx.lineWidth = 1;
+      rCtx.beginPath();
+      for (let x = 0; x < w; x += 36) { rCtx.moveTo(x, 0); rCtx.lineTo(x, h); }
+      for (let y = 0; y < h; y += 36) { rCtx.moveTo(0, y); rCtx.lineTo(w, y); }
+      rCtx.stroke();
+
+      drawRocketFrame(0, h, false);
     }
 
     function setCrashBetAmt(amt, btn) {
-      if (crashFsmState !== CRASH_FSM.BETTING || crashUserHasBet) return;
+      if (isRoundActive || animId !== null) return;
       haptic('light');
-      crashUserBet = amt;
+      crashBet = amt;
       document.getElementById('crashBetInput').value = amt;
       document.querySelectorAll('#view-crash .bet-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      document.getElementById('rocketActionBtn').innerText = `ПОСТАВИТЬ (${crashUserBet} 🪙)`;
+      document.getElementById('rocketActionBtn').innerText = `ПОСТАВИТЬ (${crashBet} 🪙)`;
     }
 
     function resetAutoCashout() {
       document.getElementById('crashAutoInput').value = '';
-      crashAutoTarget = 0;
+      autoCashoutVal = 0;
       showToast('СВОБОДНЫЙ ПОЛЕТ', 'Автозабор отключен', '💸');
     }
 
-    // 1. ФАЗА BETTING (5 СЕКУНД)
-    function enterCrashBettingPhase() {
-      stopCrashLoops();
-      crashFsmState = CRASH_FSM.BETTING;
-      crashRoundId = 'RND-' + Math.floor(100000 + Math.random() * 900000);
-      crashMultiplier = 1.00;
+    function handleCrashActionBtn() {
+      if (!isRoundActive) {
+        if (animId !== null) return;
+        startCrashRound();
+      } else {
+        if (!isCashedOut) {
+          cashOutEarly();
+        }
+      }
+    }
 
-      crashUserHasBet = false;
-      crashUserCashedOut = false;
+    function startCrashRound() {
+      if (animId !== null || isRoundActive) return;
 
-      rocketTrajectory = [{ x: 25, y: rCanvas.height - 25 }];
+      const betInp = document.getElementById('crashBetInput');
+      const autoInp = document.getElementById('crashAutoInput');
 
-      document.getElementById('crashRoundIdTxt').innerText = `ROUND: #${crashRoundId}`;
-      const stateTxt = document.getElementById('crashFsmStateTxt');
-      stateTxt.innerText = 'ФАЗА: СТАВКИ';
-      stateTxt.style.color = 'var(--cyan)';
+      const parsedBet = parseInt(betInp.value, 10);
+      if (!Number.isFinite(parsedBet) || parsedBet <= 0) return;
+
+      if (balance < parsedBet) {
+        showToast('НЕДОСТАТОЧНО МОНЕТ', 'Пополните баланс фишек', '⚠️');
+        return;
+      }
+
+      crashBet = parsedBet;
+      autoCashoutVal = parseFloat(autoInp.value) || 0;
+
+      haptic('heavy');
+      updateBalance(-crashBet);
+      totalSpent += crashBet;
+      saveStats();
+
+      // ЧИСТЫЙ СБРОС (RESET) ПЕРЕД СТАРТОМ
+      const w = rCanvas.width;
+      const h = rCanvas.height;
+      rCtx.clearRect(0, 0, w, h);
+      points = [{ x: 0, y: h }];
+      currentMultiplier = 1.00;
+      startTime = performance.now();
+
+      isRoundActive = true;
+      isCashedOut = false;
 
       const hudMult = document.getElementById('rocketMultText');
       hudMult.innerText = '1.00x';
       hudMult.classList.remove('crashed');
+      document.getElementById('rocketStatusSub').innerText = 'РАКЕТА В ПОЛЕТЕ...';
+      document.getElementById('crashFsmStateTxt').innerText = 'ФАЗА: В ПОЛЕТЕ';
+      document.getElementById('crashFsmStateTxt').style.color = 'var(--green)';
+      document.getElementById('crashRoundIdTxt').innerText = 'ROUND: #' + Math.floor(100000 + Math.random() * 900000);
 
-      const betInp = document.getElementById('crashBetInput');
-      const autoInp = document.getElementById('crashAutoInput');
-      betInp.disabled = false;
-      autoInp.disabled = false;
+      betInp.disabled = true;
+      autoInp.disabled = true;
 
       const actBtn = document.getElementById('rocketActionBtn');
-      actBtn.className = 'crash-btn-action ready';
-      actBtn.innerText = `ПОСТАВИТЬ (${crashUserBet} 🪙)`;
+      actBtn.className = 'crash-btn-action flying';
+      actBtn.innerText = `ЗАБРАТЬ ${crashBet} 🪙 (1.00x)`;
       actBtn.disabled = false;
-
-      drawCrashCanvasFrame(1.00, false);
-
-      let countdown = 5.0;
-      const hudSub = document.getElementById('rocketStatusSub');
-      hudSub.innerText = `СТАРТ ЧЕРЕЗ 5.0с`;
-
-      crashFsmTimer = setInterval(() => {
-        countdown -= 0.1;
-        if (countdown <= 0.05) {
-          clearInterval(crashFsmTimer);
-          crashFsmTimer = null;
-          enterCrashFlyingPhase();
-        } else {
-          hudSub.innerText = `СТАРТ ЧЕРЕЗ ${countdown.toFixed(1)}с`;
-        }
-      }, 100);
-    }
-
-    // 2. ФАЗА FLYING (ПОЛЕТ)
-    function enterCrashFlyingPhase() {
-      stopCrashLoops();
-      crashFsmState = CRASH_FSM.FLYING;
-
-      const stateTxt = document.getElementById('crashFsmStateTxt');
-      stateTxt.innerText = 'ФАЗА: В ПОЛЁТЕ';
-      stateTxt.style.color = 'var(--green)';
-      document.getElementById('rocketStatusSub').innerText = 'РАКЕТА НАБИРАЕТ ВЫСОТУ...';
-
-      // СТАВКИ ЗАБЛОКИРОВАНЫ ДЛЯ ВСЕХ
-      document.getElementById('crashBetInput').disabled = true;
-      document.getElementById('crashAutoInput').disabled = true;
 
       const rand = Math.random();
       if (rand < 0.07) {
-        crashTargetMultiplier = 1.00;
+        targetCrashMultiplier = 1.00;
       } else {
-        crashTargetMultiplier = +(0.94 / (1 - rand)).toFixed(2);
+        targetCrashMultiplier = +(0.94 / (1 - rand)).toFixed(2);
       }
-
-      const actBtn = document.getElementById('rocketActionBtn');
-      if (crashUserHasBet) {
-        actBtn.className = 'crash-btn-action flying';
-        actBtn.innerText = `ЗАБРАТЬ ${crashUserBet} 🪙`;
-        actBtn.disabled = false;
-      } else {
-        actBtn.className = 'crash-btn-action disabled-state';
-        actBtn.innerText = 'РАУНД ИДЁТ...';
-        actBtn.disabled = true;
-      }
-
-      crashStartTime = performance.now();
 
       function flightLoop(now) {
-        if (crashFsmState !== CRASH_FSM.FLYING) return;
+        if (!isRoundActive) return;
 
-        try {
-          const elapsedSec = Math.max(0, (now - crashStartTime) / 1000);
-          const nextMult = +(Math.pow(Math.E, 0.078 * elapsedSec)).toFixed(2);
+        const elapsedSec = Math.max(0, (now - startTime) / 1000);
+        currentMultiplier = +(Math.pow(Math.E, 0.08 * elapsedSec)).toFixed(2);
 
-          if (!Number.isFinite(nextMult) || isNaN(nextMult)) {
-            enterCrashCrashedPhase(crashMultiplier);
-            return;
+        if (!isCashedOut) {
+          if (autoCashoutVal >= 1.01 && currentMultiplier >= autoCashoutVal) {
+            cashOutEarly();
+          } else {
+            const curWin = Math.floor(crashBet * currentMultiplier);
+            actBtn.innerText = `ЗАБРАТЬ ${curWin.toLocaleString()} 🪙 (${currentMultiplier.toFixed(2)}x)`;
           }
-
-          crashMultiplier = nextMult;
-
-          // Автозабор
-          if (crashUserHasBet && !crashUserCashedOut && crashAutoTarget >= 1.01 && crashMultiplier >= crashAutoTarget) {
-            cashOutSuccess();
-          }
-
-          if (crashUserHasBet && !crashUserCashedOut) {
-            const winNow = Math.floor(crashUserBet * crashMultiplier);
-            actBtn.innerText = `ЗАБРАТЬ ${winNow.toLocaleString()} 🪙 (${crashMultiplier.toFixed(2)}x)`;
-          }
-
-          if (crashMultiplier >= crashTargetMultiplier) {
-            crashMultiplier = crashTargetMultiplier;
-            enterCrashCrashedPhase(crashTargetMultiplier);
-            return;
-          }
-
-          document.getElementById('rocketMultText').innerText = crashMultiplier.toFixed(2) + 'x';
-          drawCrashCanvasFrame(crashMultiplier, true);
-
-          crashRafId = requestAnimationFrame(flightLoop);
-        } catch (err) {
-          enterCrashCrashedPhase(crashMultiplier);
         }
-      }
 
-      crashRafId = requestAnimationFrame(flightLoop);
-    }
-
-    // 3. ФАЗА CRASHED (ВЗРЫВ)
-    function enterCrashCrashedPhase(finalMult) {
-      stopCrashLoops(); // Немедленный cancelAnimationFrame
-      crashFsmState = CRASH_FSM.CRASHED;
-
-      const safeMult = (Number.isFinite(finalMult) && finalMult >= 1.00) ? finalMult : 1.00;
-
-      const stateTxt = document.getElementById('crashFsmStateTxt');
-      stateTxt.innerText = 'ФАЗА: КРАШ';
-      stateTxt.style.color = 'var(--pink)';
-
-      const hudMult = document.getElementById('rocketMultText');
-      hudMult.innerText = `КРАШ ${safeMult.toFixed(2)}x`;
-      hudMult.classList.add('crashed');
-
-      document.getElementById('rocketStatusSub').innerText = 'РАКЕТА ВЗОРВАЛАСЬ!';
-
-      const actBtn = document.getElementById('rocketActionBtn');
-      actBtn.className = 'crash-btn-action crashed-state';
-      actBtn.innerText = `ВЗРЫВ (${safeMult.toFixed(2)}x)`;
-      actBtn.disabled = true;
-
-      haptic('heavy');
-      playTone(90, 'sawtooth', 0.45, 0.22);
-      addCrashBadge(safeMult, true);
-
-      // Квантовый щит: СТРОГАЯ ПРОВЕРКА НАЛИЧИЯ VIP ПАССА
-      if (crashUserHasBet && !crashUserCashedOut) {
-        if (isVipPassActive && activeModifiers.includes('quantum_shield') && safeMult <= 1.20) {
-          const refund = Math.floor(crashUserBet * 0.5);
-          updateBalance(refund);
-          showToast('КВАНТОВЫЙ ЩИТ!', `Возврат 50% ставки (+${refund} 🪙)`, '🛡️');
-        }
-      }
-
-      // Переход в фазу ожидания ровно на 5 секунд
-      enterCrashCooldownPhase();
-    }
-
-    // 4. ФАЗА COOLDOWN (5 СЕКУНД)
-    function enterCrashCooldownPhase() {
-      crashFsmState = CRASH_FSM.COOLDOWN;
-
-      const stateTxt = document.getElementById('crashFsmStateTxt');
-      stateTxt.innerText = 'ФАЗА: ОЖИДАНИЕ';
-      stateTxt.style.color = 'var(--yellow)';
-
-      let cooldownSec = 5.0;
-      const actBtn = document.getElementById('rocketActionBtn');
-      actBtn.className = 'crash-btn-action disabled-state';
-      actBtn.innerText = `СЛЕД. РАУНД ЧЕРЕЗ 5.0с`;
-      actBtn.disabled = true;
-
-      crashFsmTimer = setInterval(() => {
-        cooldownSec -= 0.1;
-        if (cooldownSec <= 0.05) {
-          clearInterval(crashFsmTimer);
-          crashFsmTimer = null;
-          enterCrashBettingPhase(); // Сброс и возврат к BETTING
-        } else {
-          actBtn.innerText = `СЛЕД. РАУНД ЧЕРЕЗ ${cooldownSec.toFixed(1)}с`;
-        }
-      }, 100);
-    }
-
-    function handleCrashActionBtn() {
-      if (crashFsmState === CRASH_FSM.BETTING) {
-        if (crashUserHasBet) return;
-
-        const betInp = document.getElementById('crashBetInput');
-        const autoInp = document.getElementById('crashAutoInput');
-
-        const parsedBet = parseInt(betInp.value, 10);
-        if (!Number.isFinite(parsedBet) || parsedBet <= 0) return;
-
-        if (balance < parsedBet) {
-          showToast('НЕДОСТАТОЧНО МОНЕТ', 'Пополните баланс фишек', '⚠️');
+        if (currentMultiplier >= targetCrashMultiplier) {
+          triggerCrashEnd(targetCrashMultiplier);
           return;
         }
 
-        crashUserBet = parsedBet;
-        crashAutoTarget = parseFloat(autoInp.value) || 0;
+        document.getElementById('rocketMultText').innerText = currentMultiplier.toFixed(2) + 'x';
+        renderFlightCanvas(currentMultiplier);
 
-        haptic('heavy');
-        updateBalance(-crashUserBet);
-        totalSpent += crashUserBet;
-        saveStats();
-
-        crashUserHasBet = true;
-        crashUserCashedOut = false;
-
-        betInp.disabled = true;
-        autoInp.disabled = true;
-
-        const actBtn = document.getElementById('rocketActionBtn');
-        actBtn.className = 'crash-btn-action disabled-state';
-        actBtn.innerText = 'СТАВКА ПРИНЯТА ✓';
-        actBtn.disabled = true;
-      } else if (crashFsmState === CRASH_FSM.FLYING) {
-        if (crashUserHasBet && !crashUserCashedOut) {
-          cashOutSuccess();
-        }
+        animId = requestAnimationFrame(flightLoop);
       }
+
+      animId = requestAnimationFrame(flightLoop);
     }
 
-    function cashOutSuccess() {
-      if (crashUserCashedOut || !crashUserHasBet || crashFsmState !== CRASH_FSM.FLYING) return;
-      crashUserCashedOut = true;
+    function cashOutEarly() {
+      if (!isRoundActive || isCashedOut) return;
+      isCashedOut = true;
 
-      const won = Math.floor(crashUserBet * crashMultiplier);
+      const won = Math.floor(crashBet * currentMultiplier);
       updateBalance(won);
       totalWon += won;
       saveStats();
 
       playTone(660, 'sine', 0.2);
       haptic('heavy');
-      showToast('КУШ ЗАБРАН!', `+${won.toLocaleString()} 🪙 (${crashMultiplier.toFixed(2)}x)`, '💰');
+      showToast('КУШ ЗАБРАН!', `+${won.toLocaleString()} 🪙 (${currentMultiplier.toFixed(2)}x)`, '💰');
 
-      // Кнопка жестко отключается до конца полета
       const actBtn = document.getElementById('rocketActionBtn');
       actBtn.className = 'crash-btn-action disabled-state';
       actBtn.innerText = `ВЫИГРЫШ ЗАБРАН (+${won})`;
       actBtn.disabled = true;
+    }
 
-      document.getElementById('rocketStatusSub').innerText = 'ОЖИДАНИЕ КОНЦА РАУНДА...';
+    function triggerCrashEnd(finalMult) {
+      // ПОЛНАЯ ОСТАНОВКА ЦИКЛА АНИМАЦИИ
+      if (animId !== null) {
+        cancelAnimationFrame(animId);
+        animId = null;
+      }
+      isRoundActive = false;
+
+      const safeMult = (Number.isFinite(finalMult) && finalMult >= 1.00) ? finalMult : 1.00;
+
+      const hudMult = document.getElementById('rocketMultText');
+      hudMult.innerText = `КРАШ ${safeMult.toFixed(2)}x`;
+      hudMult.classList.add('crashed');
+
+      document.getElementById('rocketStatusSub').innerText = 'РАКЕТА ВЗОРВАЛАСЬ!';
+      document.getElementById('crashFsmStateTxt').innerText = 'ФАЗА: КРАШ';
+      document.getElementById('crashFsmStateTxt').style.color = 'var(--pink)';
+
+      addCrashBadge(safeMult, true);
+      haptic('heavy');
+      playTone(90, 'sawtooth', 0.45, 0.22);
+
+      // Квантовый щит
+      if (!isCashedOut && isVipPassActive && activeModifiers.includes('quantum_shield') && safeMult <= 1.20) {
+        const refund = Math.floor(crashBet * 0.5);
+        updateBalance(refund);
+        showToast('КВАНТОВЫЙ ЩИТ!', `Возврат 50% ставки (+${refund} 🪙)`, '🛡️');
+      }
+
+      startCooldownTimer(3);
+    }
+
+    function startCooldownTimer(seconds) {
+      let left = seconds;
+      const actBtn = document.getElementById('rocketActionBtn');
+      actBtn.className = 'crash-btn-action disabled-state';
+      actBtn.disabled = true;
+      actBtn.innerText = `СЛЕДУЮЩИЙ РАУНД (${left}с)`;
+
+      if (cooldownInterval) clearInterval(cooldownInterval);
+      cooldownInterval = setInterval(() => {
+        left--;
+        if (left > 0) {
+          actBtn.innerText = `СЛЕДУЮЩИЙ РАУНД (${left}с)`;
+        } else {
+          clearInterval(cooldownInterval);
+          cooldownInterval = null;
+
+          document.getElementById('crashBetInput').disabled = false;
+          document.getElementById('crashAutoInput').disabled = false;
+          actBtn.className = 'crash-btn-action ready';
+          actBtn.innerText = `ПОСТАВИТЬ (${crashBet} 🪙)`;
+          actBtn.disabled = false;
+
+          document.getElementById('rocketStatusSub').innerText = 'ГОТОВ К СТАРТУ';
+          document.getElementById('crashFsmStateTxt').innerText = 'ФАЗА: СТАВКИ';
+          document.getElementById('crashFsmStateTxt').style.color = 'var(--cyan)';
+
+          resetCanvasView();
+          document.getElementById('rocketMultText').innerText = '1.00x';
+          document.getElementById('rocketMultText').classList.remove('crashed');
+        }
+      }, 1000);
+    }
+
+    function renderFlightCanvas(mult) {
+      if (!rCtx || !rCanvas) return;
+      const w = rCanvas.width;
+      const h = rCanvas.height;
+
+      rCtx.clearRect(0, 0, w, h);
+
+      rCtx.strokeStyle = 'rgba(0, 216, 246, 0.07)';
+      rCtx.lineWidth = 1;
+      rCtx.beginPath();
+      for (let x = 0; x < w; x += 36) { rCtx.moveTo(x, 0); rCtx.lineTo(x, h); }
+      for (let y = 0; y < h; y += 36) { rCtx.moveTo(0, y); rCtx.lineTo(w, y); }
+      rCtx.stroke();
+
+      const safeM = (Number.isFinite(mult) && mult >= 1.00) ? mult : 1.00;
+      const progress = Math.min((safeM - 1.00) / 4.00, 1.00);
+
+      const curX = progress * (w - 30);
+      const curY = h - Math.pow(progress, 1.32) * (h - 30);
+
+      if (Number.isFinite(curX) && Number.isFinite(curY)) {
+        points.push({ x: curX, y: curY });
+        if (points.length > 60) points.shift();
+      }
+
+      if (points.length > 1) {
+        rCtx.save();
+        rCtx.strokeStyle = '#00d8f6';
+        rCtx.lineWidth = 3.5;
+        rCtx.shadowColor = '#00d8f6';
+        rCtx.shadowBlur = 10;
+        rCtx.beginPath();
+        rCtx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          rCtx.lineTo(points[i].x, points[i].y);
+        }
+        rCtx.stroke();
+        rCtx.restore();
+      }
+
+      drawRocketFrame(curX, curY, true);
+    }
+
+    function drawRocketFrame(x, y, isFlying) {
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+
+      rCtx.save();
+      rCtx.translate(x, y);
+      rCtx.rotate(-Math.PI / 4.2);
+
+      rCtx.fillStyle = '#f1f5f9';
+      rCtx.fillRect(-12, -5, 20, 10);
+
+      rCtx.beginPath();
+      rCtx.moveTo(8, -5);
+      rCtx.lineTo(16, 0);
+      rCtx.lineTo(8, 5);
+      rCtx.fillStyle = '#ff2a85';
+      rCtx.fill();
+
+      rCtx.fillStyle = '#00d8f6';
+      rCtx.fillRect(-12, -8, 5, 3);
+      rCtx.fillRect(-12, 5, 5, 3);
+
+      if (isFlying) {
+        rCtx.fillStyle = '#ffc837';
+        rCtx.beginPath();
+        rCtx.moveTo(-12, -3);
+        rCtx.lineTo(-12 - Math.random() * 14, 0);
+        rCtx.lineTo(-12, 3);
+        rCtx.closePath();
+        rCtx.fill();
+      }
+
+      rCtx.restore();
     }
 
     function addCrashBadge(val, isCrashed) {
@@ -1955,84 +1952,8 @@
       if (bar.children.length > 8) bar.removeChild(bar.lastChild);
     }
 
-    function drawCrashCanvasFrame(mult, isFlying) {
-      if (!rCtx || !rCanvas) return;
-      const w = rCanvas.width;
-      const h = rCanvas.height;
-
-      rCtx.clearRect(0, 0, w, h);
-
-      // Сетка
-      rCtx.strokeStyle = 'rgba(0, 216, 246, 0.07)';
-      rCtx.lineWidth = 1;
-      rCtx.beginPath();
-      for (let x = 0; x < w; x += 36) { rCtx.moveTo(x, 0); rCtx.lineTo(x, h); }
-      for (let y = 0; y < h; y += 36) { rCtx.moveTo(0, y); rCtx.lineTo(w, y); }
-      rCtx.stroke();
-
-      const safeM = (Number.isFinite(mult) && mult >= 1.00) ? mult : 1.00;
-      const progress = Math.min((safeM - 1.00) / 4.00, 1.00);
-
-      const curX = 25 + progress * (w - 65);
-      const curY = (h - 25) - Math.pow(progress, 1.32) * (h - 55);
-
-      if (Number.isFinite(curX) && Number.isFinite(curY) && isFlying) {
-        rocketTrajectory.push({ x: curX, y: curY });
-        if (rocketTrajectory.length > 55) rocketTrajectory.shift();
-      }
-
-      // Траектория
-      if (rocketTrajectory.length > 1) {
-        rCtx.save();
-        rCtx.strokeStyle = '#00d8f6';
-        rCtx.lineWidth = 3.5;
-        rCtx.shadowColor = '#00d8f6';
-        rCtx.shadowBlur = 10;
-        rCtx.beginPath();
-        rCtx.moveTo(rocketTrajectory[0].x, rocketTrajectory[0].y);
-        for (let i = 1; i < rocketTrajectory.length; i++) {
-          rCtx.lineTo(rocketTrajectory[i].x, rocketTrajectory[i].y);
-        }
-        rCtx.stroke();
-        rCtx.restore();
-      }
-
-      // Ракета
-      if (Number.isFinite(curX) && Number.isFinite(curY)) {
-        rCtx.save();
-        rCtx.translate(curX, curY);
-        rCtx.rotate(-Math.PI / 4.2);
-
-        rCtx.fillStyle = '#f1f5f9';
-        rCtx.fillRect(-12, -5, 20, 10);
-
-        rCtx.beginPath();
-        rCtx.moveTo(8, -5);
-        rCtx.lineTo(16, 0);
-        rCtx.lineTo(8, 5);
-        rCtx.fillStyle = '#ff2a85';
-        rCtx.fill();
-
-        rCtx.fillStyle = '#00d8f6';
-        rCtx.fillRect(-12, -8, 5, 3);
-        rCtx.fillRect(-12, 5, 5, 3);
-
-        if (isFlying) {
-          rCtx.fillStyle = '#ffc837';
-          rCtx.beginPath();
-          rCtx.moveTo(-12, -3);
-          rCtx.lineTo(-12 - Math.random() * 14, 0);
-          rCtx.lineTo(-12, 3);
-          rCtx.closePath();
-          rCtx.fill();
-        }
-
-        rCtx.restore();
-      }
-    }
-
     /* =========================================================
-       6. БОЕВОЙ ПАСС (ЧЕСТНОЕ РАЗДЕЛЕНИЕ FREE / VIP)
+       6. БОЕВОЙ ПАСС (VIP НАГРАДЫ СТРОГО ПО hasPass)
     ========================================================= */
     const passTiers = [
       { 
@@ -2093,7 +2014,7 @@
             <span class="track-status-txt">${isLvlReached ? 'ДОСТИГНУТ' : 'ЗАКРЫТ'}</span>
           </div>
 
-          <!-- БАЗОВАЯ НАГРАДА (БЕСПЛАТНАЯ) -->
+          <!-- БАЗОВАЯ НАГРАДА -->
           <div class="reward-slot-box free-slot">
             <div class="reward-slot-info">
               <span class="reward-type-label">БАЗОВАЯ</span>
@@ -2112,7 +2033,7 @@
             </div>
           </div>
 
-          <!-- ЭКСКЛЮЗИВ СИНДИКАТА (СТРОГО ДЛЯ VIP) -->
+          <!-- VIP НАГРАДА (СТРОГО isVipPassActive) -->
           <div class="reward-slot-box vip-slot ${!isVipPassActive ? 'locked-pass' : ''}">
             <div class="reward-slot-info">
               <span class="reward-type-label vip">VIP СИНДИКАТ ⭐</span>
@@ -2155,7 +2076,6 @@
     }
 
     function claimVipPassReward(lvl, modId) {
-      // КРИТИЧЕСКАЯ ЗАЩИТА: ПЕРВЫМ ДЕЛОМ ПРОВЕРКА VIP ПАССА
       if (!isVipPassActive) {
         showToast('ТРЕБУЕТСЯ PASS', 'Купите VIP Pass для активации', '🔒');
         return;
@@ -2588,7 +2508,7 @@
 
     setTimeout(() => {
       resizeCrashCanvas();
-      enterCrashBettingPhase();
+      resetCanvasView();
     }, 200);
   </script>
 </body>
