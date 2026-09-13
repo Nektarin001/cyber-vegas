@@ -6,7 +6,7 @@
   <title>КИБЕР ВЕГАС 2077 // OVERLORD</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -498,6 +498,16 @@
       position: relative;
     }
 
+    .crash-meta-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+      padding: 0 2px;
+    }
+
     .crash-viewport {
       width: 100%;
       height: 220px;
@@ -510,21 +520,38 @@
 
     #rocketCanvas { width: 100%; height: 100%; display: block; }
 
-    .crash-mult-hud {
+    .crash-hud-overlay {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 48px;
-      font-weight: 900;
-      color: #fff;
-      text-shadow: 0 0 15px var(--cyan);
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       pointer-events: none;
       z-index: 5;
     }
-    .crash-mult-hud.crashed { color: var(--pink); text-shadow: 0 0 15px var(--pink); }
 
-    .crash-history-bar { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; }
+    .crash-mult-hud {
+      font-size: 46px;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 20px var(--cyan);
+      font-family: 'Orbitron', sans-serif;
+      line-height: 1;
+    }
+    .crash-mult-hud.crashed { color: var(--pink); text-shadow: 0 0 20px var(--pink); }
+
+    .crash-sub-hud {
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+      margin-top: 6px;
+      letter-spacing: 1px;
+    }
+
+    .crash-history-bar { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; scrollbar-width: none; }
+    .crash-history-bar::-webkit-scrollbar { display: none; }
+
     .crash-badge { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; background: #0f142b; color: var(--cyan); border: 1px solid rgba(0, 216, 246, 0.3); white-space: nowrap; }
     .crash-badge.crashed { color: var(--pink); border-color: rgba(255, 42, 133, 0.3); }
 
@@ -532,6 +559,7 @@
     .crash-input-box { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 6px 10px; display: flex; flex-direction: column; gap: 2px; }
     .crash-input-label { font-size: 9px; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
     .crash-num-input { background: transparent; border: none; color: #fff; font-size: 14px; font-weight: 800; outline: none; width: 100%; }
+    .crash-num-input:disabled { opacity: 0.4; }
 
     .crash-actions { display: flex; gap: 8px; }
     .crash-btn-action {
@@ -542,11 +570,15 @@
       font-size: 14px;
       font-weight: 800;
       cursor: pointer;
-      color: #fff;
-      background: linear-gradient(135deg, var(--cyan), #0077ff);
-      box-shadow: 0 0 15px rgba(0, 216, 246, 0.4);
+      color: #031408;
+      background: var(--yellow);
+      box-shadow: 0 0 15px rgba(255, 200, 55, 0.4);
+      transition: all 0.2s;
     }
-    .crash-btn-action.flying { background: linear-gradient(135deg, var(--green), #049f50); box-shadow: 0 0 15px rgba(5, 223, 114, 0.4); }
+    .crash-btn-action.ready { background: var(--yellow); color: #050711; }
+    .crash-btn-action.flying { background: var(--green); color: #031408; box-shadow: 0 0 18px rgba(5, 223, 114, 0.5); }
+    .crash-btn-action.disabled-state { background: #1a2035; color: #64748b; cursor: not-allowed; box-shadow: none; }
+    .crash-btn-action.crashed-state { background: var(--pink); color: #fff; box-shadow: 0 0 15px rgba(255, 42, 133, 0.4); cursor: not-allowed; }
 
     .crash-free-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 0 14px; color: #fff; font-size: 18px; cursor: pointer; }
 
@@ -581,16 +613,30 @@
       border-radius: 10px;
       padding: 12px 14px;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
       gap: 8px;
     }
-    .track-row.unlocked { border-color: var(--green); background: rgba(5, 223, 114, 0.08); }
-    .track-left { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-    .track-lvl { font-size: 12px; font-weight: 700; color: var(--cyan); }
-    .track-rewards-grid { display: flex; flex-direction: column; gap: 2px; }
-    .track-reward-item { font-size: 11px; color: #cbd5e1; font-weight: 500; }
-    .track-reward-item.exclusive { color: var(--yellow); font-weight: 700; text-shadow: 0 0 6px rgba(255, 200, 55, 0.5); }
+    .track-row.unlocked { border-color: var(--green); }
+    .track-top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 6px; }
+    .track-lvl { font-size: 12px; font-weight: 800; color: var(--cyan); }
+    .track-status-txt { font-size: 10px; font-weight: 600; color: #94a3b8; text-transform: uppercase; }
+
+    .reward-slot-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 8px;
+    }
+    .reward-slot-box.free-slot { border-left: 3px solid var(--cyan); }
+    .reward-slot-box.vip-slot { border-left: 3px solid var(--purple); background: rgba(132, 61, 255, 0.08); }
+    .reward-slot-box.vip-slot.locked { opacity: 0.55; background: rgba(0, 0, 0, 0.4); }
+
+    .reward-slot-info { display: flex; flex-direction: column; gap: 2px; }
+    .reward-type-label { font-size: 9px; font-weight: 700; color: #94a3b8; }
+    .reward-type-label.vip { color: var(--yellow); }
+    .reward-desc-text { font-size: 11px; font-weight: 600; color: #fff; }
 
     .pass-act-btn {
       padding: 6px 12px;
@@ -601,9 +647,11 @@
       cursor: pointer;
       text-transform: uppercase;
     }
-    .pass-act-btn.active { background: var(--green); color: #000; }
+    .pass-act-btn.active { background: var(--green); color: #031408; }
     .pass-act-btn.ready { background: var(--cyan); color: #050711; box-shadow: 0 0 10px rgba(0, 216, 246, 0.3); }
+    .pass-act-btn.claimed-state { background: transparent; border: 1px solid rgba(255, 255, 255, 0.15); color: #64748b; cursor: default; }
     .pass-act-btn.locked { background: #1e293b; color: #64748b; cursor: not-allowed; }
+    .pass-act-btn.buy-vip-trigger { background: linear-gradient(135deg, var(--pink), var(--purple)); color: #fff; }
 
     /* ВКЛАДКА СТИЛЬ */
     .custom-sec-title { font-size: 12px; font-weight: 700; color: var(--cyan); margin-top: 4px; }
@@ -808,21 +856,21 @@
     </header>
 
     <!-- ВКЛАДКА 1: СЛОТЫ 3х3 -->
-  <!-- КИБЕР-КОЛЕСО ФОРТУНЫ -->
-<div class="wheel-card" style="background: var(--card-bg, #111424); border: 1px solid var(--border, #00f0ff33); border-radius: 16px; padding: 20px; text-align: center; margin: 15px 0; box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);">
-  <div style="font-size: 16px; font-weight: 800; color: #fff; letter-spacing: 1px; margin-bottom: 4px;">КИБЕР-КОЛЕСО ФОРТУНЫ</div>
-  <div id="wheel-timer-text" style="font-size: 12px; color: #8892b0; margin-bottom: 15px;">Бесплатный спин раз в 12 часов</div>
-
-  <div style="position: relative; width: 260px; height: 260px; margin: 0 auto 15px auto;">
-    <div style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 20px solid #ff0055; z-index: 10; filter: drop-shadow(0 0 6px #ff0055);"></div>
-    <canvas id="wheelCanvas" width="260" height="260" style="border-radius: 50%; box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);"></canvas>
-  </div>
-
-  <button id="btnFreeSpin" onclick="spinWheel(false)" style="background: linear-gradient(90deg, #00f0ff, #7000ff); border: none; color: #000; font-weight: 800; font-size: 14px; padding: 12px 24px; border-radius: 10px; cursor: pointer; width: 100%; box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); text-transform: uppercase;">Крутить бесплатно</button>
-  
-  <button id="btnPaidSpin" onclick="openPayment('Премиум-спин Колеса', '15 ⭐', () => spinWheel(true))" style="display: none; background: rgba(255, 184, 0, 0.15); border: 1px solid #ffb800; color: #ffb800; font-weight: 800; font-size: 14px; padding: 12px 24px; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 8px;">Крутить за 15 ⭐ (VIP Джекпот)</button>
-</div>
     <main class="view active" id="view-slots">
+      <!-- КИБЕР-КОЛЕСО ФОРТУНЫ -->
+      <div class="wheel-card" style="background: var(--card-bg, #111424); border: 1px solid var(--border, #00f0ff33); border-radius: 16px; padding: 16px; text-align: center; box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);">
+        <div style="font-size: 15px; font-weight: 800; color: #fff; letter-spacing: 1px; margin-bottom: 2px;">КИБЕР-КОЛЕСО ФОРТУНЫ</div>
+        <div id="wheel-timer-text" style="font-size: 11px; color: #8892b0; margin-bottom: 12px;">Бесплатный спин раз в 12 часов</div>
+
+        <div style="position: relative; width: 220px; height: 220px; margin: 0 auto 12px auto;">
+          <div style="position: absolute; top: -8px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 18px solid #ff0055; z-index: 10; filter: drop-shadow(0 0 6px #ff0055);"></div>
+          <canvas id="wheelCanvas" width="220" height="220" style="border-radius: 50%; box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);"></canvas>
+        </div>
+
+        <button id="btnFreeSpin" onclick="spinWheel(false)" style="background: linear-gradient(90deg, #00f0ff, #7000ff); border: none; color: #000; font-weight: 800; font-size: 13px; padding: 11px 20px; border-radius: 10px; cursor: pointer; width: 100%; box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); text-transform: uppercase;">Крутить бесплатно</button>
+        <button id="btnPaidSpin" onclick="openPayment('Премиум-спин Колеса', '15 ⭐', () => spinWheel(true))" style="display: none; background: rgba(255, 184, 0, 0.15); border: 1px solid #ffb800; color: #ffb800; font-weight: 800; font-size: 13px; padding: 11px 20px; border-radius: 10px; cursor: pointer; width: 100%;">Крутить за 15 ⭐ (VIP Джекпот)</button>
+      </div>
+
       <div class="safe-banner">
         <div class="safe-left">
           <span class="safe-icon">💼</span>
@@ -874,21 +922,29 @@
           <button class="bet-btn" onclick="setSlotBet(100, this)">100</button>
           <button class="bet-btn" onclick="setSlotBet(250, this)">250</button>
           <button class="bet-btn" onclick="setSlotBet(500, this)">500</button>
-          <button class="bet-btn max-bet" id="maxBetBtn" onclick="setSlotBet('MAX', this)">MAX: 500</button>
+          <button class="bet-btn max-bet" id="maxBetBtn" onclick="setSlotBet('MAX', this)">MAX</button>
         </div>
 
         <button class="spin-btn" id="spinBtn" onclick="spinSlots()">ЗАПУСТИТЬ БАРАБАНЫ</button>
       </div>
     </main>
 
-    <!-- ВКЛАДКА 2: КРАШ-РАКЕТА -->
+    <!-- ВКЛАДКА 2: КРАШ-РАКЕТА (СТРОГАЯ СТЕЙТ-МАШИНА) -->
     <main class="view" id="view-crash">
       <div class="crash-box">
+        <div class="crash-meta-bar">
+          <span id="crashRoundIdTxt">ROUND: #---</span>
+          <span id="crashFsmStateTxt" style="color: var(--cyan);">ФАЗА: СТАВКИ</span>
+        </div>
+
         <div class="crash-history-bar" id="crashHistoryBar"></div>
 
         <div class="crash-viewport">
           <canvas id="rocketCanvas"></canvas>
-          <div class="crash-mult-hud" id="rocketMultText">1.00x</div>
+          <div class="crash-hud-overlay">
+            <div class="crash-mult-hud" id="rocketMultText">1.00x</div>
+            <div class="crash-sub-hud" id="rocketStatusSub">ОКНО СТАВОК (5с)</div>
+          </div>
         </div>
 
         <div class="crash-inputs-grid">
@@ -897,8 +953,8 @@
             <input type="number" class="crash-num-input" id="crashBetInput" value="100" min="10" step="10">
           </div>
           <div class="crash-input-box">
-            <span class="crash-input-label">АВТОЗАБОР (КОЭФФИЦИЕНТ)</span>
-            <input type="number" class="crash-num-input" id="crashAutoInput" placeholder="Напр. 1.10" step="0.05">
+            <span class="crash-input-label">АВТОЗАБОР (X)</span>
+            <input type="number" class="crash-num-input" id="crashAutoInput" placeholder="Напр. 1.50" step="0.05">
           </div>
         </div>
 
@@ -910,21 +966,21 @@
         </div>
 
         <div class="crash-actions">
-          <button class="crash-btn-action" id="rocketActionBtn" onclick="handleCrashAction()">ВЗЛЕТ (100 🪙)</button>
-          <button class="crash-free-btn" onclick="resetAutoCashout()" title="Сбросить автозабор (свободный полет)">💸</button>
+          <button class="crash-btn-action ready" id="rocketActionBtn" onclick="handleCrashActionBtn()">ПОСТАВИТЬ (100 🪙)</button>
+          <button class="crash-free-btn" onclick="resetAutoCashout()" title="Сбросить автозабор">💸</button>
         </div>
       </div>
     </main>
 
-    <!-- ВКЛАДКА 3: КИБЕР-ПАСС С АКТИВАЦИЕЙ НАГРАД -->
+    <!-- ВКЛАДКА 3: КИБЕР-ПАСС С РАЗДЕЛЕНИЕМ FREE И VIP -->
     <main class="view" id="view-pass">
       <div class="pass-container">
         <div class="pass-header">
           <div>
             <div class="pass-title">СЕЗОН 1: СИНДИКАТ</div>
-            <div style="font-size: 11px; color: var(--cyan); margin-top: 2px;">ЭКСКЛЮЗИВНЫЕ МОДИФИКАТОРЫ И НАГРАДЫ</div>
+            <div style="font-size: 11px; color: var(--cyan); margin-top: 2px;" id="passVipStatusText">VIP СТАТУС: НЕ АКТИВЕН</div>
           </div>
-          <button class="pass-vip-btn" id="vipPassBtn"onclick="processPayment('vip_pass')">300 ⭐</button>
+          <button class="pass-vip-btn" id="vipPassBtn" onclick="requestVipPassPayment()">300 ⭐</button>
         </div>
         <div class="pass-track" id="passTrack"></div>
       </div>
@@ -950,7 +1006,7 @@
               <div style="font-size: 11px; color: var(--cyan); font-weight: 600;">+5 000 МОНЕТ</div>
             </div>
           </div>
-          <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;"onclick="processPayment('novice')">50 ⭐</button>
+          <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;" onclick="processPayment('novice')">50 ⭐</button>
         </div>
 
         <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;">
@@ -961,7 +1017,7 @@
               <div style="font-size: 11px; color: var(--cyan); font-weight: 600;">+35 000 МОНЕТ</div>
             </div>
           </div>
-          <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;"onclick="processPayment('hacker')">150 ⭐</button>
+          <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;" onclick="processPayment('hacker')">150 ⭐</button>
         </div>
 
         <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;">
@@ -972,7 +1028,7 @@
               <div style="font-size: 11px; color: var(--cyan); font-weight: 600;">+120 000 МОНЕТ</div>
             </div>
           </div>
-          <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;"onclick="processPayment('syndicate')">400 ⭐</button>
+          <button style="background: rgba(0, 216, 246, 0.15); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer;" onclick="processPayment('syndicate')">400 ⭐</button>
         </div>
       </div>
     </main>
@@ -1003,17 +1059,19 @@
   </div>
 
   <script>
-    // 1. АНИМАЦИЯ ГОРОДА TRON СО СВЕТОЦИКЛАМИ
-    const canvas = document.getElementById('cityCanvas');
-    const ctx = canvas.getContext('2d');
+    /* =========================================================
+       1. ГОРОДСКОЙ ФОН TRON
+    ========================================================= */
+    const cityCanvas = document.getElementById('cityCanvas');
+    const cityCtx = cityCanvas.getContext('2d');
     let cw, ch;
 
-    function resizeCanvas() {
-      cw = canvas.width = window.innerWidth;
-      ch = canvas.height = window.innerHeight;
+    function resizeCityCanvas() {
+      cw = cityCanvas.width = window.innerWidth;
+      ch = cityCanvas.height = window.innerHeight;
     }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+    window.addEventListener('resize', resizeCityCanvas);
+    resizeCityCanvas();
 
     const buildings = [];
     const bCount = Math.floor(window.innerWidth / 35);
@@ -1033,49 +1091,48 @@
     ];
 
     function renderTronCity() {
-      ctx.fillStyle = '#030510';
-      ctx.fillRect(0, 0, cw, ch);
+      cityCtx.fillStyle = '#030510';
+      cityCtx.fillRect(0, 0, cw, ch);
 
       const horizonY = ch * 0.72;
-      const grad = ctx.createLinearGradient(0, horizonY - 140, 0, horizonY);
+      const grad = cityCtx.createLinearGradient(0, horizonY - 140, 0, horizonY);
       grad.addColorStop(0, 'rgba(4, 5, 15, 0)');
       grad.addColorStop(1, 'rgba(255, 42, 133, 0.22)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, horizonY - 140, cw, 140);
+      cityCtx.fillStyle = grad;
+      cityCtx.fillRect(0, horizonY - 140, cw, 140);
 
       buildings.forEach(b => {
         const by = horizonY - b.h;
-        ctx.fillStyle = '#060a1a';
-        ctx.fillRect(b.x, by, b.w, b.h);
-        ctx.strokeStyle = 'rgba(0, 216, 246, 0.18)';
-        ctx.strokeRect(b.x, by, b.w, b.h);
+        cityCtx.fillStyle = '#060a1a';
+        cityCtx.fillRect(b.x, by, b.w, b.h);
+        cityCtx.strokeStyle = 'rgba(0, 216, 246, 0.18)';
+        cityCtx.strokeRect(b.x, by, b.w, b.h);
 
-        ctx.fillStyle = 'rgba(0, 216, 246, 0.6)';
+        cityCtx.fillStyle = 'rgba(0, 216, 246, 0.6)';
         b.windows.forEach((on, idx) => {
           if (on) {
             const wx = b.x + 5 + (idx % 2) * 14;
             const wy = by + 12 + Math.floor(idx / 2) * 22;
-            ctx.fillRect(wx, wy, 6, 8);
+            cityCtx.fillRect(wx, wy, 6, 8);
           }
         });
       });
 
-      ctx.strokeStyle = 'rgba(0, 216, 246, 0.18)';
-      ctx.lineWidth = 1;
+      cityCtx.strokeStyle = 'rgba(0, 216, 246, 0.18)';
+      cityCtx.lineWidth = 1;
       for (let x = 0; x <= cw; x += 40) {
-        ctx.beginPath();
-        ctx.moveTo(x, horizonY);
-        ctx.lineTo((x - cw / 2) * 2.5 + cw / 2, ch);
-        ctx.stroke();
+        cityCtx.beginPath();
+        cityCtx.moveTo(x, horizonY);
+        cityCtx.lineTo((x - cw / 2) * 2.5 + cw / 2, ch);
+        cityCtx.stroke();
       }
       for (let y = horizonY; y <= ch; y += 18) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(cw, y);
-        ctx.stroke();
+        cityCtx.beginPath();
+        cityCtx.moveTo(0, y);
+        cityCtx.lineTo(cw, y);
+        cityCtx.stroke();
       }
 
-      // СВЕТОЦИКЛЫ
       const roadY = horizonY + 15;
       bikes.forEach(bike => {
         bike.x += bike.speed;
@@ -1084,21 +1141,21 @@
         if (bike.trail.length > 25) bike.trail.shift();
 
         if (bike.trail.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(bike.trail[0].x, bike.trail[0].y);
+          cityCtx.beginPath();
+          cityCtx.moveTo(bike.trail[0].x, bike.trail[0].y);
           for (let i = 1; i < bike.trail.length; i++) {
-            ctx.lineTo(bike.trail[i].x, bike.trail[i].y);
+            cityCtx.lineTo(bike.trail[i].x, bike.trail[i].y);
           }
-          ctx.strokeStyle = bike.color;
-          ctx.lineWidth = 3.5;
-          ctx.shadowColor = bike.color;
-          ctx.shadowBlur = 14;
-          ctx.stroke();
-          ctx.shadowBlur = 0;
+          cityCtx.strokeStyle = bike.color;
+          cityCtx.lineWidth = 3.5;
+          cityCtx.shadowColor = bike.color;
+          cityCtx.shadowBlur = 14;
+          cityCtx.stroke();
+          cityCtx.shadowBlur = 0;
         }
 
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(bike.x - 3, curY - 3, 8, 6);
+        cityCtx.fillStyle = '#fff';
+        cityCtx.fillRect(bike.x - 3, curY - 3, 8, 6);
 
         if (bike.speed > 0 && bike.x > cw + 80) { bike.x = -60; bike.trail = []; }
         else if (bike.speed < 0 && bike.x < -80) { bike.x = cw + 60; bike.trail = []; }
@@ -1108,13 +1165,15 @@
     }
     renderTronCity();
 
-    // 2. АУДИО И SDK
-    let tg = window.Telegram?.WebApp;
-    if (tg) {
+    /* =========================================================
+       2. ИНИЦИАЛИЗАЦИЯ TELEGRAM & АУДИО
+    ========================================================= */
+    const tgApp = window.Telegram?.WebApp;
+    if (tgApp) {
       try {
-        tg.expand();
-        if (tg.initDataUnsafe?.user) {
-          const u = tg.initDataUnsafe.user;
+        tgApp.expand();
+        if (tgApp.initDataUnsafe?.user) {
+          const u = tgApp.initDataUnsafe.user;
           document.getElementById('username').innerText = (u.first_name || 'CYBER_PUNK').toUpperCase();
           document.getElementById('avatarLetter').innerText = (u.first_name || 'C')[0].toUpperCase();
         }
@@ -1122,14 +1181,14 @@
     }
 
     function haptic(type = 'medium') {
-      try { tg?.HapticFeedback?.impactOccurred(type); } catch (e) {}
+      try { tgApp?.HapticFeedback?.impactOccurred(type); } catch (e) {}
     }
 
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
     function playTone(freq, type = 'sine', dur = 0.08, vol = 0.08) {
       try {
-        if (!audioCtx) audioCtx = new AudioCtx();
+        if (!audioCtx) audioCtx = new AudioCtxClass();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = type;
@@ -1151,23 +1210,26 @@
       document.getElementById('toastIcon').innerText = icon;
       toast.classList.add('show');
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => { toast.classList.remove('show'); }, 2000);
+      toastTimer = setTimeout(() => { toast.classList.remove('show'); }, 2200);
     }
 
-    // 3. БАЛАНС И СОСТОЯНИЯ
-    let balance = parseInt(localStorage.getItem('tron_bal') || '5000');
-    let currentLvl = parseInt(localStorage.getItem('tron_lvl') || '1');
-    let currentXp = parseInt(localStorage.getItem('tron_xp') || '0');
-    let safeBalance = parseInt(localStorage.getItem('tron_safe') || '2500');
+    /* =========================================================
+       3. СТЕЙТ ПОЛЬЗОВАТЕЛЯ И ДАННЫЕ
+    ========================================================= */
+    let balance = parseInt(localStorage.getItem('tron_bal') || '5000', 10);
+    let currentLvl = parseInt(localStorage.getItem('tron_lvl') || '1', 10);
+    let currentXp = parseInt(localStorage.getItem('tron_xp') || '0', 10);
+    let safeBalance = parseInt(localStorage.getItem('tron_safe') || '2500', 10);
     let isVipPassActive = localStorage.getItem('tron_vip_pass') === 'true';
 
-    // АКТИВИРОВАННЫЕ НАГРАДЫ ПАССА
-    let activePassRewards = JSON.parse(localStorage.getItem('tron_pass_active') || '[]');
+    let claimedFreeRewards = JSON.parse(localStorage.getItem('tron_pass_claimed_free') || '[]');
+    let claimedVipRewards = JSON.parse(localStorage.getItem('tron_pass_claimed_vip') || '[]');
+    let activeModifiers = JSON.parse(localStorage.getItem('tron_active_modifiers') || '[]');
 
-    let totalSpent = parseInt(localStorage.getItem('tron_spent') || '0');
-    let totalWon = parseInt(localStorage.getItem('tron_won') || '0');
-    let totalSpins = parseInt(localStorage.getItem('tron_spins') || '0');
-    let totalJackpots = parseInt(localStorage.getItem('tron_jackpots') || '0');
+    let totalSpent = parseInt(localStorage.getItem('tron_spent') || '0', 10);
+    let totalWon = parseInt(localStorage.getItem('tron_won') || '0', 10);
+    let totalSpins = parseInt(localStorage.getItem('tron_spins') || '0', 10);
+    let totalJackpots = parseInt(localStorage.getItem('tron_jackpots') || '0', 10);
 
     let equippedFrame = localStorage.getItem('tron_equipped_frame') || 'frame-default';
     let equippedNameStyle = localStorage.getItem('tron_equipped_name') || '';
@@ -1225,15 +1287,19 @@
       document.getElementById('avatarFrame').className = 'avatar-frame ' + equippedFrame;
       document.getElementById('username').className = 'user-name ' + equippedNameStyle;
 
-      if (activePassRewards.includes('safe_boost')) {
+      if (isVipPassActive && activeModifiers.includes('safe_boost')) {
         document.getElementById('safeTitleTxt').innerText = 'ЗОЛОТОЙ КИБЕР-СЕЙФ (10% СО СПИНОВ)';
+      } else {
+        document.getElementById('safeTitleTxt').innerText = 'КИБЕР-СЕЙФ (5% СО СПИНОВ)';
       }
     }
 
-    // 4. ДВИЖОК СЛОТОВ
+    /* =========================================================
+       4. СЛОТЫ 3х3
+    ========================================================= */
     const symbols = ['⚡', '💎', '🍒', '🍋', '🍇', '7️⃣'];
     let currentBet = 50;
-    let isWheelSpinning = false;
+    let isSlotSpinning = false;
     let gamblePool = 0;
     let currentReelSymbols = ['⚡', '💎', '7️⃣'];
 
@@ -1257,7 +1323,7 @@
     }
 
     function setSlotBet(val, btn) {
-      if (isWheelSpinning) return;
+      if (isSlotSpinning) return;
       haptic('light');
       document.querySelectorAll('#view-slots .bet-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -1266,9 +1332,8 @@
     }
 
     function spinSlots() {
-      if (isWheelSpinning) return;
+      if (isSlotSpinning) return;
 
-      // АВТО-ЗАЧИСЛЕНИЕ ВЫИГРЫША, ЕСЛИ ИГРОК НЕ НАЖАЛ КНОПКУ
       if (gamblePool > 0) {
         updateBalance(gamblePool);
         totalWon += gamblePool;
@@ -1290,21 +1355,19 @@
       totalSpins++;
       saveStats();
 
-      // Проверка бонуса Пасса (Сейф 10% вместо 5%)
-      const safePercent = activePassRewards.includes('safe_boost') ? 0.10 : 0.05;
+      const safePercent = (isVipPassActive && activeModifiers.includes('safe_boost')) ? 0.10 : 0.05;
       updateSafe(Math.max(1, Math.floor(currentBet * safePercent)));
 
       const xpGain = Math.max(3, Math.floor(Math.sqrt(currentBet) * 1.4));
       addExperience(xpGain);
 
-     isWheelSpinning = true;
+      isSlotSpinning = true;
       document.getElementById('spinBtn').disabled = true;
       document.getElementById('termMsg').innerText = 'СКАНИРОВАНИЕ...';
       document.getElementById('termMsg').style.color = 'var(--cyan)';
 
-      // Проверка билета в секретную комнату (х2 шанс джекпота)
-      const hasTicket = activePassRewards.includes('ticket_room');
-      const isJackpotForce = hasTicket && Math.random() < 0.25;
+      const hasTicket = isVipPassActive && activeModifiers.includes('ticket_room');
+      const isJackpotForce = hasTicket && Math.random() < 0.22;
 
       let results;
       if (isJackpotForce) {
@@ -1331,7 +1394,7 @@
       }
 
       setTimeout(() => {
-        isWheelSpinning = false;
+        isSlotSpinning = false;
         document.getElementById('spinBtn').disabled = false;
         currentReelSymbols = [...results];
         evaluateSlotResult(results);
@@ -1520,321 +1583,322 @@
       document.getElementById('gamblePanel').style.display = 'none';
     }
 
-    // ==============================================
-    // 7. КРАШ-РАКЕТА (ГИПЕРЗВУКОВОЙ УЛЕТ В КОСМОС И НЕОНОВЫЙ ХВОСТ)
-    // ==============================================
-    let crashBet = 100;
-    let autoCashoutX = 0;
-    let crashState = 'idle'; // idle, flying, warping_out, crashed
-    let crashMult = 1.00;
-    let crashLimit = 1.00;
-    let crashAnim = null;
-    let rCanvas, rCtx;
-    let particles = [], debris = [];
-    let rocketTrailPoints = [];
-    let warpX = 0, warpY = 0, warpAngle = 0;
+    /* =========================================================
+       7. КРАШ-РАКЕТА: СТРОГАЯ FINITE STATE MACHINE
+       ФАЗЫ: BETTING -> FLYING -> CRASHED -> COOLDOWN
+    ========================================================= */
+    const CRASH_FSM = {
+      BETTING: 'BETTING',
+      FLYING: 'FLYING',
+      CRASHED: 'CRASHED',
+      COOLDOWN: 'COOLDOWN'
+    };
 
-    class Debris {
-      constructor(x, y, color) {
-        this.x = x; this.y = y; this.color = color;
-        this.vx = (Math.random() - 0.5) * 10;
-        this.vy = (Math.random() - 0.5) * 10 - 2;
-        this.grav = 0.2;
-        this.life = 40 + Math.random() * 30;
-        this.angle = Math.random() * Math.PI * 2;
-        this.spin = (Math.random() - 0.5) * 0.25;
-        this.size = 3 + Math.random() * 4;
-      }
-      update() {
-        this.x += this.vx; this.vy += this.grav; this.y += this.vy;
-        this.angle += this.spin; this.life--;
-      }
-      draw(c) {
-        if (this.life <= 0) return;
-        c.fillStyle = this.color;
-        c.save();
-        c.translate(this.x, this.y);
-        c.rotate(this.angle);
-        c.fillRect(-this.size/2, -this.size/2, this.size, this.size);
-        c.restore();
-      }
-    }
+    let crashFsmState = CRASH_FSM.BETTING;
+    let crashRoundId = null;
+    let crashMultiplier = 1.00;
+    let crashTargetMultiplier = 1.00;
 
-    function initCrashCanvas() {
-      rCanvas = document.getElementById('rocketCanvas');
+    let crashUserBet = 100;
+    let crashUserHasBet = false;
+    let crashUserCashedOut = false;
+    let crashAutoTarget = 0;
+
+    let crashFsmTimer = null;
+    let crashRafId = null;
+    let crashStartTime = 0;
+    let rocketTrajectory = [];
+
+    const rCanvas = document.getElementById('rocketCanvas');
+    const rCtx = rCanvas.getContext('2d');
+
+    function resizeCrashCanvas() {
       if (!rCanvas) return;
       rCanvas.width = rCanvas.parentElement.clientWidth;
       rCanvas.height = rCanvas.parentElement.clientHeight;
-      rCtx = rCanvas.getContext('2d');
-      drawCrashStatic();
+      if (crashFsmState === CRASH_FSM.BETTING) {
+        drawCrashCanvasFrame(1.00, false);
+      }
+    }
+    window.addEventListener('resize', resizeCrashCanvas);
+
+    function stopCrashLoops() {
+      if (crashRafId) {
+        cancelAnimationFrame(crashRafId);
+        crashRafId = null;
+      }
+      if (crashFsmTimer) {
+        clearInterval(crashFsmTimer);
+        clearTimeout(crashFsmTimer);
+        crashFsmTimer = null;
+      }
     }
 
     function setCrashBetAmt(amt, btn) {
-      if (crashState === 'flying' || crashState === 'warping_out') return;
+      if (crashFsmState !== CRASH_FSM.BETTING || crashUserHasBet) return;
       haptic('light');
-      crashBet = amt;
+      crashUserBet = amt;
       document.getElementById('crashBetInput').value = amt;
       document.querySelectorAll('#view-crash .bet-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      document.getElementById('rocketActionBtn').innerText = `ВЗЛЕТ (${crashBet} 🪙)`;
+      document.getElementById('rocketActionBtn').innerText = `ПОСТАВИТЬ (${crashUserBet} 🪙)`;
     }
 
     function resetAutoCashout() {
       document.getElementById('crashAutoInput').value = '';
-      autoCashoutX = 0;
+      crashAutoTarget = 0;
       showToast('СВОБОДНЫЙ ПОЛЕТ', 'Автозабор отключен', '💸');
     }
 
-    function drawCrashStatic() {
-      if (!rCtx) return;
-      const w = rCanvas.width, h = rCanvas.height;
-      rCtx.clearRect(0, 0, w, h);
-      rCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-      for (let y = 0; y < h; y += 40) {
-        rCtx.beginPath(); rCtx.moveTo(0, y); rCtx.lineTo(w, y); rCtx.stroke();
-      }
+    // ФАЗА 1: BETTING (5 СЕКУНД)
+    function enterCrashBettingPhase() {
+      stopCrashLoops();
+      crashFsmState = CRASH_FSM.BETTING;
+      crashRoundId = 'RND-' + Math.floor(100000 + Math.random() * 900000);
+      crashMultiplier = 1.00;
+
+      crashUserHasBet = false;
+      crashUserCashedOut = false;
+
+      rocketTrajectory = [{ x: 25, y: rCanvas.height - 25 }];
+
+      document.getElementById('crashRoundIdTxt').innerText = `ROUND: #${crashRoundId}`;
+      const stateTxt = document.getElementById('crashFsmStateTxt');
+      stateTxt.innerText = 'ФАЗА: СТАВКИ';
+      stateTxt.style.color = 'var(--cyan)';
+
+      const hudMult = document.getElementById('rocketMultText');
+      hudMult.innerText = '1.00x';
+      hudMult.classList.remove('crashed');
+
+      const betInp = document.getElementById('crashBetInput');
+      const autoInp = document.getElementById('crashAutoInput');
+      betInp.disabled = false;
+      autoInp.disabled = false;
+
+      const actBtn = document.getElementById('rocketActionBtn');
+      actBtn.className = 'crash-btn-action ready';
+      actBtn.innerText = `ПОСТАВИТЬ (${crashUserBet} 🪙)`;
+      actBtn.disabled = false;
+
+      drawCrashCanvasFrame(1.00, false);
+
+      let countdown = 5.0;
+      const hudSub = document.getElementById('rocketStatusSub');
+      hudSub.innerText = `СТАРТ ЧЕРЕЗ 5.0с`;
+
+      crashFsmTimer = setInterval(() => {
+        countdown -= 0.1;
+        if (countdown <= 0.05) {
+          clearInterval(crashFsmTimer);
+          crashFsmTimer = null;
+          enterCrashFlyingPhase();
+        } else {
+          hudSub.innerText = `СТАРТ ЧЕРЕЗ ${countdown.toFixed(1)}с`;
+        }
+      }, 100);
     }
 
-    function runCrashScene() {
-      if (!rCtx || crashState === 'idle') return;
-      const w = rCanvas.width, h = rCanvas.height;
+    // ФАЗА 2: FLYING (ПОЛЕТ)
+    function enterCrashFlyingPhase() {
+      stopCrashLoops();
+      crashFsmState = CRASH_FSM.FLYING;
 
-      drawCrashStatic();
+      const stateTxt = document.getElementById('crashFsmStateTxt');
+      stateTxt.innerText = 'ФАЗА: В ПОЛЁТЕ';
+      stateTxt.style.color = 'var(--green)';
+      document.getElementById('rocketStatusSub').innerText = 'РАКЕТА НАБИРАЕТ ВЫСОТУ...';
 
-      let curX, curY, curAngle;
+      // Блокировка инпутов для всех
+      document.getElementById('crashBetInput').disabled = true;
+      document.getElementById('crashAutoInput').disabled = true;
 
-      if (crashState === 'flying') {
-        const progress = Math.min(1, (crashMult - 1) / 5);
-        curX = 25 + progress * (w - 75);
-        curY = (h - 25) - Math.pow(progress, 1.25) * (h - 60);
-        curAngle = -Math.PI / 4 * progress;
-
-        warpX = curX; warpY = curY; warpAngle = curAngle;
-        rocketTrailPoints.push({ x: curX, y: curY });
-
-        // Огонь из сопла
-        for (let i = 0; i < 3; i++) {
-          particles.push({
-            x: curX - 8, y: curY + 3,
-            vx: - (2 + Math.random() * 2.5),
-            vy: (Math.random() - 0.5) * 1.5,
-            life: 18, maxLife: 18, size: 4,
-            color: Math.random() > 0.4 ? '#ff7a18' : '#ffc837'
-          });
-        }
-      } else if (crashState === 'warping_out') {
-        // УЛЕТ В КОСМОС НА ГИПЕРЗВУКЕ
-        warpX += 16;
-        warpY -= 14;
-        curX = warpX; curY = warpY; curAngle = warpAngle;
-        rocketTrailPoints.push({ x: curX, y: curY });
-
-        // Форсажное пламя
-        for (let i = 0; i < 6; i++) {
-          particles.push({
-            x: curX - 10, y: curY + 5,
-            vx: - (4 + Math.random() * 5),
-            vy: (Math.random() - 0.5) * 3,
-            life: 25, maxLife: 25, size: 6,
-            color: '#00d8f6'
-          });
-        }
-
-        // Вылетела за экран
-        if (curX > w + 40 || curY < -40) {
-          finishWarpOut();
-        }
+      // Определение цели краша
+      const rand = Math.random();
+      if (rand < 0.07) {
+        crashTargetMultiplier = 1.00;
+      } else {
+        crashTargetMultiplier = +(0.94 / (1 - rand)).toFixed(2);
       }
 
-      // ЯРКИЙ НЕОНОВЫЙ ШЛЕЙФ
-      if (rocketTrailPoints.length > 1) {
-        rCtx.save();
-        rCtx.shadowBlur = 18;
-        rCtx.shadowColor = '#00d8f6';
-        rCtx.strokeStyle = 'rgba(0, 216, 246, 0.9)';
-        rCtx.lineWidth = 6;
-        rCtx.lineCap = 'round';
-        rCtx.beginPath();
-        rCtx.moveTo(rocketTrailPoints[0].x, rocketTrailPoints[0].y);
-        for (let i = 1; i < rocketTrailPoints.length; i++) {
-          rCtx.lineTo(rocketTrailPoints[i].x, rocketTrailPoints[i].y);
-        }
-        rCtx.stroke();
-
-        // Белое ядро шлейфа
-        rCtx.shadowBlur = 4;
-        rCtx.shadowColor = '#ffffff';
-        rCtx.strokeStyle = '#ffffff';
-        rCtx.lineWidth = 2.5;
-        rCtx.stroke();
-        rCtx.restore();
+      const actBtn = document.getElementById('rocketActionBtn');
+      if (crashUserHasBet) {
+        actBtn.className = 'crash-btn-action flying';
+        actBtn.innerText = `ЗАБРАТЬ ${crashUserBet} 🪙`;
+        actBtn.disabled = false;
+      } else {
+        actBtn.className = 'crash-btn-action disabled-state';
+        actBtn.innerText = 'РАУНД ИДЁТ...';
+        actBtn.disabled = true;
       }
 
-      // Частицы
-      particles.forEach(p => {
-        p.x += p.vx; p.y += p.vy; p.life--;
-        rCtx.fillStyle = p.color;
-        rCtx.beginPath();
-        rCtx.arc(p.x, p.y, Math.max(1, p.size * (p.life / p.maxLife)), 0, Math.PI * 2);
-        rCtx.fill();
-      });
-      particles = particles.filter(p => p.life > 0);
+      crashStartTime = performance.now();
 
-      // Ракета
-      if (crashState === 'flying' || crashState === 'warping_out') {
-        rCtx.save();
-        rCtx.translate(curX, curY);
-        rCtx.rotate(curAngle);
+      function flightLoop(now) {
+        if (crashFsmState !== CRASH_FSM.FLYING) return;
 
-        rCtx.fillStyle = '#f1f5f9';
-        rCtx.fillRect(-12, -5, 20, 10);
-        rCtx.beginPath(); rCtx.moveTo(8, -5); rCtx.lineTo(16, 0); rCtx.lineTo(8, 5); rCtx.fillStyle = '#ff2a85'; rCtx.fill();
-        rCtx.fillStyle = '#00d8f6';
-        rCtx.fillRect(-12, -8, 5, 3);
-        rCtx.fillRect(-12, 5, 5, 3);
-        rCtx.restore();
-      }
+        try {
+          const elapsedSec = Math.max(0, (now - crashStartTime) / 1000);
+          const nextMult = +(Math.pow(Math.E, 0.078 * elapsedSec)).toFixed(2);
 
-      // Осколки при краше
-      if (crashState === 'crashed') {
-        debris.forEach(d => { d.update(); d.draw(rCtx); });
-        debris = debris.filter(d => d.life > 0);
-      }
-
-      crashAnim = requestAnimationFrame(runCrashScene);
-    }
-
-    function handleCrashAction() {
-      const btn = document.getElementById('rocketActionBtn');
-
-      if (crashState === 'idle') {
-        const betInp = document.getElementById('crashBetInput');
-        const autoInp = document.getElementById('crashAutoInput');
-
-        crashBet = parseInt(betInp.value) || 100;
-        autoCashoutX = parseFloat(autoInp.value) || 0;
-
-        if (balance < crashBet) {
-          showToast('НЕДОСТАТОЧНО МОНЕТ', 'Пополните баланс в Магазине', '⚠️');
-          return;
-        }
-
-        haptic('heavy');
-        updateBalance(-crashBet);
-        totalSpent += crashBet;
-        saveStats();
-
-        crashState = 'flying';
-        crashMult = 1.00;
-        particles = []; debris = []; rocketTrailPoints = [];
-
-        const r = Math.random();
-        if (r < 0.12) crashLimit = 1.05;
-        else crashLimit = +(1.15 + Math.random() * 4.2).toFixed(2);
-
-        btn.innerText = `ЗАБРАТЬ ${crashBet} 🪙 (1.00x)`;
-        btn.classList.add('flying');
-        document.getElementById('rocketMultText').classList.remove('crashed');
-
-        const startTime = performance.now();
-        if (!crashAnim) crashAnim = requestAnimationFrame(runCrashScene);
-
-        function loop(now) {
-          if (crashState !== 'flying') return;
-          const sec = (now - startTime) / 1000;
-          crashMult = +(1.00 + sec * 0.28).toFixed(2);
-
-          document.getElementById('rocketMultText').innerText = crashMult.toFixed(2) + 'x';
-          btn.innerText = `ЗАБРАТЬ ${Math.floor(crashBet * crashMult).toLocaleString()} 🪙 (${crashMult.toFixed(2)}x)`;
-
-          if (autoCashoutX > 0 && crashMult >= autoCashoutX) {
-            cashOutSuccess(true);
+          if (!Number.isFinite(nextMult) || isNaN(nextMult)) {
+            enterCrashCrashedPhase(crashMultiplier);
             return;
           }
 
-          if (crashMult >= crashLimit) {
-            triggerCrashExplosion();
-          } else {
-            requestAnimationFrame(loop);
-          }
-        }
-        requestAnimationFrame(loop);
+          crashMultiplier = nextMult;
 
-      } else if (crashState === 'flying') {
-        cashOutSuccess(false);
+          // Проверка автокэшаута
+          if (crashUserHasBet && !crashUserCashedOut && crashAutoTarget >= 1.01 && crashMultiplier >= crashAutoTarget) {
+            cashOutSuccess();
+          }
+
+          if (crashUserHasBet && !crashUserCashedOut) {
+            const winNow = Math.floor(crashUserBet * crashMultiplier);
+            actBtn.innerText = `ЗАБРАТЬ ${winNow.toLocaleString()} 🪙 (${crashMultiplier.toFixed(2)}x)`;
+          }
+
+          if (crashMultiplier >= crashTargetMultiplier) {
+            crashMultiplier = crashTargetMultiplier;
+            enterCrashCrashedPhase(crashTargetMultiplier);
+            return;
+          }
+
+          document.getElementById('rocketMultText').innerText = crashMultiplier.toFixed(2) + 'x';
+          drawCrashCanvasFrame(crashMultiplier, true);
+
+          crashRafId = requestAnimationFrame(flightLoop);
+        } catch (err) {
+          enterCrashCrashedPhase(crashMultiplier);
+        }
+      }
+
+      crashRafId = requestAnimationFrame(flightLoop);
+    }
+
+    // ФАЗА 3: CRASHED (ВЗРЫВ)
+    function enterCrashCrashedPhase(finalMult) {
+      stopCrashLoops();
+      crashFsmState = CRASH_FSM.CRASHED;
+
+      const safeMult = (Number.isFinite(finalMult) && finalMult >= 1.00) ? finalMult : 1.00;
+
+      const stateTxt = document.getElementById('crashFsmStateTxt');
+      stateTxt.innerText = 'ФАЗА: КРАШ';
+      stateTxt.style.color = 'var(--pink)';
+
+      const hudMult = document.getElementById('rocketMultText');
+      hudMult.innerText = `КРАШ ${safeMult.toFixed(2)}x`;
+      hudMult.classList.add('crashed');
+
+      document.getElementById('rocketStatusSub').innerText = 'РАКЕТА ВЗОРВАЛАСЬ!';
+
+      const actBtn = document.getElementById('rocketActionBtn');
+      actBtn.className = 'crash-btn-action crashed-state';
+      actBtn.innerText = `ВЗРЫВ (${safeMult.toFixed(2)}x)`;
+      actBtn.disabled = true;
+
+      haptic('heavy');
+      playTone(90, 'sawtooth', 0.45, 0.22);
+      addCrashBadge(safeMult, true);
+
+      // Квантовый щит
+      if (crashUserHasBet && !crashUserCashedOut) {
+        if (isVipPassActive && activeModifiers.includes('quantum_shield') && safeMult <= 1.20) {
+          const refund = Math.floor(crashUserBet * 0.5);
+          updateBalance(refund);
+          showToast('КВАНТОВЫЙ ЩИТ!', `Возврат 50% ставки (+${refund} 🪙)`, '🛡️');
+        }
+      }
+
+      enterCrashCooldownPhase();
+    }
+
+    // ФАЗА 4: COOLDOWN (5 СЕКУНД)
+    function enterCrashCooldownPhase() {
+      crashFsmState = CRASH_FSM.COOLDOWN;
+
+      const stateTxt = document.getElementById('crashFsmStateTxt');
+      stateTxt.innerText = 'ФАЗА: ОЖИДАНИЕ';
+      stateTxt.style.color = 'var(--yellow)';
+
+      let cooldownSec = 5.0;
+      const actBtn = document.getElementById('rocketActionBtn');
+      actBtn.className = 'crash-btn-action disabled-state';
+      actBtn.innerText = `СЛЕД. РАУНД ЧЕРЕЗ 5.0с`;
+      actBtn.disabled = true;
+
+      crashFsmTimer = setInterval(() => {
+        cooldownSec -= 0.1;
+        if (cooldownSec <= 0.05) {
+          clearInterval(crashFsmTimer);
+          crashFsmTimer = null;
+          enterCrashBettingPhase();
+        } else {
+          actBtn.innerText = `СЛЕД. РАУНД ЧЕРЕЗ ${cooldownSec.toFixed(1)}с`;
+        }
+      }, 100);
+    }
+
+    function handleCrashActionBtn() {
+      if (crashFsmState === CRASH_FSM.BETTING) {
+        if (crashUserHasBet) return;
+
+        const betInp = document.getElementById('crashBetInput');
+        const autoInp = document.getElementById('crashAutoInput');
+
+        const parsedBet = parseInt(betInp.value, 10);
+        if (!Number.isFinite(parsedBet) || parsedBet <= 0) return;
+
+        if (balance < parsedBet) {
+          showToast('НЕДОСТАТОЧНО МОНЕТ', 'Пополните баланс фишек', '⚠️');
+          return;
+        }
+
+        crashUserBet = parsedBet;
+        crashAutoTarget = parseFloat(autoInp.value) || 0;
+
+        haptic('heavy');
+        updateBalance(-crashUserBet);
+        totalSpent += crashUserBet;
+        saveStats();
+
+        crashUserHasBet = true;
+        crashUserCashedOut = false;
+
+        betInp.disabled = true;
+        autoInp.disabled = true;
+
+        const actBtn = document.getElementById('rocketActionBtn');
+        actBtn.className = 'crash-btn-action disabled-state';
+        actBtn.innerText = 'СТАВКА ПРИНЯТА ✓';
+        actBtn.disabled = true;
+      } else if (crashFsmState === CRASH_FSM.FLYING) {
+        if (crashUserHasBet && !crashUserCashedOut) {
+          cashOutSuccess();
+        }
       }
     }
 
-    function cashOutSuccess(isAuto) {
-      if (crashState !== 'flying') return;
-      haptic('heavy');
-      crashState = 'warping_out'; // РАКЕТА УЛЕТАЕТ В КОСМОС
+    function cashOutSuccess() {
+      if (crashUserCashedOut || !crashUserHasBet || crashFsmState !== CRASH_FSM.FLYING) return;
+      crashUserCashedOut = true;
 
-      const won = Math.floor(crashBet * crashMult);
+      const won = Math.floor(crashUserBet * crashMultiplier);
       updateBalance(won);
       totalWon += won;
       saveStats();
 
       playTone(660, 'sine', 0.2);
-      showToast(isAuto ? 'АВТОЗАБОР ✓' : 'КУШ ЗАБРАН!', `+${won.toLocaleString()} 🪙 (${crashMult.toFixed(2)}x)`, '💰');
-      addCrashBadge(crashMult, false);
+      haptic('heavy');
+      showToast('КУШ ЗАБРАН!', `+${won.toLocaleString()} 🪙 (${crashMultiplier.toFixed(2)}x)`, '💰');
 
-      const btn = document.getElementById('rocketActionBtn');
-      btn.innerText = `УЛЕТ В КОСМОС...`;
-      btn.classList.remove('flying');
-      btn.disabled = true;
-    }
+      const actBtn = document.getElementById('rocketActionBtn');
+      actBtn.className = 'crash-btn-action disabled-state';
+      actBtn.innerText = `ВЫИГРЫШ ЗАБРАН (+${won})`;
+      actBtn.disabled = true;
 
-    function finishWarpOut() {
-      crashState = 'idle';
-      const btn = document.getElementById('rocketActionBtn');
-      btn.disabled = false;
-      btn.innerText = `ВЗЛЕТ (${crashBet} 🪙)`;
-      document.getElementById('rocketMultText').innerText = '1.00x'; // ОБНУЛЕНИЕ
-      cancelAnimationFrame(crashAnim); crashAnim = null;
-      drawCrashStatic();
-    }
-
-    function triggerCrashExplosion() {
-      if (crashState !== 'flying') return;
-      crashState = 'crashed';
-
-      // Проверка бонуса Пасса: Квантовый Щит (возврат 50% ставки при раннем краше)
-      if (activePassRewards.includes('quantum_shield') && crashLimit <= 1.20) {
-        const refund = Math.floor(crashBet * 0.5);
-        updateBalance(refund);
-        showToast('КВАНТОВЫЙ ЩИТ!', `Возврат 50% ставки (+${refund} 🪙)`, '🛡️');
-      }
-
-      const hud = document.getElementById('rocketMultText');
-      hud.innerText = crashLimit.toFixed(2) + 'x';
-      hud.classList.add('crashed');
-
-      const btn = document.getElementById('rocketActionBtn');
-      btn.innerText = `КРАШ (${crashLimit.toFixed(2)}x)`;
-      btn.classList.remove('flying');
-      btn.disabled = true;
-
-      const w = rCanvas.width, h = rCanvas.height;
-      const progress = Math.min(1, (crashLimit - 1) / 5);
-      const curX = 25 + progress * (w - 75);
-      const curY = (h - 25) - Math.pow(progress, 1.25) * (h - 60);
-
-      debris = [];
-      for (let i = 0; i < 35; i++) debris.push(new Debris(curX, curY, Math.random() > 0.4 ? '#ff2a85' : '#f1f5f9'));
-      playTone(90, 'sawtooth', 0.45, 0.22);
-
-      addCrashBadge(crashLimit, true);
-
-      setTimeout(() => {
-        crashState = 'idle';
-        btn.disabled = false;
-        btn.innerText = `ВЗЛЕТ (${crashBet} 🪙)`;
-        hud.classList.remove('crashed');
-        hud.innerText = '1.00x'; // ОБНУЛЕНИЕ
-        cancelAnimationFrame(crashAnim); crashAnim = null;
-        drawCrashStatic();
-      }, 1800);
+      document.getElementById('rocketStatusSub').innerText = 'ОЖИДАНИЕ КОНЦА РАУНДА...';
     }
 
     function addCrashBadge(val, isCrashed) {
@@ -1843,89 +1907,270 @@
       b.className = 'crash-badge' + (isCrashed ? ' crashed' : '');
       b.innerText = val.toFixed(2) + 'x';
       bar.insertBefore(b, bar.firstChild);
-      if (bar.children.length > 7) bar.removeChild(bar.lastChild);
+      if (bar.children.length > 8) bar.removeChild(bar.lastChild);
     }
 
-    // ==============================================
-    // 8. КИБЕР-ПАСС С РЕАЛЬНОЙ АКТИВАЦИЕЙ НАГРАД
-    // ==============================================
-    const passData = [
-      { id: 'ticket_room', lvl: 2, reward: '+5 000 🪙', exclusive: '🎟️ Билет в Секретную Комнату (x2 джекпот)' },
-      { id: 'quantum_shield', lvl: 5, reward: '+15 000 🪙', exclusive: '🛡️ Квантовый Щит (возврат 50% при краше < 1.2x)' },
-      { id: 'frame_noir', lvl: 10, reward: '+40 000 🪙', exclusive: '🔮 Голографическая рамка «Синдикат Нуар»' },
-      { id: 'safe_boost', lvl: 15, reward: '+80 000 🪙', exclusive: '💼 Золотой Сейф (+10% со спинов вместо 5%)' },
-      { id: 'title_overlord', lvl: 20, reward: '+200 000 🪙', exclusive: '👑 Статус «Властелин Матрицы»' }
+    function drawCrashCanvasFrame(mult, isFlying) {
+      if (!rCtx || !rCanvas) return;
+      const w = rCanvas.width;
+      const h = rCanvas.height;
+
+      rCtx.clearRect(0, 0, w, h);
+
+      // Сетка
+      rCtx.strokeStyle = 'rgba(0, 216, 246, 0.07)';
+      rCtx.lineWidth = 1;
+      rCtx.beginPath();
+      for (let x = 0; x < w; x += 36) { rCtx.moveTo(x, 0); rCtx.lineTo(x, h); }
+      for (let y = 0; y < h; y += 36) { rCtx.moveTo(0, y); rCtx.lineTo(w, y); }
+      rCtx.stroke();
+
+      const safeM = (Number.isFinite(mult) && mult >= 1.00) ? mult : 1.00;
+      const progress = Math.min((safeM - 1.00) / 4.00, 1.00);
+
+      const curX = 25 + progress * (w - 65);
+      const curY = (h - 25) - Math.pow(progress, 1.32) * (h - 55);
+
+      if (Number.isFinite(curX) && Number.isFinite(curY) && isFlying) {
+        rocketTrajectory.push({ x: curX, y: curY });
+        if (rocketTrajectory.length > 55) rocketTrajectory.shift();
+      }
+
+      // Траектория
+      if (rocketTrajectory.length > 1) {
+        rCtx.save();
+        rCtx.strokeStyle = '#00d8f6';
+        rCtx.lineWidth = 3.5;
+        rCtx.shadowColor = '#00d8f6';
+        rCtx.shadowBlur = 10;
+        rCtx.beginPath();
+        rCtx.moveTo(rocketTrajectory[0].x, rocketTrajectory[0].y);
+        for (let i = 1; i < rocketTrajectory.length; i++) {
+          rCtx.lineTo(rocketTrajectory[i].x, rocketTrajectory[i].y);
+        }
+        rCtx.stroke();
+        rCtx.restore();
+      }
+
+      // Ракета
+      if (Number.isFinite(curX) && Number.isFinite(curY)) {
+        rCtx.save();
+        rCtx.translate(curX, curY);
+        rCtx.rotate(-Math.PI / 4.2);
+
+        rCtx.fillStyle = '#f1f5f9';
+        rCtx.fillRect(-12, -5, 20, 10);
+
+        rCtx.beginPath();
+        rCtx.moveTo(8, -5);
+        rCtx.lineTo(16, 0);
+        rCtx.lineTo(8, 5);
+        rCtx.fillStyle = '#ff2a85';
+        rCtx.fill();
+
+        rCtx.fillStyle = '#00d8f6';
+        rCtx.fillRect(-12, -8, 5, 3);
+        rCtx.fillRect(-12, 5, 5, 3);
+
+        if (isFlying) {
+          rCtx.fillStyle = '#ffc837';
+          rCtx.beginPath();
+          rCtx.moveTo(-12, -3);
+          rCtx.lineTo(-12 - Math.random() * 14, 0);
+          rCtx.lineTo(-12, 3);
+          rCtx.closePath();
+          rCtx.fill();
+        }
+
+        rCtx.restore();
+      }
+    }
+
+    /* =========================================================
+       8. КИБЕР-ПАСС С ЧЕТКИМ РАЗДЕЛЕНИЕМ ПРАВ
+    ========================================================= */
+    const passTiers = [
+      { 
+        lvl: 2, 
+        freeReward: { title: '+5 000 🪙', val: 5000 },
+        vipReward: { id: 'ticket_room', title: '🎟️ Билет в Секретную Комнату (x2 джекпот)' }
+      },
+      { 
+        lvl: 5, 
+        freeReward: { title: '+15 000 🪙', val: 15000 },
+        vipReward: { id: 'quantum_shield', title: '🛡️ Квантовый Щит (возврат 50% при краше <= 1.2x)' }
+      },
+      { 
+        lvl: 10, 
+        freeReward: { title: '+40 000 🪙', val: 40000 },
+        vipReward: { id: 'frame_noir', title: '🔮 Голографическая рамка «Синдикат Нуар»' }
+      },
+      { 
+        lvl: 15, 
+        freeReward: { title: '+80 000 🪙', val: 80000 },
+        vipReward: { id: 'safe_boost', title: '💼 Золотой Сейф (+10% со спинов вместо 5%)' }
+      },
+      { 
+        lvl: 20, 
+        freeReward: { title: '+200 000 🪙', val: 200000 },
+        vipReward: { id: 'title_overlord', title: '👑 Статус «Властелин Матрицы»' }
+      }
     ];
 
     function buildPassTrack() {
       const track = document.getElementById('passTrack');
       track.innerHTML = '';
-      passData.forEach(p => {
-        const isUnlocked = currentLvl >= p.lvl;
-        const isActive = activePassRewards.includes(p.id);
+
+      document.getElementById('passVipStatusText').innerText = isVipPassActive 
+        ? 'VIP СТАТУС: АКТИВЕН 👑' 
+        : 'VIP СТАТУС: НЕ АКТИВЕН';
+
+      const vipBtn = document.getElementById('vipPassBtn');
+      if (isVipPassActive) {
+        vipBtn.innerText = 'VIP АКТИВЕН ✓';
+        vipBtn.classList.add('claimed');
+      } else {
+        vipBtn.innerText = '300 ⭐';
+        vipBtn.classList.remove('claimed');
+      }
+
+      passTiers.forEach(p => {
+        const isLvlReached = currentLvl >= p.lvl;
+        const isFreeClaimed = claimedFreeRewards.includes(p.lvl);
+        const isVipClaimed = claimedVipRewards.includes(p.lvl);
+        const isModifierActive = activeModifiers.includes(p.vipReward.id);
 
         const row = document.createElement('div');
-        row.className = `track-row ${isUnlocked ? 'unlocked' : ''}`;
+        row.className = `track-row ${isLvlReached ? 'unlocked' : ''}`;
         row.innerHTML = `
-          <div class="track-left">
+          <div class="track-top-bar">
             <span class="track-lvl">УРОВЕНЬ ${p.lvl}</span>
-            <div class="track-rewards-grid">
-              <span class="track-reward-item">Базовая: ${p.reward}</span>
-              <span class="track-reward-item exclusive">${p.exclusive}</span>
+            <span class="track-status-txt">${isLvlReached ? 'ДОСТИГНУТ' : 'ЗАКРЫТ'}</span>
+          </div>
+
+          <!-- БАЗОВАЯ НАГРАДА (БЕСПЛАТНАЯ) -->
+          <div class="reward-slot-box free-slot">
+            <div class="reward-slot-info">
+              <span class="reward-type-label">БАЗОВАЯ</span>
+              <span class="reward-desc-text">${p.freeReward.title}</span>
+            </div>
+            <div>
+              ${isFreeClaimed ? `
+                <button class="pass-act-btn claimed-state">ПОЛУЧЕНО</button>
+              ` : `
+                <button class="pass-act-btn ${isLvlReached ? 'ready' : 'locked'}" 
+                  ${!isLvlReached ? 'disabled' : ''} 
+                  onclick="claimFreePassReward(${p.lvl}, ${p.freeReward.val})">
+                  ${isLvlReached ? 'ЗАБРАТЬ' : '🔒'}
+                </button>
+              `}
             </div>
           </div>
-          <div>
-            ${!isUnlocked 
-              ? '<button class="pass-act-btn locked">🔒 ЗАКРЫТО</button>'
-              : (isActive 
-                  ? `<button class="pass-act-btn active" onclick="togglePassReward('${p.id}')">АКТИВЕН ✓</button>`
-                  : `<button class="pass-act-btn ready" onclick="togglePassReward('${p.id}')">ВКЛЮЧИТЬ</button>`)}
+
+          <!-- ЭКСКЛЮЗИВ СИНДИКАТА (ТОЛЬКО С VIP ПАССОМ) -->
+          <div class="reward-slot-box vip-slot ${!isVipPassActive ? 'locked' : ''}">
+            <div class="reward-slot-info">
+              <span class="reward-type-label vip">VIP СИНДИКАТ ⭐</span>
+              <span class="reward-desc-text">${p.vipReward.title}</span>
+            </div>
+            <div>
+              ${!isVipPassActive ? `
+                <button class="pass-act-btn buy-vip-trigger" onclick="requestVipPassPayment()">🔒 КУПИТЬ PASS</button>
+              ` : (
+                isVipClaimed ? (
+                  isModifierActive ? `
+                    <button class="pass-act-btn active" onclick="togglePassModifier('${p.vipReward.id}')">ВКЛЮЧЕН ✓</button>
+                  ` : `
+                    <button class="pass-act-btn ready" onclick="togglePassModifier('${p.vipReward.id}')">ВКЛЮЧИТЬ</button>
+                  `
+                ) : `
+                  <button class="pass-act-btn ${isLvlReached ? 'ready' : 'locked'}" 
+                    ${!isLvlReached ? 'disabled' : ''} 
+                    onclick="claimVipPassReward(${p.lvl}, '${p.vipReward.id}')">
+                    ${isLvlReached ? 'АКТИВИРОВАТЬ' : '🔒'}
+                  </button>
+                `
+              )}
+            </div>
           </div>
         `;
         track.appendChild(row);
       });
     }
 
-    function togglePassReward(rewardId) {
-      haptic('medium');
-      if (activePassRewards.includes(rewardId)) {
-        activePassRewards = activePassRewards.filter(r => r !== rewardId);
-        showToast('ДЕАКТИВИРОВАНО', 'Модификатор отключен', 'ℹ️');
-      } else {
-        activePassRewards.push(rewardId);
-        showToast('АКТИВИРОВАНО!', 'Модификатор вступил в силу', '⚡');
+    function claimFreePassReward(lvl, val) {
+      if (currentLvl < lvl || claimedFreeRewards.includes(lvl)) return;
+      haptic('heavy');
+      claimedFreeRewards.push(lvl);
+      localStorage.setItem('tron_pass_claimed_free', JSON.stringify(claimedFreeRewards));
+      updateBalance(val);
+      showToast('НАГРАДА ПОЛУЧЕНА!', `+${val.toLocaleString()} 🪙 зачислено`, '🪙');
+      playTone(660, 'sine', 0.2);
+      buildPassTrack();
+    }
 
-        // Моментальный эффект для косметических наград
-        if (rewardId === 'frame_noir') {
-          equippedFrame = 'frame-noir';
-          localStorage.setItem('tron_equipped_frame', 'frame-noir');
-          updateRankVisuals();
-        }
-        if (rewardId === 'title_overlord') {
-          equippedNameStyle = 'name-overlord';
-          localStorage.setItem('tron_equipped_name', 'name-overlord');
-          updateRankVisuals();
-        }
+    function claimVipPassReward(lvl, modId) {
+      if (!isVipPassActive) {
+        showToast('ТРЕБУЕТСЯ PASS', 'Купите VIP Pass для активации', '🔒');
+        return;
       }
-      localStorage.setItem('tron_pass_active', JSON.stringify(activePassRewards));
+      if (currentLvl < lvl || claimedVipRewards.includes(lvl)) return;
+
+      haptic('heavy');
+      claimedVipRewards.push(lvl);
+      localStorage.setItem('tron_pass_claimed_vip', JSON.stringify(claimedVipRewards));
+
+      if (!activeModifiers.includes(modId)) {
+        activeModifiers.push(modId);
+        localStorage.setItem('tron_active_modifiers', JSON.stringify(activeModifiers));
+      }
+
+      if (modId === 'frame_noir') {
+        equippedFrame = 'frame-noir';
+        localStorage.setItem('tron_equipped_frame', 'frame-noir');
+      }
+      if (modId === 'title_overlord') {
+        equippedNameStyle = 'name-overlord';
+        localStorage.setItem('tron_equipped_name', 'name-overlord');
+      }
+
+      showToast('МОДИФИКАТОР АКТИВЕН!', 'Бонус вступил в силу', '👑');
+      updateRankVisuals();
+      buildPassTrack();
+    }
+
+    function togglePassModifier(modId) {
+      if (!isVipPassActive) return;
+      haptic('medium');
+
+      if (activeModifiers.includes(modId)) {
+        activeModifiers = activeModifiers.filter(m => m !== modId);
+        showToast('ОТКЛЮЧЕНО', 'Модификатор деактивирован', 'ℹ️');
+      } else {
+        activeModifiers.push(modId);
+        showToast('АКТИВИРОВАНО!', 'Модификатор включен', '⚡');
+      }
+
+      localStorage.setItem('tron_active_modifiers', JSON.stringify(activeModifiers));
       updateRankVisuals();
       buildPassTrack();
     }
 
     function requestVipPassPayment() {
-      openPayment('Активация VIP PASS (Сезон 1)', '150 ⭐', () => {
+      if (isVipPassActive) return;
+      openPayment('Активация VIP PASS (Сезон 1)', '300 ⭐', () => {
         isVipPassActive = true;
         localStorage.setItem('tron_vip_pass', 'true');
-        document.getElementById('vipPassBtn').innerText = 'VIP АКТИВИРОВАН ✓';
-        document.getElementById('vipPassBtn').classList.add('claimed');
         updateBalance(25000);
-        showToast('VIP АКТИВИРОВАН', '+25 000 🪙 и все модификаторы!', '👑');
+        showToast('VIP АКТИВИРОВАН!', '+25 000 🪙 и доступ ко всем модификаторам!', '👑');
+        playTone(880, 'square', 0.25, 0.12);
+        buildPassTrack();
       });
     }
 
-    // ==============================================
-    // 9. МАГАЗИН КАСТОМИЗАЦИИ (СТИЛЬ)
-    // ==============================================
+    /* =========================================================
+       9. МАГАЗИН КАСТОМИЗАЦИИ
+    ========================================================= */
     const cosmeticsData = {
       frames: [
         { id: 'frame-default', name: 'Базовая рамка', price: 0, reqLvl: 1 },
@@ -1947,7 +2192,7 @@
       const fList = document.getElementById('avatarFrameList');
       fList.innerHTML = '';
       cosmeticsData.frames.forEach(f => {
-        const owned = ownedCosmetics.includes(f.id) || (f.fromPass && activePassRewards.includes('frame_noir'));
+        const owned = ownedCosmetics.includes(f.id) || (f.fromPass && isVipPassActive && activeModifiers.includes('frame_noir'));
         const active = equippedFrame === f.id;
         const levelLocked = currentLvl < f.reqLvl;
 
@@ -1973,7 +2218,7 @@
       const nList = document.getElementById('nameStyleList');
       nList.innerHTML = '';
       cosmeticsData.names.forEach(n => {
-        const owned = ownedCosmetics.includes(n.id) || (n.id === 'name-overlord' && activePassRewards.includes('title_overlord'));
+        const owned = ownedCosmetics.includes(n.id) || (n.id === 'name-overlord' && isVipPassActive && activeModifiers.includes('title_overlord'));
         const active = equippedNameStyle === n.id;
         const levelLocked = currentLvl < n.reqLvl;
 
@@ -1998,7 +2243,7 @@
         return;
       }
       haptic('light');
-      const owned = ownedCosmetics.includes(id) || (id === 'frame-noir' && activePassRewards.includes('frame_noir')) || (id === 'name-overlord' && activePassRewards.includes('title_overlord'));
+      const owned = ownedCosmetics.includes(id) || (id === 'frame-noir' && isVipPassActive && activeModifiers.includes('frame_noir')) || (id === 'name-overlord' && isVipPassActive && activeModifiers.includes('title_overlord'));
 
       if (owned) {
         if (type === 'frame') { equippedFrame = id; localStorage.setItem('tron_equipped_frame', id); }
@@ -2023,51 +2268,49 @@
       }
     }
 
-    // 10. ОПЛАТА TELEGRAM STARS
+    /* =========================================================
+       10. ОПЛАТА TELEGRAM STARS
+    ========================================================= */
     let pendingCallback = null;
     let pendingTitle = '';
 
-   const ITEM_INVOICES = {
-  'Новичок': 'https://t.me/$49Q1qZJHKUmqFQAA89RD1n7Aaho',
-  'Хакер Вегаса': 'https://t.me/$JcYnvZJHKUmsFQAAelY7EtL5Dsw',
-  'Синдиката': 'https://t.me/$VfeFKpJHKUmvFQAAD2jw_ZSlQss',
-  'VIP PASS': 'https://t.me/$iHbpJpJHKUmhFQAAB_mtvEzLZXY',
-  'Сейфа': 'https://t.me/$49Q1qZJHKUmqFQAA89RD1n7Aaho',
-  'Премиум-спин': 'https://t.me/$XMDjoZJHKUnSFQAAIu3G0MqXoGM'
-};
+    const ITEM_INVOICES = {
+      'Новичок': 'https://t.me/$49Q1qZJHKUmqFQAA89RD1n7Aaho',
+      'Хакер Вегаса': 'https://t.me/$JcYnvZJHKUmsFQAAelY7EtL5Dsw',
+      'Синдиката': 'https://t.me/$VfeFKpJHKUmvFQAAD2jw_ZSlQss',
+      'VIP PASS': 'https://t.me/$iHbpJpJHKUmhFQAAB_mtvEzLZXY',
+      'Сейфа': 'https://t.me/$49Q1qZJHKUmqFQAA89RD1n7Aaho',
+      'Премиум-спин': 'https://t.me/$XMDjoZJHKUnSFQAAIu3G0MqXoGM'
+    };
 
-
-    
     function openPayment(title, price, cb) {
-  haptic('medium');
-  
-  
-  let invoiceUrl = '';
-  for (let key in ITEM_INVOICES) {
-    if (title.includes(key)) {
-      invoiceUrl = ITEM_INVOICES[key];
-      break;
-    }
-  }
-
-  if (invoiceUrl && window.Telegram && Telegram.WebApp && Telegram.WebApp.openInvoice) {
-    Telegram.WebApp.openInvoice(invoiceUrl, function(status) {
-      if (status === 'paid') {
-        if (cb) cb();
-        showToast('ОПЛАТА УСПЕШНА!', `${title} получено!`, '⭐');
-        playTone(880, 'square', 0.25, 0.12);
-      } else if (status === 'failed') {
-        showToast('ОШИБКА', 'Платёж не был завершён', '❌');
+      haptic('medium');
+      let invoiceUrl = '';
+      for (let key in ITEM_INVOICES) {
+        if (title.includes(key)) {
+          invoiceUrl = ITEM_INVOICES[key];
+          break;
+        }
       }
-    });
-  } else {
-    pendingTitle = title;
-    pendingCallback = cb;
-    document.getElementById('payItemTitle').innerText = title;
-    document.getElementById('payItemPrice').innerText = price;
-    document.getElementById('paymentModal').style.display = 'flex';
-  }
-}
+
+      if (invoiceUrl && window.Telegram && Telegram.WebApp && Telegram.WebApp.openInvoice) {
+        Telegram.WebApp.openInvoice(invoiceUrl, function(status) {
+          if (status === 'paid') {
+            if (cb) cb();
+            showToast('ОПЛАТА УСПЕШНА!', `${title} получено!`, '⭐');
+            playTone(880, 'square', 0.25, 0.12);
+          } else if (status === 'failed') {
+            showToast('ОШИБКА', 'Платёж не был завершён', '❌');
+          }
+        });
+      } else {
+        pendingTitle = title;
+        pendingCallback = cb;
+        document.getElementById('payItemTitle').innerText = title;
+        document.getElementById('payItemPrice').innerText = price;
+        document.getElementById('paymentModal').style.display = 'flex';
+      }
+    }
 
     function executeStarsPayment() {
       haptic('heavy');
@@ -2106,9 +2349,182 @@
       document.getElementById('view-' + tab).classList.add('active');
       el.classList.add('active');
 
-      if (tab === 'crash') setTimeout(initCrashCanvas, 50);
+      if (tab === 'crash') {
+        setTimeout(resizeCrashCanvas, 50);
+      }
       if (tab === 'pass') buildPassTrack();
       if (tab === 'style') buildCosmeticsShop();
+    }
+
+    const INVOICES = {
+      novice: { url: 'https://t.me/$49Q1qZJHKUmqFQAA89RD1n7Aaho', coins: 5000 },
+      hacker: { url: 'https://t.me/$JcYnvZJHKUmsFQAAelY7EtL5Dsw', coins: 35000 },
+      syndicate: { url: 'https://t.me/$VfeFKpJHKUmvFQAAD2jw_ZSlQss', coins: 120000 },
+      vip_pass: { url: 'https://t.me/$iHbpJpJHKUmhFQAAB_mtvEzLZXY', type: 'pass' }
+    };
+
+    function processPayment(packKey) {
+      const pack = INVOICES[packKey];
+      if (!pack) return;
+
+      if (window.Telegram && Telegram.WebApp && Telegram.WebApp.openInvoice) {
+        Telegram.WebApp.openInvoice(pack.url, function(status) {
+          if (status === 'paid') {
+            if (pack.type === 'pass') {
+              isVipPassActive = true;
+              localStorage.setItem('tron_vip_pass', 'true');
+              updateBalance(25000);
+              showToast('VIP АКТИВИРОВАН!', '+25 000 🪙 и доступ ко всем модификаторам!', '👑');
+              buildPassTrack();
+            } else {
+              updateBalance(pack.coins);
+              showToast('БАЛАНС ПОПОЛНЕН!', `+${pack.coins.toLocaleString()} 🪙`, '⭐');
+            }
+          } else if (status === 'failed') {
+            showToast('ОШИБКА', 'Платёж не прошёл', '❌');
+          }
+        });
+      } else {
+        window.open(pack.url, '_blank');
+      }
+    }
+
+    /* =========================================================
+       11. КИБЕР-КОЛЕСО ФОРТУНЫ
+    ========================================================= */
+    const PRIZES_FREE = [
+      { label: '1 000 🪙', val: 1000, color: '#161b33' },
+      { label: '2 500 🪙', val: 2500, color: '#1c2346' },
+      { label: '5 000 🪙', val: 5000, color: '#161b33' },
+      { label: '7 500 🪙', val: 7500, color: '#1c2346' },
+      { label: '10 000 🪙', val: 10000, color: '#161b33' },
+      { label: '25 000 🪙 🔥', val: 25000, color: '#7000ff' }
+    ];
+
+    const PRIZES_VIP = [
+      { label: '15 000 🪙', val: 15000, color: '#2a1a40' },
+      { label: '25 000 🪙', val: 25000, color: '#3d1c5a' },
+      { label: '50 000 🪙', val: 50000, color: '#2a1a40' },
+      { label: '75 000 🪙', val: 75000, color: '#3d1c5a' },
+      { label: '100 000 🪙 👑', val: 100000, color: '#ff0055' },
+      { label: '150 000 🪙 💎', val: 150000, color: '#ffb800' }
+    ];
+
+    let wheelAngle = 0;
+    let isWheelSpinning = false;
+    const FREE_COOLDOWN_MS = 12 * 60 * 60 * 1000;
+
+    function drawWheel(isVip = false) {
+      const canvas = document.getElementById('wheelCanvas');
+      if (!canvas) return;
+      const ctxW = canvas.getContext('2d');
+      const items = isVip ? PRIZES_VIP : PRIZES_FREE;
+      const numSlices = items.length;
+      const sliceAngle = (2 * Math.PI) / numSlices;
+
+      ctxW.clearRect(0, 0, canvas.width, canvas.height);
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const r = cx - 5;
+
+      ctxW.save();
+      ctxW.translate(cx, cy);
+      ctxW.rotate(wheelAngle);
+
+      for (let i = 0; i < numSlices; i++) {
+        const angle = i * sliceAngle;
+        ctxW.beginPath();
+        ctxW.moveTo(0, 0);
+        ctxW.arc(0, 0, r, angle, angle + sliceAngle);
+        ctxW.fillStyle = items[i].color;
+        ctxW.fill();
+        ctxW.lineWidth = 2;
+        ctxW.strokeStyle = '#00f0ff';
+        ctxW.stroke();
+
+        ctxW.save();
+        ctxW.rotate(angle + sliceAngle / 2);
+        ctxW.textAlign = 'right';
+        ctxW.fillStyle = '#ffffff';
+        ctxW.font = 'bold 11px sans-serif';
+        ctxW.fillText(items[i].label, r - 12, 4);
+        ctxW.restore();
+      }
+
+      ctxW.beginPath();
+      ctxW.arc(0, 0, 16, 0, 2 * Math.PI);
+      ctxW.fillStyle = '#00f0ff';
+      ctxW.fill();
+      ctxW.restore();
+    }
+
+    function updateWheelTimer() {
+      const lastSpin = parseInt(localStorage.getItem('last_free_spin') || '0', 10);
+      const now = Date.now();
+      const diff = now - lastSpin;
+      const btnFree = document.getElementById('btnFreeSpin');
+      const btnPaid = document.getElementById('btnPaidSpin');
+      const timerText = document.getElementById('wheel-timer-text');
+
+      if (diff >= FREE_COOLDOWN_MS) {
+        if (btnFree) { btnFree.disabled = false; btnFree.style.display = 'block'; }
+        if (btnPaid) btnPaid.style.display = 'none';
+        if (timerText) timerText.innerText = 'Бесплатный спин доступен!';
+      } else {
+        const remaining = FREE_COOLDOWN_MS - diff;
+        const hours = Math.floor(remaining / 3600000);
+        const mins = Math.floor((remaining % 3600000) / 60000);
+        const secs = Math.floor((remaining % 60000) / 1000);
+
+        if (btnFree) { btnFree.disabled = true; btnFree.style.display = 'none'; }
+        if (btnPaid) btnPaid.style.display = 'block';
+        if (timerText) {
+          timerText.innerText = `До бесплатного спина: ${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+      }
+    }
+    setInterval(updateWheelTimer, 1000);
+
+    function spinWheel(isVip = false) {
+      if (isWheelSpinning) return;
+
+      if (!isVip) {
+        const lastSpin = parseInt(localStorage.getItem('last_free_spin') || '0', 10);
+        if (Date.now() - lastSpin < FREE_COOLDOWN_MS) return;
+        localStorage.setItem('last_free_spin', Date.now().toString());
+      }
+
+      isWheelSpinning = true;
+      const items = isVip ? PRIZES_VIP : PRIZES_FREE;
+      const numSlices = items.length;
+      const sliceAngle = (2 * Math.PI) / numSlices;
+
+      const targetIndex = Math.floor(Math.random() * numSlices);
+      const fullRotations = (5 + Math.floor(Math.random() * 3)) * 2 * Math.PI;
+      const targetAngle = fullRotations + (numSlices - targetIndex - 0.5) * sliceAngle - (Math.PI / 2);
+
+      const startAngle = wheelAngle;
+      const duration = 4000;
+      const startTime = performance.now();
+
+      function animate(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        wheelAngle = startAngle + (targetAngle - startAngle) * easeOut;
+        drawWheel(isVip);
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          isWheelSpinning = false;
+          const won = items[targetIndex];
+          showToast('ВЫИГРЫШ!', `Получено: ${won.label}`, '🎁');
+          updateBalance(won.val);
+          updateWheelTimer();
+        }
+      }
+      requestAnimationFrame(animate);
     }
 
     // ИНИЦИАЛИЗАЦИЯ
@@ -2119,202 +2535,13 @@
     updateRankVisuals();
     buildPassTrack();
     buildCosmeticsShop();
-  const INVOICES = {
-  novice: {
-    url: 'https://t.me/$49Q1qZJHKUmqFQAA89RD1n7Aaho',
-    coins: 5000
-  },
-  hacker: {
-    url: 'https://t.me/$JcYnvZJHKUmsFQAAelY7EtL5Dsw',
-    coins: 35000
-  },
-  syndicate: {
-    url: 'https://t.me/$VfeFKpJHKUmvFQAAD2jw_ZSlQss',
-    coins: 120000
-  },
-  vip_pass: {
-    url: 'https://t.me/$iHbpJpJHKUmhFQAAB_mtvEzLZXY',
-    type: 'pass'
-  }
-};
+    drawWheel(false);
+    updateWheelTimer();
 
-function processPayment(packKey) {
-  const pack = INVOICES[packKey];
-  if (!pack) return;
-
-  if (window.Telegram && Telegram.WebApp && Telegram.WebApp.openInvoice) {
-    Telegram.WebApp.openInvoice(pack.url, function(status) {
-      if (status === 'paid') {
-        if (pack.type === 'pass') {
-          alert('VIP Pass успешно разблокирован!');
-          if (typeof activateVip === 'function') activateVip();
-        } else {
-          alert('Успешно начислено: ' + pack.coins.toLocaleString() + ' монет!');
-          if (typeof addCredits === 'function') {
-            addCredits(pack.coins);
-          } else if (typeof balance !== 'undefined') {
-            balance += pack.coins;
-            if (typeof updateBalanceUI === 'function') updateBalanceUI();
-          }
-        }
-      } else if (status === 'failed') {
-        alert('Ошибка при проведении платежа.');
-      }
-    });
-  } else {
-    window.open(pack.url, '_blank');
-  }
-}
- // --- ЛОГИКА КОЛЕСА ФОРТУНЫ ---
-const PRIZES_FREE = [
-  { label: '1 000 🪙', val: 1000, color: '#161b33' },
-  { label: '2 500 🪙', val: 2500, color: '#1c2346' },
-  { label: '5 000 🪙', val: 5000, color: '#161b33' },
-  { label: '7 500 🪙', val: 7500, color: '#1c2346' },
-  { label: '10 000 🪙', val: 10000, color: '#161b33' },
-  { label: '25 000 🪙 🔥', val: 25000, color: '#7000ff' }
-];
-
-const PRIZES_VIP = [
-  { label: '15 000 🪙', val: 15000, color: '#2a1a40' },
-  { label: '25 000 🪙', val: 25000, color: '#3d1c5a' },
-  { label: '50 000 🪙', val: 50000, color: '#2a1a40' },
-  { label: '75 000 🪙', val: 75000, color: '#3d1c5a' },
-  { label: '100 000 🪙 👑', val: 100000, color: '#ff0055' },
-  { label: '150 000 🪙 💎', val: 150000, color: '#ffb800' }
-];
-
-let wheelAngle = 0;
-isWheelSpinning = false;
-const FREE_COOLDOWN_MS = 12 * 60 * 60 * 1000;
-
-function drawWheel(isVip = false) {
-  const canvas = document.getElementById('wheelCanvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const items = isVip ? PRIZES_VIP : PRIZES_FREE;
-  const numSlices = items.length;
-  const sliceAngle = (2 * Math.PI) / numSlices;
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const cx = canvas.width / 2;
-  const cy = canvas.height / 2;
-  const r = cx - 5;
-
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.rotate(wheelAngle);
-
-  for (let i = 0; i < numSlices; i++) {
-    const angle = i * sliceAngle;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.arc(0, 0, r, angle, angle + sliceAngle);
-    ctx.fillStyle = items[i].color;
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#00f0ff';
-    ctx.stroke();
-
-    ctx.save();
-    ctx.rotate(angle + sliceAngle / 2);
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 12px sans-serif';
-    ctx.fillText(items[i].label, r - 15, 5);
-    ctx.restore();
-  }
-
-  ctx.beginPath();
-  ctx.arc(0, 0, 18, 0, 2 * Math.PI);
-  ctx.fillStyle = '#00f0ff';
-  ctx.fill();
-  ctx.restore();
-}
-
-function updateWheelTimer() {
-  const lastSpin = parseInt(localStorage.getItem('last_free_spin') || '0', 10);
-  const now = Date.now();
-  const diff = now - lastSpin;
-  const btnFree = document.getElementById('btnFreeSpin');
-  const btnPaid = document.getElementById('btnPaidSpin');
-  const timerText = document.getElementById('wheel-timer-text');
-
-  if (diff >= FREE_COOLDOWN_MS) {
-    if (btnFree) { btnFree.disabled = false; btnFree.style.display = 'block'; }
-    if (btnPaid) btnPaid.style.display = 'none';
-    if (timerText) timerText.innerText = 'Бесплатный спин доступен!';
-  } else {
-    const remaining = FREE_COOLDOWN_MS - diff;
-    const hours = Math.floor(remaining / 3600000);
-    const mins = Math.floor((remaining % 3600000) / 60000);
-    const secs = Math.floor((remaining % 60000) / 1000);
-
-    if (btnFree) { btnFree.disabled = true; btnFree.style.display = 'none'; }
-    if (btnPaid) btnPaid.style.display = 'block';
-    if (timerText) {
-      timerText.innerText = `До бесплатного спина: ${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-  }
-}
-
-setInterval(updateWheelTimer, 1000);
-
-function spinWheel(isVip = false) {
-  if (isWheelSpinning) return;
-
-  if (!isVip) {
-    const lastSpin = parseInt(localStorage.getItem('last_free_spin') || '0', 10);
-    if (Date.now() - lastSpin < FREE_COOLDOWN_MS) return;
-    localStorage.setItem('last_free_spin', Date.now().toString());
-  }
-
-  isWheelSpinning = true;
-  const items = isVip ? PRIZES_VIP : PRIZES_FREE;
-  const numSlices = items.length;
-  const sliceAngle = (2 * Math.PI) / numSlices;
-
-  const targetIndex = Math.floor(Math.random() * numSlices);
-  const fullRotations = (5 + Math.floor(Math.random() * 3)) * 2 * Math.PI;
-  const targetAngle = fullRotations + (numSlices - targetIndex - 0.5) * sliceAngle - (Math.PI / 2);
-
-  const startAngle = wheelAngle;
-  const duration = 4000;
-  const startTime = performance.now();
-
-  function animate(now) {
-    const elapsed = now - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-    const easeOut = 1 - Math.pow(1 - progress, 3);
-    wheelAngle = startAngle + (targetAngle - startAngle) * easeOut;
-    drawWheel(isVip);
-
-    if (progress < 1) {
-      requestAnimationFrame(animate);
-    } else {
-     isWheelSpinning = false;
-      const won = items[targetIndex];
-      showToast('ВЫИГРЫШ!', `Получено: ${won.label}`, '🎁');
-      
-      if (typeof updateBalance === 'function') {
-        updateBalance(won.val);
-      } else if (typeof balance !== 'undefined') {
-        balance += won.val;
-        if (typeof updateBalanceUI === 'function') {
-          updateBalanceUI();
-        }
-      }
-      updateWheelTimer();
-    }
-    }
-
-  requestAnimationFrame(animate);
-}
-
-setTimeout(function() {
-  drawWheel(false);
-  updateWheelTimer();
-}, 300);
+    setTimeout(() => {
+      resizeCrashCanvas();
+      enterCrashBettingPhase();
+    }, 200);
   </script>
 </body>
 </html>
