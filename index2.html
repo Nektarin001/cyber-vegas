@@ -3,795 +3,2212 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Cyber Vegas 2077 - Rocket Crash</title>
+  <title>Minecraft Slots: Multi-World Hub</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  
   <style>
     :root {
-      --bg-base: #06070d;
-      --bg-card: rgba(14, 16, 28, 0.94);
-      --neon-yellow: #fcee0a;
-      --neon-cyan: #00f0ff;
-      --neon-pink: #ff003c;
-      --neon-green: #05ffa1;
-      --neon-purple: #9d00ff;
-      --text-muted: #737994;
-      --text-main: #e6ebf5;
-      --border-cyber: rgba(0, 240, 255, 0.22);
+      --cell-size: clamp(52px, 15.5vw, 64px);
+      --mc-gui: #c6c6c6;
+      --mc-green: #55ff55;
+      --mc-gold: #ffaa00;
+      --mc-purple: #e040fb;
+      --mc-cyan: #55ffff;
+      --mc-red: #ff3333;
     }
 
-    * {
+    /* Пиксельная четкость */
+    *, *::before, *::after {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
       user-select: none;
       -webkit-user-select: none;
+      margin: 0;
+      padding: 0;
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+      -webkit-font-smoothing: none;
+      -moz-osx-font-smoothing: grayscale;
+      font-smooth: never;
+      text-rendering: optimizeSpeed;
     }
 
     body {
-      background-color: var(--bg-base);
-      color: var(--text-main);
-      font-family: 'Rajdhani', sans-serif;
-      min-height: 100vh;
+      background-color: #0c0c0c;
+      font-family: 'Press Start 2P', monospace;
+      color: #ffffff;
       display: flex;
       justify-content: center;
       align-items: center;
-      overflow-x: hidden;
-      background-image:
-        radial-gradient(circle at 50% 0%, rgba(157, 0, 255, 0.16) 0%, transparent 55%),
-        linear-gradient(rgba(6, 7, 13, 0.94), rgba(6, 7, 13, 0.94));
-    }
-
-    #app {
-      width: 100%;
-      max-width: 440px;
       min-height: 100vh;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      overflow: hidden;
+      font-size: 9px;
     }
 
-    .header-panel {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--bg-card);
-      border: 1px solid var(--border-cyber);
-      padding: 10px 12px;
-      border-radius: 6px;
-      position: relative;
+    body.fast-forward .block-cell {
+      transition-duration: 0.05s !important;
     }
 
-    .header-panel::before {
+    /* ====================================================
+       1. ФОНЫ 4-Х БИОМОВ (МИРОВ)
+    ==================================================== */
+    .world-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      transition: background 0.5s ease;
+    }
+
+    /* 1. Верхний мир */
+    .world-overworld {
+      background: linear-gradient(180deg, #4aa3ff 0%, #76baff 52%, #9ed2ff 68%, #5b932c 68%, #416f1c 72%, #866043 76%, #543b27 100%);
+    }
+
+    /* 2. Незер (Ад) */
+    .world-nether {
+      background: linear-gradient(180deg, #2b0404 0%, #520909 45%, #7a1212 65%, #3d0303 72%, #e64a19 74%, #bf360c 80%, #1f0202 100%);
+    }
+
+    /* 3. Деревня */
+    .world-village {
+      background: linear-gradient(180deg, #f57c00 0%, #ffb74d 48%, #ffe082 66%, #689f38 66%, #33691e 72%, #795548 76%, #4e342e 100%);
+    }
+
+    /* 4. Океан / Монумент */
+    .world-ocean {
+      background: linear-gradient(180deg, #002233 0%, #004d66 45%, #006680 65%, #003344 70%, #00838f 73%, #004d40 80%, #001e1d 100%);
+    }
+
+    /* Декорации фона */
+    .cloud {
+      position: absolute;
+      background: #ffffff;
+      opacity: 0.92;
+    }
+    .cloud-1 {
+      width: 120px; height: 26px; top: 8%; left: -20px;
+      box-shadow: 20px -10px 0 #fff, 55px -6px 0 #fff;
+      animation: drift 45s linear infinite;
+    }
+    .cloud-2 {
+      width: 100px; height: 22px; top: 18%; right: -20px;
+      box-shadow: 18px -8px 0 #fff;
+      animation: drift 65s linear infinite reverse;
+    }
+
+    @keyframes drift {
+      from { transform: translateX(-150px); }
+      to { transform: translateX(460px); }
+    }
+
+    .pixel-tree {
+      position: absolute;
+      bottom: 27%;
+      width: 20px;
+      height: 34px;
+      background: #55341a;
+    }
+    .pixel-tree::before {
       content: '';
       position: absolute;
-      left: 0;
-      top: 0;
-      width: 3px;
-      height: 100%;
-      background: var(--neon-cyan);
+      bottom: 20px;
+      left: -15px;
+      width: 50px;
+      height: 40px;
+      background: #2b6416;
+      box-shadow: inset 4px 4px 0 #3a841f, inset -4px -4px 0 #1c420e;
     }
+    .tree-1 { left: 8%; transform: scale(0.7); }
+    .tree-2 { right: 12%; transform: scale(0.85); }
 
-    .logo-box {
+    /* Оболочка Mini App */
+    #app {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 410px;
+      min-height: 100vh;
+      padding: 6px 10px;
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    .logo-text {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 13px;
-      font-weight: 900;
-      color: var(--neon-yellow);
-      letter-spacing: 1px;
-      text-shadow: 0 0 8px rgba(252, 238, 10, 0.5);
-    }
-
-    .sub-title {
-      font-size: 9px;
-      color: var(--text-muted);
-      letter-spacing: 1.5px;
-    }
-
-    .balance-box {
-      background: rgba(0, 0, 0, 0.65);
-      border: 1px solid var(--neon-cyan);
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 12px;
-      font-weight: 800;
-      color: var(--neon-cyan);
-      box-shadow: 0 0 8px rgba(0, 240, 255, 0.15);
-    }
-
-    .game-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-cyber);
-      border-radius: 6px;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .round-meta-bar {
+    /* Шапка */
+    .header-bar {
+      width: 100%;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 9px;
-      color: var(--text-muted);
-      padding: 0 2px;
-    }
-
-    .history-tape {
-      display: flex;
       gap: 6px;
-      overflow-x: auto;
-      padding-bottom: 3px;
-      scrollbar-width: none;
-    }
-    .history-tape::-webkit-scrollbar { display: none; }
-
-    .history-item {
-      padding: 2px 6px;
-      font-size: 10px;
-      font-family: 'Orbitron', sans-serif;
-      font-weight: 700;
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid #23273a;
-      border-radius: 3px;
-      white-space: nowrap;
-    }
-    .history-item.low { border-color: var(--neon-pink); color: var(--neon-pink); }
-    .history-item.mid { border-color: var(--neon-cyan); color: var(--neon-cyan); }
-    .history-item.high { border-color: var(--neon-green); color: var(--neon-green); }
-
-    .canvas-viewport {
-      width: 100%;
-      height: 230px;
-      background: radial-gradient(circle at 10% 90%, #15162a 0%, #080913 75%);
-      border: 1px solid rgba(0, 240, 255, 0.14);
-      border-radius: 5px;
-      position: relative;
-      overflow: hidden;
+      margin-bottom: 3px;
     }
 
-    canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    .center-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    .hud-multiplier {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 44px;
-      font-weight: 900;
+    .btn-top {
+      background: #4a4a4a;
+      border: 3px solid #000000;
+      box-shadow: inset 2px 2px 0 #888888, inset -2px -2px 0 #222222;
       color: #ffffff;
-      text-shadow: 0 0 16px rgba(255, 255, 255, 0.45);
-      line-height: 1;
-    }
-    .hud-multiplier.crashed {
-      color: var(--neon-pink) !important;
-      text-shadow: 0 0 20px rgba(255, 0, 60, 0.8) !important;
-    }
-
-    .hud-status {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      color: var(--text-muted);
-      margin-top: 6px;
-    }
-
-    .controls-wrapper {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .bet-grid {
-      display: flex;
-      gap: 8px;
-    }
-
-    .cyber-field {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-
-    .field-label {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--text-muted);
-      letter-spacing: 0.8px;
-    }
-
-    .cyber-input {
-      background: #090a12;
-      border: 1px solid #23273a;
-      padding: 7px 9px;
-      color: #ffffff;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 12px;
-      font-weight: 600;
-      border-radius: 4px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .cyber-input:focus {
-      border-color: var(--neon-cyan);
-    }
-    .cyber-input:disabled {
-      opacity: 0.45;
-      border-color: #1a1c27;
-      background: #05060a;
-    }
-
-    .quick-chips {
-      display: flex;
-      gap: 6px;
-    }
-
-    .chip-btn {
-      flex: 1;
-      padding: 5px 0;
-      background: #111320;
-      border: 1px solid #23273a;
-      border-radius: 3px;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 9px;
-      font-weight: 700;
-      color: #9aa1ba;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      padding: 6px 8px;
       cursor: pointer;
-      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
-    .chip-btn:active:not(:disabled) {
-      border-color: var(--neon-cyan);
-      color: #ffffff;
+    .btn-top:active {
+      box-shadow: inset -2px -2px 0 #888888, inset 2px 2px 0 #222222;
+      transform: translateY(1px);
     }
-    .chip-btn:disabled {
+    .btn-chest-top {
+      color: var(--mc-gold);
+      position: relative;
+    }
+    .chest-ready-dot {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      width: 8px;
+      height: 8px;
+      background: var(--mc-green);
+      border: 1px solid #000000;
+      display: none;
+    }
+
+    /* Селектор локаций (Карусель миров) */
+    .biome-carousel-bar {
+      width: 100%;
+      background: #222222;
+      border: 3px solid #000000;
+      box-shadow: inset 2px 2px 0 #555555, inset -2px -2px 0 #111111;
+      padding: 4px 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .btn-biome-arrow {
+      background: #555555;
+      border: 2px solid #000000;
+      box-shadow: inset 2px 2px 0 #aaaaaa, inset -2px -2px 0 #222222;
+      color: var(--mc-gold);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+    .btn-biome-arrow:active {
+      box-shadow: inset -2px -2px 0 #aaaaaa, inset 2px 2px 0 #222222;
+      transform: translateY(1px);
+    }
+    .btn-biome-arrow:disabled {
       opacity: 0.4;
       cursor: not-allowed;
     }
 
-    .action-button {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 4px;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 13px;
-      font-weight: 900;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: transform 0.08s ease, filter 0.15s ease;
-    }
-    .action-button:active:not(:disabled) {
-      transform: scale(0.985);
+    .biome-title-box {
+      font-size: 8px;
+      color: #ffffff;
+      text-shadow: 1px 1px #000000;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    .btn-state-bet {
-      background: var(--neon-yellow);
-      color: #050608;
-      box-shadow: 0 0 16px rgba(252, 238, 10, 0.4);
+    /* Рамка сетки слотов */
+    .grid-frame {
+      background: rgba(40, 40, 40, 0.94);
+      border: 4px solid #000000;
+      box-shadow: inset 4px 4px 0 #777777, inset -4px -4px 0 #111111, 0 6px 12px rgba(0,0,0,0.5);
+      padding: 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+      position: relative;
     }
-    .btn-state-cashout {
-      background: var(--neon-green);
-      color: #040806;
-      box-shadow: 0 0 16px rgba(5, 255, 161, 0.5);
+
+    /* Тематические стили рамки под биомы */
+    .grid-frame.theme-nether {
+      border-color: #7f0000;
+      box-shadow: inset 4px 4px 0 #d32f2f, inset -4px -4px 0 #200000, 0 0 16px rgba(211, 47, 47, 0.4);
     }
-    .btn-state-disabled {
-      background: #1a1c29;
-      color: #555c73;
-      box-shadow: none;
-      cursor: not-allowed;
+    .grid-frame.theme-village {
+      border-color: #5d4037;
+      box-shadow: inset 4px 4px 0 #8d6e63, inset -4px -4px 0 #27140e, 0 0 14px rgba(255, 183, 77, 0.3);
     }
-    .btn-state-crashed {
-      background: var(--neon-pink);
+    .grid-frame.theme-ocean {
+      border-color: #00695c;
+      box-shadow: inset 4px 4px 0 #4db6ac, inset -4px -4px 0 #00251a, 0 0 16px rgba(0, 150, 136, 0.4);
+    }
+
+    .grid-frame.enchanted-mode {
+      border-color: #8e24aa !important;
+      animation: enchantedGlint 2s infinite alternate;
+    }
+
+    @keyframes enchantedGlint {
+      0% { box-shadow: inset 4px 4px 0 #ba68c8, inset -4px -4px 0 #4a148c, 0 0 12px rgba(224, 64, 251, 0.5); }
+      100% { box-shadow: inset 4px 4px 0 #e1bee7, inset -4px -4px 0 #7b1fa2, 0 0 22px rgba(224, 64, 251, 0.9); }
+    }
+
+    .grid-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #181818;
+      border: 2px solid #000000;
+      padding: 4px 8px;
+    }
+
+    .combo-badge {
+      background: #e65100;
       color: #ffffff;
-      box-shadow: 0 0 16px rgba(255, 0, 60, 0.45);
+      border: 2px solid #000000;
+      padding: 3px 6px;
+      font-size: 9px;
+      transition: transform 0.15s ease, background 0.2s ease;
+    }
+    .combo-badge.boost {
+      transform: scale(1.15);
+      background: #d81b60;
+    }
+
+    .grid-container {
+      display: flex;
+      gap: 4px;
+      background: #101010;
+      padding: 4px;
+      border: 3px solid #000000;
+      overflow: hidden;
+    }
+
+    .column {
+      position: relative;
+      width: var(--cell-size);
+      height: calc(var(--cell-size) * 3);
+      flex: 0 0 var(--cell-size);
+      overflow: visible;
+    }
+
+    .block-cell {
+      position: absolute;
+      width: var(--cell-size);
+      height: var(--cell-size);
+      left: 0;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2px;
+      will-change: top, transform, opacity;
+      transition: top 0.48s cubic-bezier(0.25, 1.25, 0.5, 1);
+    }
+
+    .block-cell svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0px 3px 2px rgba(0,0,0,0.6));
+    }
+
+    .block-cell.win-highlight {
+      z-index: 25;
+      animation: sugarPulse 0.5s infinite alternate;
+    }
+
+    @keyframes sugarPulse {
+      0% { filter: drop-shadow(0 0 4px #55ff55) brightness(1.2); transform: scale(0.96); }
+      100% { filter: drop-shadow(0 0 10px #55ff55) brightness(1.5); transform: scale(1.04); }
+    }
+
+    .block-cell.breaking {
+      animation: blockCrush 0.22s forwards ease-in;
+    }
+
+    @keyframes blockCrush {
+      0% { transform: scale(1); filter: brightness(2); }
+      100% { transform: scale(0); opacity: 0; }
+    }
+
+    .floating-win {
+      position: absolute;
+      color: #fff200;
+      font-size: 11px;
+      text-shadow: 2px 2px 0 #000000, -1px -1px 0 #000000;
+      z-index: 60;
+      pointer-events: none;
+      animation: floatSugar 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+    }
+
+    @keyframes floatSugar {
+      0% { opacity: 0; transform: translate(-50%, 0) scale(0.5); }
+      30% { opacity: 1; transform: translate(-50%, -10px) scale(1.2); }
+      100% { opacity: 0; transform: translate(-50%, -35px) scale(1); }
+    }
+
+    .particle {
+      position: absolute;
+      pointer-events: none;
+      z-index: 55;
+      border: 1px solid rgba(0,0,0,0.4);
+    }
+
+    .retrigger-banner {
+      position: fixed;
+      top: 38%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: #8e24aa;
+      border: 4px solid #ffffff;
+      box-shadow: 0 0 24px #e040fb, inset 3px 3px 0 #ce93d8, inset -3px -3px 0 #4a148c;
+      color: #ffff55;
+      font-size: 12px;
+      padding: 12px 18px;
+      text-align: center;
+      z-index: 200;
+      pointer-events: none;
+      text-shadow: 2px 2px #000000;
+      opacity: 0;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+    }
+    .retrigger-banner.show {
+      transform: translate(-50%, -50%) scale(1.1);
+      opacity: 1;
+    }
+
+    .flying-coin {
+      position: fixed;
+      width: 18px;
+      height: 18px;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 0.45s ease-out;
+    }
+
+    .balance-bump {
+      animation: balancePulseAnim 0.15s ease-out;
+    }
+    @keyframes balancePulseAnim {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.25); color: #55ff55; }
+      100% { transform: scale(1); }
+    }
+
+    /* Статистика */
+    .stats-panel {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      gap: 4px;
+      margin: 4px 0;
+    }
+
+    .stat-card {
+      flex: 1;
+      background: #1e1e1e;
+      border: 2px solid #000000;
+      box-shadow: inset 2px 2px 0 #333333, inset -2px -2px 0 #050505;
+      padding: 5px 3px;
+      text-align: center;
+      position: relative;
+    }
+
+    .stat-label {
+      font-size: 6px;
+      color: #999999;
+      margin-bottom: 3px;
+    }
+
+    .stat-val {
+      font-size: 10px;
+      color: #ffffff;
+      display: inline-block;
+      transition: transform 0.1s;
+    }
+    .stat-val.win { color: var(--mc-green); }
+    .stat-val.bonus { color: var(--mc-purple); text-shadow: 0 0 4px #e040fb; }
+
+    /* Управление */
+    .controls {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .adjusters-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .control-box {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--mc-gui);
+      padding: 4px 6px;
+      border: 3px solid #000000;
+      box-shadow: inset 2px 2px 0 #ffffff, inset -2px -2px 0 #555555;
+      color: #111111;
+    }
+
+    .control-title {
+      font-size: 7px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .btn-step {
+      background: #6e6e6e;
+      border: 2px solid #000000;
+      box-shadow: inset 2px 2px 0 #aaaaaa, inset -2px -2px 0 #222222;
+      color: #ffffff;
+      font-family: 'Press Start 2P', monospace;
+      padding: 5px 7px;
+      font-size: 9px;
+      cursor: pointer;
+    }
+    .btn-step:active {
+      box-shadow: inset -2px -2px 0 #aaaaaa, inset 2px 2px 0 #222222;
+      transform: translateY(1px);
+    }
+    .btn-step:disabled {
+      opacity: 0.4;
       cursor: not-allowed;
     }
-    .btn-state-taken {
-      background: rgba(5, 255, 161, 0.14);
-      border: 1px solid var(--neon-green);
-      color: var(--neon-green);
+
+    /* Тумблер зачарованной кирки */
+    .pickaxe-toggle-bar {
+      background: #252525;
+      border: 3px solid #000000;
+      box-shadow: inset 2px 2px 0 #444444, inset -2px -2px 0 #111111;
+      padding: 5px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: opacity 0.2s ease, filter 0.2s ease;
+    }
+
+    .pickaxe-toggle-bar.locked-bonus {
+      opacity: 0.45;
+      pointer-events: none;
+      filter: grayscale(1);
+    }
+
+    .pickaxe-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 8px;
+      color: #ffffff;
+    }
+
+    .pickaxe-icon-svg {
+      width: 18px;
+      height: 18px;
+      filter: drop-shadow(1px 1px 0 #000000);
+    }
+
+    .pickaxe-status {
+      font-size: 8px;
+      padding: 4px 6px;
+      border: 2px solid #000000;
+      background: #555555;
+      color: #aaaaaa;
+    }
+
+    .pickaxe-toggle-bar.active {
+      background: #3e1b47;
+      border-color: #8e24aa;
+      box-shadow: 0 0 8px rgba(224, 64, 251, 0.4);
+    }
+
+    .pickaxe-toggle-bar.active .pickaxe-status {
+      background: #ab47bc;
+      color: #ffffff;
+      box-shadow: inset 1px 1px 0 #e1bee7;
+    }
+
+    /* Кнопка Купить Бонуску Stars */
+    .btn-buy-bonus {
+      background: linear-gradient(180deg, #ffb300 0%, #ff6f00 100%);
+      border: 3px solid #000000;
+      box-shadow: inset 3px 3px 0 #ffe082, inset -3px -3px 0 #bf360c, 0 0 10px rgba(255, 179, 0, 0.35);
+      color: #000000;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      padding: 8px 10px;
+      width: 100%;
+      cursor: pointer;
+      text-shadow: 1px 1px #ffe082;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.1s ease;
+    }
+    .btn-buy-bonus:active {
+      transform: translateY(1px);
+      box-shadow: inset -3px -3px 0 #ffe082, inset 3px 3px 0 #bf360c;
+    }
+    .btn-buy-bonus:disabled {
+      opacity: 0.45;
       cursor: not-allowed;
+      filter: grayscale(0.8);
+      transform: none;
+    }
+
+    .total-bet-row {
+      background: #1a1a1a;
+      border: 2px solid #000000;
+      padding: 4px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #dddddd;
+      font-size: 8px;
+    }
+
+    .btn-spin {
+      background: #388e3c;
+      border: 3px solid #000000;
+      box-shadow: inset 4px 4px 0 #66bb6a, inset -4px -4px 0 #1b5e20;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 13px;
+      padding: 13px;
+      color: #ffffff;
+      width: 100%;
+      cursor: pointer;
+      text-shadow: 2px 2px #000000;
+    }
+    .btn-spin:active {
+      box-shadow: inset -4px -4px 0 #66bb6a, inset 4px 4px 0 #1b5e20;
+      transform: translateY(2px);
+    }
+    .btn-spin:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Кнопка во время авто-фриспинов (Красный стоп/пауза) */
+    .btn-spin.btn-fs-stop {
+      background: #d32f2f !important;
+      box-shadow: inset 4px 4px 0 #ef5350, inset -4px -4px 0 #b71c1c !important;
+      color: #ffffff !important;
+      animation: pulseStop 1.2s infinite alternate;
+    }
+    .btn-spin.btn-fs-resume {
+      background: #f57c00 !important;
+      box-shadow: inset 4px 4px 0 #ffb74d, inset -4px -4px 0 #e65100 !important;
+      color: #ffffff !important;
+    }
+
+    @keyframes pulseStop {
+      0% { filter: brightness(1); }
+      100% { filter: brightness(1.2); }
+    }
+
+    /* Модалки */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: var(--mc-gui);
+      border: 4px solid #000000;
+      box-shadow: inset 4px 4px 0 #ffffff, inset -4px -4px 0 #444444;
+      padding: 14px;
+      width: 100%;
+      max-width: 340px;
+      text-align: center;
+      position: relative;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #555555;
+      padding-bottom: 6px;
+    }
+
+    .modal-title {
+      font-size: 10px;
+      color: #222222;
+      text-shadow: 1px 1px #ffffff;
+    }
+
+    .btn-close-x {
+      background: #c62828;
+      border: 2px solid #000000;
+      box-shadow: inset 2px 2px 0 #ef5350, inset -2px -2px 0 #5f0909;
+      color: #ffffff;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      padding: 4px 7px;
+      cursor: pointer;
+    }
+
+    /* Мини-игра Логово Дракона */
+    .dragon-modal-content {
+      background: #150f1d;
+      border: 4px solid #8e24aa;
+      box-shadow: inset 4px 4px 0 #ba68c8, inset -4px -4px 0 #38006b, 0 0 30px rgba(142, 36, 170, 0.8);
+      color: #ffffff;
+      max-width: 360px;
+    }
+
+    .dragon-chests-wrap {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin: 20px 0 16px 0;
+      gap: 8px;
+    }
+
+    .dragon-chest-pick {
+      width: 86px;
+      background: #241631;
+      border: 3px solid #8e24aa;
+      box-shadow: inset 2px 2px 0 #ba68c8, inset -2px -2px 0 #120919;
+      padding: 8px 4px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.15s ease;
+    }
+    .dragon-chest-pick:hover, .dragon-chest-pick:active {
+      transform: scale(1.08);
+      border-color: #e040fb;
+    }
+    .dragon-chest-pick.opened {
+      pointer-events: none;
+      border-color: #55ff55;
+      background: #17381b;
+    }
+    .dragon-chest-pick.disabled-chest {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .dragon-chest-svg {
+      width: 50px;
+      height: 50px;
+    }
+    .dragon-chest-val {
+      font-size: 8px;
+      color: var(--mc-gold);
+      min-height: 12px;
+    }
+
+    /* Детская справка */
+    .kids-paytable {
+      max-height: 60vh;
+      overflow-y: auto;
+      text-align: left;
+      padding-right: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .legend-card {
+      background: #b5b5b5;
+      border: 2px solid #444444;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .legend-icon-wrap {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+    }
+    .legend-title {
+      font-size: 8px;
+      color: #000000;
+      margin-bottom: 3px;
+    }
+    .legend-text {
+      font-size: 7px;
+      color: #333333;
+      line-height: 1.4;
+    }
+
+    /* Сундуки */
+    .chests-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 8px 0;
+    }
+
+    .chest-card {
+      background: #a3a3a3;
+      border: 3px solid #000000;
+      box-shadow: inset 3px 3px 0 #dddddd, inset -3px -3px 0 #666666;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+    }
+    .chest-svg-box {
+      width: 44px;
+      height: 44px;
+      flex: 0 0 44px;
+    }
+    .chest-info {
+      flex: 1;
+    }
+    .chest-name {
+      font-size: 9px;
+      color: #000000;
+      margin-bottom: 4px;
+    }
+    .chest-desc {
+      font-size: 7px;
+      color: #333333;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .btn-open-chest {
+      background: #f57c00;
+      border: 2px solid #000000;
+      box-shadow: inset 2px 2px 0 #ffb74d, inset -2px -2px 0 #b26a00;
+      color: #ffffff;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      padding: 6px 8px;
+      cursor: pointer;
+    }
+    .btn-open-chest:active {
+      transform: translateY(1px);
+    }
+
+    .loot-reward-box {
+      background: #ffffff;
+      border: 3px solid #000000;
+      padding: 16px;
+      margin: 12px 0;
+      color: #111111;
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
     }
   </style>
 </head>
 <body>
+
+  <!-- Фон локации (переключается скриптом) -->
+  <div class="world-bg world-overworld" id="worldBg">
+    <div class="cloud cloud-1" id="cloud1"></div>
+    <div class="cloud cloud-2" id="cloud2"></div>
+    <div class="pixel-tree tree-1" id="tree1"></div>
+    <div class="pixel-tree tree-2" id="tree2"></div>
+  </div>
+
+  <!-- Плашка ретриггера -->
+  <div class="retrigger-banner" id="retriggerBanner">+3 СПИНА!</div>
+
   <div id="app">
-    <header class="header-panel">
-      <div class="logo-box">
-        <span class="logo-text">CYBER VEGAS 2077</span>
-        <span class="sub-title">CRASH ROCKET ENGINE</span>
-      </div>
-      <div class="balance-box" id="hudBalance">10,000 ED</div>
+    <!-- Шапка -->
+    <header class="header-bar">
+      <button class="btn-top btn-chest-top" id="btnOpenChests">
+        📦 СУНДУКИ
+        <span class="chest-ready-dot" id="chestDot"></span>
+      </button>
+      <div class="title-banner">⛏️ CRAFT HUB</div>
+      <button class="btn-top" id="btnOpenHelp" style="color:var(--mc-gold);">?</button>
     </header>
 
-    <section class="game-card">
-      <div class="round-meta-bar">
-        <span id="hudRoundId">ROUND: #---</span>
-        <span id="hudStatePill">STATUS: BETTING</span>
+    <!-- Карусель миров (Стрелочки переключения биомов) -->
+    <div class="biome-carousel-bar">
+      <button class="btn-biome-arrow" id="btnPrevBiome">&lt;</button>
+      <div class="biome-title-box">
+        <span id="biomeIcon">🌲</span>
+        <strong id="biomeName">ВЕРХНИЙ МИР</strong>
       </div>
+      <button class="btn-biome-arrow" id="btnNextBiome">&gt;</button>
+    </div>
 
-      <div class="history-tape" id="hudHistoryTape">
-        <span class="history-item high">4.22x</span>
-        <span class="history-item mid">1.84x</span>
-        <span class="history-item low">1.10x</span>
-        <span class="history-item high">2.75x</span>
-        <span class="history-item mid">1.54x</span>
+    <!-- Сетка слотов -->
+    <main class="grid-frame" id="gridFrame">
+      <div class="grid-topbar">
+        <span style="color:#aaaaaa; font-size: 7px;" id="boosterIndicator">СЕТКА 5х3</span>
+        <div class="combo-badge" id="comboBadge">COMBO x1</div>
       </div>
-
-      <div class="canvas-viewport">
-        <canvas id="stageCanvas" width="414" height="230"></canvas>
-        <div class="center-overlay">
-          <div class="hud-multiplier" id="hudMultiplier">1.00x</div>
-          <div class="hud-status" id="hudStatus">ОКНО СТАВОК (5с)</div>
-        </div>
+      <div class="grid-container" id="gridContainer">
+        <div class="column" id="col-0"></div>
+        <div class="column" id="col-1"></div>
+        <div class="column" id="col-2"></div>
+        <div class="column" id="col-3"></div>
+        <div class="column" id="col-4"></div>
       </div>
+    </main>
 
-      <div class="controls-wrapper">
-        <div class="bet-grid">
-          <div class="cyber-field">
-            <span class="field-label">СТАВКА (ED)</span>
-            <input type="number" id="inputBet" class="cyber-input" value="500" min="10" step="10" />
-          </div>
-          <div class="cyber-field">
-            <span class="field-label">АВТО-ВЫВОД</span>
-            <input type="number" id="inputAutoCash" class="cyber-input" value="2.00" min="1.01" step="0.1" />
-          </div>
-        </div>
-
-        <div class="quick-chips">
-          <button class="chip-btn" data-val="100">100</button>
-          <button class="chip-btn" data-val="500">500</button>
-          <button class="chip-btn" data-val="1000">1K</button>
-          <button class="chip-btn" data-val="5000">5K</button>
-        </div>
-
-        <button id="btnAction" class="action-button btn-state-bet">СТАВКА</button>
+    <!-- Статистика -->
+    <section class="stats-panel">
+      <div class="stat-card" id="cardBalance">
+        <div class="stat-label">БАЛАНС</div>
+        <div class="stat-val" id="balanceDisplay">1000</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">ВЫИГРЫШ</div>
+        <div class="stat-val win" id="winDisplay">0</div>
+      </div>
+      <div class="stat-card" id="cardLines">
+        <div class="stat-label">ЛИНИЙ</div>
+        <div class="stat-val" id="statLinesVal">15</div>
+      </div>
+      <div class="stat-card" id="cardBonusWin" style="display: none;">
+        <div class="stat-label">БОНУС КУШ</div>
+        <div class="stat-val bonus" id="bonusTotalDisplay">0</div>
       </div>
     </section>
+
+    <!-- Панель управления -->
+    <footer class="controls">
+      <div class="adjusters-row">
+        <div class="control-box">
+          <div class="control-title">
+            <span>СТАВКА/Л</span>
+            <strong id="lineBetDisplay">1</strong>
+          </div>
+          <div>
+            <button class="btn-step" id="btnLineBetDown">-</button>
+            <button class="btn-step" id="btnLineBetUp">+</button>
+          </div>
+        </div>
+
+        <div class="control-box">
+          <div class="control-title">
+            <span>ЛИНИИ</span>
+            <strong id="linesCountDisplay">15</strong>
+          </div>
+          <div>
+            <button class="btn-step" id="btnLinesDown">-</button>
+            <button class="btn-step" id="btnLinesUp">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Тумблер зачарованной кирки -->
+      <div class="pickaxe-toggle-bar" id="pickaxeToggle">
+        <div class="pickaxe-label">
+          <div class="pickaxe-icon-svg" id="pickaxeIcon"></div>
+          <span>КИРКА УДАЧИ (+25%)</span>
+        </div>
+        <div class="pickaxe-status" id="pickaxeStatus">ВЫКЛ</div>
+      </div>
+
+      <!-- Кнопка Покупки Бонуски за Stars -->
+      <button class="btn-buy-bonus" id="btnBuyBonus">
+        КУПИТЬ БОНУС 🌟 300 Stars
+      </button>
+
+      <div class="total-bet-row">
+        <span>ОБЩАЯ СТАВКА:</span>
+        <strong style="color:var(--mc-gold); font-size:10px;" id="totalBetDisplay">15</strong>
+      </div>
+
+      <!-- Кнопка вращения / СТОП во время авто-бонуски -->
+      <button class="btn-spin" id="btnSpin">КРУТИТЬ</button>
+    </footer>
+  </div>
+
+  <!-- Модалка Фриспинов -->
+  <div id="fsModal" class="modal">
+    <div class="modal-content">
+      <h2 style="font-size: 11px; color: #8e24aa; margin-bottom: 10px;">ПОРТАЛ В ЭНД!</h2>
+      <p style="font-size: 8px; color: #111111; line-height: 1.6; margin-bottom: 12px;">
+        Ты собрал <span id="fsScatterCountText">3</span> Ока Края!<br><br>Начислено: <strong id="fsAwardedText" style="color:#2e7d32; font-size:11px;">10</strong> БЕСПЛАТНЫХ СПИНОВ.<br>Спины запустятся автоматически!
+      </p>
+      <button class="btn-step" id="btnCloseFsModal" style="background:#4caf50; padding: 10px 18px;">В БОЙ</button>
+    </div>
+  </div>
+
+  <!-- Модалка покупки бонуски Stars -->
+  <div id="buyBonusModal" class="modal">
+    <div class="modal-content">
+      <h2 style="font-size: 11px; color: #ffaa00; margin-bottom: 10px;">🌟 ПОКУПКА БОНУСА</h2>
+      <p style="font-size: 8px; color: #111111; line-height: 1.6; margin-bottom: 14px;">
+        Мгновенно активировать Портал в Энд (10 Авто-Фриспинов) за <strong>300 🌟 Telegram Stars</strong>?
+      </p>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-step" id="btnConfirmBuyBonus" style="background:#4caf50; flex:1; padding: 10px 6px;">КУПИТЬ 🌟</button>
+        <button class="btn-step" id="btnCancelBuyBonus" style="background:#c62828; flex:1; padding: 10px 6px;">ОТМЕНА</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Финал Фриспинов -->
+  <div id="fsEndModal" class="modal">
+    <div class="modal-content" style="background:#c6c6c6; border-color:#000;">
+      <h2 style="font-size: 11px; color: #ffaa00; margin-bottom: 10px; text-shadow: 1px 1px #000000;">БОНУСНЫЙ РАУНД ОКОНЧЕН!</h2>
+      <p style="font-size: 9px; color: #111111; line-height: 1.6; margin-bottom: 14px;">
+        ТВОЙ КУШ:<br><strong style="font-size: 14px; color: #2e7d32;" id="fsFinalWinText">0</strong> МОНЕТ!
+      </p>
+      <button class="btn-step" id="btnCollectBonus" style="background:#f57c00; font-size: 10px; padding: 12px 20px;">ЗАБРАТЬ НАГРАДУ</button>
+    </div>
+  </div>
+
+  <!-- Вторая Бонусная Игра: Логово Дракона -->
+  <div id="dragonModal" class="modal">
+    <div class="modal-content dragon-modal-content">
+      <h2 style="font-size: 12px; color: #e040fb; margin-bottom: 6px; text-shadow: 2px 2px #000000;">⚡ ЛОГОВО ДРАКОНА ⚡</h2>
+      <p style="font-size: 7px; color: #d1c4e9; line-height: 1.5;" id="dragonSubtitle">
+        Вы открыли сокровищницу Края!<br>Выбери один из трёх древних сундуков:
+      </p>
+
+      <div class="dragon-chests-wrap" id="dragonChestsContainer">
+        <div class="dragon-chest-pick" data-index="0">
+          <div class="dragon-chest-svg" id="dragonChestSvg0"></div>
+          <div class="dragon-chest-val" id="dragonChestVal0">???</div>
+        </div>
+        <div class="dragon-chest-pick" data-index="1">
+          <div class="dragon-chest-svg" id="dragonChestSvg1"></div>
+          <div class="dragon-chest-val" id="dragonChestVal1">???</div>
+        </div>
+        <div class="dragon-chest-pick" data-index="2">
+          <div class="dragon-chest-svg" id="dragonChestSvg2"></div>
+          <div class="dragon-chest-val" id="dragonChestVal2">???</div>
+        </div>
+      </div>
+
+      <div id="dragonWinBox" style="display:none; margin-bottom:12px;">
+        <span style="font-size:9px; color:var(--mc-gold);">ВЫИГРЫШ: +<strong id="dragonWinAmount">0</strong> МОНЕТ!</span>
+      </div>
+
+      <button class="btn-step" id="btnCollectDragon" style="background:#4caf50; display:none; padding: 10px 18px; width: 100%;">ЗАБРАТЬ В БАЛАНС</button>
+    </div>
+  </div>
+
+  <!-- Модалка Сундуков -->
+  <div id="chestsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="modal-title">СУНДУКИ С ЛУТОМ</span>
+        <button class="btn-close-x" id="btnCloseChests">X</button>
+      </div>
+
+      <div class="chests-grid">
+        <div class="chest-card">
+          <div class="chest-svg-box" id="woodChestIcon"></div>
+          <div class="chest-info">
+            <div class="chest-name">ДЕРЕВЯННЫЙ</div>
+            <div class="chest-desc" id="woodChestTimerText">Бесплатно раз в 24ч или за 50 монет</div>
+            <button class="btn-open-chest" id="btnOpenWoodChest">ОТКРЫТЬ</button>
+          </div>
+        </div>
+
+        <div class="chest-card" style="background:#b8a3c7;">
+          <div class="chest-svg-box" id="enderChestIcon"></div>
+          <div class="chest-info">
+            <div class="chest-name" style="color:#4a148c;">ЭНДЕР-СУНДУК</div>
+            <div class="chest-desc">Редкий лут, фриспины и супер-бустеры!</div>
+            <button class="btn-open-chest" id="btnOpenEnderChest" style="background:#7b1fa2;">250 🪙 / ⭐</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модалка выпавшей награды -->
+  <div id="rewardModal" class="modal">
+    <div class="modal-content">
+      <h2 style="font-size: 11px; color: #ffaa00; margin-bottom: 8px;">ДОБЫЧА!</h2>
+      <div class="loot-reward-box">
+        <div style="font-size: 24px; margin-bottom: 8px;" id="rewardEmoji">🎁</div>
+        <div style="font-size: 9px; line-height: 1.5;" id="rewardTitle">ВЫ ПОЛУЧИЛИ:</div>
+        <div style="font-size: 8px; color: #555555; margin-top: 4px;" id="rewardSubtitle"></div>
+      </div>
+      <button class="btn-step" id="btnCloseReward" style="background:#4caf50; padding: 8px 16px;">ЗАБРАТЬ</button>
+    </div>
+  </div>
+
+  <!-- Справка [ ? ] -->
+  <div id="paytableModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="modal-title">ИНФО И ВЫПЛАТЫ</span>
+        <button class="btn-close-x" id="btnCloseHelp">X</button>
+      </div>
+
+      <div class="kids-paytable">
+        <div class="legend-card" style="background:#e1bee7;">
+          <div class="legend-icon-wrap" id="icon-egg"></div>
+          <div>
+            <div class="legend-title" style="color:#4a148c;">🥚 ЯЙЦО ДРАКОНА (БОНУС)</div>
+            <div class="legend-text">3+ штуки открывают мини-игру <strong>«Логово Дракона»</strong> с множителем до <strong>x75</strong>!</div>
+          </div>
+        </div>
+
+        <div class="legend-card" style="background:#b2dfdb;">
+          <div class="legend-icon-wrap" id="icon-scatter"></div>
+          <div>
+            <div class="legend-title" style="color:#004d40;">👁️ ОКО КРАЯ (SCATTER)</div>
+            <div class="legend-text">
+              3 = 10 спинов, 4 = 15 спинов, 5 = 25 спинов!<br>
+              Фриспины идут автоматически с возможностью паузы!
+            </div>
+          </div>
+        </div>
+
+        <div class="legend-card" style="background:#c8e6c9;">
+          <div style="font-size: 20px;">🗺️</div>
+          <div>
+            <div class="legend-title" style="color:#1b5e20;">КАРУСЕЛЬ МИРОВ</div>
+            <div class="legend-text">Переключай биомы стрелочками: Верхний мир, Незер, Деревня и Океан. У каждого мира свои уникальные блоки!</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
-    (function () {
-      const tg = window.Telegram?.WebApp;
-      if (tg) {
+    /* ====================================================
+       1. TELEGRAM WEBAPP
+    ==================================================== */
+    let tg = null;
+    try {
+      if (window.Telegram?.WebApp) {
+        tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
       }
+    } catch (e) {}
 
-      function haptic(type) {
-        try {
-          if (!tg?.HapticFeedback) return;
-          if (type === 'cashout') tg.HapticFeedback.notificationOccurred('success');
-          else if (type === 'crash') tg.HapticFeedback.notificationOccurred('error');
-          else tg.HapticFeedback.impactOccurred('medium');
-        } catch (_) {}
-      }
-
-      let userBalance = 10000;
-
-      const dom = {
-        balance: document.getElementById('hudBalance'),
-        roundId: document.getElementById('hudRoundId'),
-        statePill: document.getElementById('hudStatePill'),
-        history: document.getElementById('hudHistoryTape'),
-        canvas: document.getElementById('stageCanvas'),
-        multiplier: document.getElementById('hudMultiplier'),
-        status: document.getElementById('hudStatus'),
-        inputBet: document.getElementById('inputBet'),
-        inputAutoCash: document.getElementById('inputAutoCash'),
-        chips: document.querySelectorAll('.chip-btn'),
-        btnAction: document.getElementById('btnAction')
-      };
-
-      const ctx = dom.canvas.getContext('2d');
-
-      function syncBalanceUI() {
-        dom.balance.innerText = `${userBalance.toLocaleString('en-US')} ED`;
-      }
-
-      const FSM = {
-        BETTING: 'BETTING',
-        FLYING: 'FLYING',
-        CRASHED: 'CRASHED',
-        COOLDOWN: 'COOLDOWN'
-      };
-
-      let state = FSM.BETTING;
-      let roundId = null;
-      let crashTarget = 1.00;
-      let currentMultiplier = 1.00;
-
-      let playerHasBet = false;
-      let playerBetAmount = 0;
-      let playerHasCashedOut = false;
-
-      let timerId = null;
-      let rafId = null;
-      let flightStartTime = 0;
-
-      const pathHistory = [];
-
-      function clearTimersAndLoops() {
-        if (rafId) {
-          cancelAnimationFrame(rafId);
-          rafId = null;
+    const triggerHaptic = (type = 'light') => {
+      try {
+        if (tg?.HapticFeedback) {
+          if (type === 'win') tg.HapticFeedback.notificationOccurred('success');
+          else if (type === 'bonus') tg.HapticFeedback.notificationOccurred('warning');
+          else tg.HapticFeedback.impactOccurred(type);
         }
-        if (timerId) {
-          clearInterval(timerId);
-          clearTimeout(timerId);
-          timerId = null;
+      } catch (e) {}
+    };
+
+    /* ====================================================
+       2. SVG ГРАФИКА ДЛЯ ВСЕХ 4 БИОМОВ
+    ==================================================== */
+    const ALL_SVGS = {
+      // 1. Верхний мир
+      cobble: `<svg viewBox="0 0 40 40"><polygon points="20,2 38,11 20,20 2,11" fill="#888"/><polygon points="2,11 20,20 20,38 2,29" fill="#5f5f5f"/><polygon points="20,20 38,11 38,29 20,38" fill="#444"/><rect x="16" y="8" width="6" height="4" fill="#a0a0a0"/></svg>`,
+      iron: `<svg viewBox="0 0 40 40"><polygon points="20,2 38,11 20,20 2,11" fill="#828282"/><polygon points="2,11 20,20 20,38 2,29" fill="#666"/><polygon points="20,20 38,11 38,29 20,38" fill="#4b4b4b"/><polygon points="18,7 24,10 20,13 14,10" fill="#e0c2a6"/><rect x="6" y="18" width="6" height="5" fill="#d6b293"/></svg>`,
+      gold: `<svg viewBox="0 0 40 40"><polygon points="20,2 38,11 20,20 2,11" fill="#828282"/><polygon points="2,11 20,20 20,38 2,29" fill="#666"/><polygon points="20,20 38,11 38,29 20,38" fill="#4b4b4b"/><polygon points="18,7 25,10 21,14 14,10" fill="#fcee4b"/><rect x="6" y="18" width="7" height="5" fill="#e0b828"/></svg>`,
+      diamond: `<svg viewBox="0 0 40 40"><polygon points="20,2 38,11 20,20 2,11" fill="#7ff7f7"/><polygon points="2,11 20,20 20,38 2,29" fill="#40d6d6"/><polygon points="20,20 38,11 38,29 20,38" fill="#20aaaa"/><polygon points="17,5 23,8 20,11 14,8" fill="#d1ffff"/></svg>`,
+      netherite: `<svg viewBox="0 0 40 40"><polygon points="20,2 38,11 20,20 2,11" fill="#453d40"/><polygon points="2,11 20,20 20,38 2,29" fill="#2d2629"/><polygon points="20,20 38,11 38,29 20,38" fill="#1c1618"/><polygon points="15,6 25,11 21,15 11,10" fill="#584f53"/></svg>`,
+      wild_totem: `<svg viewBox="0 0 40 40"><rect x="13" y="2" width="14" height="13" fill="#e5b300"/><rect x="7" y="14" width="26" height="10" fill="#f8cf34"/><rect x="14" y="24" width="12" height="12" fill="#c69200"/><rect x="15" y="6" width="3" height="3" fill="#3cd662"/><rect x="22" y="6" width="3" height="3" fill="#3cd662"/></svg>`,
+
+      // 2. Незер
+      nether_quartz: `<svg viewBox="0 0 40 40"><polygon points="20,2 38,11 20,20 2,11" fill="#ebebeb"/><polygon points="2,11 20,20 20,38 2,29" fill="#bdbdbd"/><polygon points="20,20 38,11 38,29 20,38" fill="#8c8c8c"/><rect x="14" y="8" width="8" height="5" fill="#ffffff"/></svg>`,
+      nether_gold: `<svg viewBox="0 0 40 40"><polygon points="20,2 38,11 20,20 2,11" fill="#6d1b1b"/><polygon points="2,11 20,20 20,38 2,29" fill="#4a0f0f"/><polygon points="20,20 38,11 38,29 20,38" fill="#300707"/><polygon points="18,7 25,10 21,14 14,10" fill="#ffeb3b"/></svg>`,
+      magma_cube: `<svg viewBox="0 0 40 40"><polygon points="20,2 38,11 20,20 2,11" fill="#420000"/><polygon points="2,11 20,20 20,38 2,29" fill="#2d0000"/><polygon points="20,20 38,11 38,29 20,38" fill="#1b0000"/><rect x="12" y="18" width="5" height="4" fill="#ff5722"/><rect x="23" y="16" width="5" height="4" fill="#ffeb3b"/></svg>`,
+      wither_skull: `<svg viewBox="0 0 40 40"><rect x="8" y="6" width="24" height="24" fill="#1e1e1e" stroke="#000" stroke-width="2"/><rect x="12" y="14" width="4" height="6" fill="#000"/><rect x="24" y="14" width="4" height="6" fill="#000"/><rect x="16" y="22" width="8" height="4" fill="#000"/></svg>`,
+      debris: `<svg viewBox="0 0 40 40"><polygon points="20,2 38,11 20,20 2,11" fill="#5d4037"/><polygon points="2,11 20,20 20,38 2,29" fill="#3e2723"/><polygon points="20,20 38,11 38,29 20,38" fill="#27140e"/><line x1="8" y1="14" x2="30" y2="28" stroke="#8d6e63" stroke-width="2"/></svg>`,
+      wild_blaze: `<svg viewBox="0 0 40 40"><rect x="18" y="4" width="4" height="32" fill="#ff9800"/><rect x="10" y="8" width="4" height="24" fill="#ffeb3b"/><rect x="26" y="8" width="4" height="24" fill="#ffeb3b"/></svg>`,
+
+      // 3. Деревня
+      wheat: `<svg viewBox="0 0 40 40"><polygon points="20,2 38,11 20,20 2,11" fill="#8bc34a"/><polygon points="2,11 20,20 20,38 2,29" fill="#689f38"/><polygon points="20,20 38,11 38,29 20,38" fill="#33691e"/><path d="M14,14 L26,26 M26,14 L14,26" stroke="#cddc39" stroke-width="3"/></svg>`,
+      bread: `<svg viewBox="0 0 40 40"><rect x="6" y="12" width="28" height="16" rx="4" fill="#8d5b24" stroke="#000" stroke-width="2"/><rect x="12" y="14" width="4" height="12" fill="#d79a55"/><rect x="22" y="14" width="4" height="12" fill="#d79a55"/></svg>`,
+      emerald: `<svg viewBox="0 0 40 40"><polygon points="20,4 34,14 28,34 12,34 6,14" fill="#00e676" stroke="#000" stroke-width="2"/><polygon points="20,8 28,15 24,30 16,30 12,15" fill="#b9f6ca"/></svg>`,
+      villager: `<svg viewBox="0 0 40 40"><rect x="10" y="4" width="20" height="24" fill="#bd8b72" stroke="#000" stroke-width="2"/><rect x="18" y="14" width="4" height="12" fill="#9e6e58"/><rect x="12" y="12" width="4" height="3" fill="#2e7d32"/><rect x="24" y="12" width="4" height="3" fill="#2e7d32"/></svg>`,
+      golem: `<svg viewBox="0 0 40 40"><rect x="8" y="4" width="24" height="28" fill="#e0e0e0" stroke="#000" stroke-width="2"/><rect x="18" y="12" width="4" height="12" fill="#9e9e9e"/><rect x="12" y="14" width="3" height="3" fill="#d32f2f"/><rect x="25" y="14" width="3" height="3" fill="#d32f2f"/><rect x="10" y="24" width="6" height="4" fill="#388e3c"/></svg>`,
+      wild_bell: `<svg viewBox="0 0 40 40"><path d="M12,28 L28,28 L24,12 L16,12 Z" fill="#ffd700" stroke="#000" stroke-width="2"/><circle cx="20" cy="30" r="3" fill="#ff9800"/></svg>`,
+
+      // 4. Океан
+      prismarine: `<svg viewBox="0 0 40 40"><polygon points="20,2 38,11 20,20 2,11" fill="#4db6ac"/><polygon points="2,11 20,20 20,38 2,29" fill="#00897b"/><polygon points="20,20 38,11 38,29 20,38" fill="#004d40"/><rect x="15" y="10" width="8" height="6" fill="#80cbc4"/></svg>`,
+      sponge: `<svg viewBox="0 0 40 40"><polygon points="20,2 38,11 20,20 2,11" fill="#cddc39"/><polygon points="2,11 20,20 20,38 2,29" fill="#afb42b"/><polygon points="20,20 38,11 38,29 20,38" fill="#827717"/><circle cx="16" cy="12" r="2" fill="#555"/><circle cx="24" cy="22" r="2.5" fill="#555"/><circle cx="12" cy="24" r="2" fill="#555"/></svg>`,
+      lantern: `<svg viewBox="0 0 40 40"><polygon points="20,2 38,11 20,20 2,11" fill="#e0f7fa"/><polygon points="2,11 20,20 20,38 2,29" fill="#b2ebf2"/><polygon points="20,20 38,11 38,29 20,38" fill="#80deea"/><rect x="14" y="10" width="12" height="12" fill="#ffffff" opacity="0.6"/></svg>`,
+      trident: `<svg viewBox="0 0 40 40"><path d="M14,6 L14,16 M20,4 L20,36 M26,6 L26,16" stroke="#26a69a" stroke-width="3" stroke-linecap="round"/><path d="M14,16 L26,16" stroke="#004d40" stroke-width="2"/></svg>`,
+      guardian: `<svg viewBox="0 0 40 40"><polygon points="20,6 34,20 20,34 6,20" fill="#ff7043" stroke="#000" stroke-width="2"/><circle cx="20" cy="20" r="6" fill="#ffffff"/><circle cx="20" cy="20" r="3" fill="#d32f2f"/></svg>`,
+      wild_heart: `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="#00e5ff" stroke="#000" stroke-width="2"/><circle cx="20" cy="20" r="8" fill="#ffffff"/></svg>`,
+
+      // Общие символы
+      scatter: `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#083830"/><circle cx="20" cy="20" r="13" fill="#137562"/><ellipse cx="20" cy="20" rx="4" ry="9" fill="#000"/><circle cx="19" cy="17" r="3" fill="#9effeb"/></svg>`,
+      egg: `<svg viewBox="0 0 40 40"><ellipse cx="20" cy="22" rx="14" ry="16" fill="#15101a"/><ellipse cx="20" cy="20" rx="10" ry="13" fill="#24172e"/><rect x="13" y="14" width="4" height="3" fill="#8e24aa"/><rect x="23" y="12" width="3" height="3" fill="#e040fb"/><rect x="18" y="24" width="4" height="3" fill="#7b1fa2"/><rect x="24" y="22" width="3" height="2" fill="#ba68c8"/><rect x="12" y="26" width="3" height="2" fill="#4a148c"/><path d="M14,9 Q20,5 26,9" stroke="#ce93d8" stroke-width="2" fill="none"/></svg>`,
+      pickaxe: `<svg viewBox="0 0 32 32"><path d="M26,2 L30,6 L28,8 L24,6 L14,16 L12,14 L22,4 Z" fill="#40d6d6"/><path d="M20,6 L26,12 L24,14 L18,8 Z" fill="#7ff7f7"/><line x1="13" y1="15" x2="3" y2="29" stroke="#8d5b32" stroke-width="3" stroke-linecap="square"/></svg>`,
+      woodChest: `<svg viewBox="0 0 32 32"><rect x="2" y="4" width="28" height="24" fill="#8d5524"/><rect x="2" y="4" width="28" height="8" fill="#a06028"/><rect x="2" y="4" width="28" height="24" fill="none" stroke="#000" stroke-width="2"/><rect x="14" y="10" width="4" height="6" fill="#dedede" stroke="#000" stroke-width="1"/></svg>`,
+      enderChest: `<svg viewBox="0 0 32 32"><rect x="2" y="4" width="28" height="24" fill="#172e2b"/><rect x="2" y="4" width="28" height="8" fill="#1e3d39"/><rect x="2" y="4" width="28" height="24" fill="none" stroke="#000" stroke-width="2"/><circle cx="16" cy="13" r="3" fill="#00ffcc" stroke="#000" stroke-width="1"/></svg>`,
+      dragonChest: `<svg viewBox="0 0 40 40"><rect x="4" y="6" width="32" height="28" fill="#1f1129" stroke="#000" stroke-width="2"/><rect x="4" y="6" width="32" height="10" fill="#331945"/><rect x="17" y="14" width="6" height="8" fill="#e040fb" stroke="#000" stroke-width="1"/><line x1="4" y1="16" x2="36" y2="16" stroke="#8e24aa" stroke-width="2"/></svg>`,
+      coin: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#fcee4b" stroke="#000" stroke-width="2"/><circle cx="12" cy="12" r="6" fill="#e0b828"/><text x="8" y="16" font-size="10" font-family="monospace" font-weight="bold" fill="#000">$</text></svg>`
+    };
+
+    /* ====================================================
+       3. КОНФИГУРАЦИЯ 4-Х МИРОВ (БИОМОВ)
+    ==================================================== */
+    const BIOMES = [
+      {
+        id: 'overworld',
+        name: 'ВЕРХНИЙ МИР',
+        icon: '🌲',
+        bgClass: 'world-overworld',
+        frameClass: '',
+        symbols: [
+          { id: 'cobble', baseWeight: 38, pays: { 3: 1.5, 4: 3, 5: 5 } },
+          { id: 'iron', baseWeight: 25, pays: { 3: 2, 4: 5, 5: 10 } },
+          { id: 'gold', baseWeight: 16, pays: { 3: 3, 4: 8, 5: 20 } },
+          { id: 'diamond', baseWeight: 9, pays: { 3: 5, 4: 15, 5: 50 } },
+          { id: 'netherite', baseWeight: 4, pays: { 3: 10, 4: 30, 5: 100 } },
+          { id: 'wild_totem', baseWeight: 4, isWild: true },
+          { id: 'scatter', baseWeight: 3, isScatter: true },
+          { id: 'egg', baseWeight: 2.5, isEgg: true }
+        ]
+      },
+      {
+        id: 'nether',
+        name: 'НЕЗЕР (АД)',
+        icon: '🔥',
+        bgClass: 'world-nether',
+        frameClass: 'theme-nether',
+        symbols: [
+          { id: 'nether_quartz', baseWeight: 38, pays: { 3: 1.5, 4: 3, 5: 5 } },
+          { id: 'nether_gold', baseWeight: 25, pays: { 3: 2, 4: 5, 5: 10 } },
+          { id: 'magma_cube', baseWeight: 16, pays: { 3: 3, 4: 8, 5: 20 } },
+          { id: 'wither_skull', baseWeight: 9, pays: { 3: 5, 4: 15, 5: 50 } },
+          { id: 'debris', baseWeight: 4, pays: { 3: 10, 4: 30, 5: 100 } },
+          { id: 'wild_blaze', baseWeight: 4, isWild: true },
+          { id: 'scatter', baseWeight: 3, isScatter: true },
+          { id: 'egg', baseWeight: 2.5, isEgg: true }
+        ]
+      },
+      {
+        id: 'village',
+        name: 'ДЕРЕВНЯ',
+        icon: '🌾',
+        bgClass: 'world-village',
+        frameClass: 'theme-village',
+        symbols: [
+          { id: 'wheat', baseWeight: 38, pays: { 3: 1.5, 4: 3, 5: 5 } },
+          { id: 'bread', baseWeight: 25, pays: { 3: 2, 4: 5, 5: 10 } },
+          { id: 'emerald', baseWeight: 16, pays: { 3: 3, 4: 8, 5: 20 } },
+          { id: 'villager', baseWeight: 9, pays: { 3: 5, 4: 15, 5: 50 } },
+          { id: 'golem', baseWeight: 4, pays: { 3: 10, 4: 30, 5: 100 } },
+          { id: 'wild_bell', baseWeight: 4, isWild: true },
+          { id: 'scatter', baseWeight: 3, isScatter: true },
+          { id: 'egg', baseWeight: 2.5, isEgg: true }
+        ]
+      },
+      {
+        id: 'ocean',
+        name: 'МОНУМЕНТ',
+        icon: '🔱',
+        bgClass: 'world-ocean',
+        frameClass: 'theme-ocean',
+        symbols: [
+          { id: 'prismarine', baseWeight: 38, pays: { 3: 1.5, 4: 3, 5: 5 } },
+          { id: 'sponge', baseWeight: 25, pays: { 3: 2, 4: 5, 5: 10 } },
+          { id: 'lantern', baseWeight: 16, pays: { 3: 3, 4: 8, 5: 20 } },
+          { id: 'trident', baseWeight: 9, pays: { 3: 5, 4: 15, 5: 50 } },
+          { id: 'guardian', baseWeight: 4, pays: { 3: 10, 4: 30, 5: 100 } },
+          { id: 'wild_heart', baseWeight: 4, isWild: true },
+          { id: 'scatter', baseWeight: 3, isScatter: true },
+          { id: 'egg', baseWeight: 2.5, isEgg: true }
+        ]
+      }
+    ];
+
+    let currentBiomeIndex = 0;
+
+    const ALL_PAYLINES = [
+      [1, 1, 1, 1, 1], [0, 0, 0, 0, 0], [2, 2, 2, 2, 2],
+      [0, 1, 2, 1, 0], [2, 1, 0, 1, 2], [0, 0, 1, 2, 2],
+      [2, 2, 1, 0, 0], [1, 0, 0, 0, 1], [1, 2, 2, 2, 1],
+      [0, 1, 0, 1, 0], [2, 1, 2, 1, 2], [1, 0, 1, 0, 1],
+      [1, 2, 1, 2, 1], [0, 1, 1, 1, 0], [2, 1, 1, 1, 2]
+    ];
+
+    const LINE_BETS = [1, 2, 3, 5, 10, 20, 50];
+    let lineBetIndex = 0;
+    let selectedLines = 15;
+    let balance = 1000;
+    let isRunning = false;
+
+    // Режим Фриспинов и Авто-спин
+    let freeSpinsRemaining = 0;
+    let awardedFreeSpins = 10;
+    let bonusSessionWin = 0;
+    let comboMultiplier = 1;
+    let retriggerCountThisSession = 0;
+    let isFreeSpinPaused = false; // Пауза авто-серии
+
+    let isPickaxeActive = false;
+    let activeBoosterMultiplier = 1;
+    let boosterSpinsRemaining = 0;
+
+    let skipRequested = false;
+    let activeSleepResolver = null;
+    let dragonBonusWon = 0;
+
+    const COLS = 5;
+    const ROWS = 3;
+    let grid = Array.from({ length: COLS }, () => Array(ROWS).fill(null));
+
+    function getCellSize() {
+      const colEl = document.getElementById('col-0');
+      return (colEl && colEl.clientWidth > 0) ? colEl.clientWidth : 54;
+    }
+
+    function getBaseBet() {
+      return LINE_BETS[lineBetIndex] * selectedLines;
+    }
+
+    function getTotalBet() {
+      const base = getBaseBet();
+      return isPickaxeActive ? Math.ceil(base * 1.25) : base;
+    }
+
+    function getCurrentSymbols() {
+      return BIOMES[currentBiomeIndex].symbols;
+    }
+
+    function getRandomSymbol(inFreeSpin = false) {
+      const symbols = getCurrentSymbols();
+      const weightedList = symbols.map(s => {
+        let weight = s.baseWeight;
+        if (inFreeSpin) {
+          if (s.isScatter) weight = 1.2;
+          if (s.isEgg) weight = 1.0;
+        } else if (isPickaxeActive) {
+          if (s.isWild || s.isScatter) weight = Math.round(weight * 2.2);
+          if (s.isEgg) weight = Math.round(weight * 1.8);
         }
-      }
-
-      function enterBetting() {
-        clearTimersAndLoops();
-        state = FSM.BETTING;
-        roundId = 'RND-' + Math.floor(100000 + Math.random() * 900000);
-        currentMultiplier = 1.00;
-
-        playerHasBet = false;
-        playerBetAmount = 0;
-        playerHasCashedOut = false;
-
-        pathHistory.length = 0;
-        pathHistory.push({ x: 30, y: dom.canvas.height - 30 });
-
-        dom.roundId.innerText = `ROUND: #${roundId}`;
-        dom.statePill.innerText = 'STATUS: BETTING';
-        dom.statePill.style.color = 'var(--neon-green)';
-
-        dom.multiplier.innerText = '1.00x';
-        dom.multiplier.className = 'hud-multiplier';
-
-        dom.inputBet.disabled = false;
-        dom.inputAutoCash.disabled = false;
-        dom.chips.forEach(c => c.disabled = false);
-
-        dom.btnAction.disabled = false;
-        dom.btnAction.className = 'action-button btn-state-bet';
-        dom.btnAction.innerText = 'СТАВКА';
-
-        renderCanvasFrame(0, 1.00, false);
-
-        let countdownSec = 5.0;
-        dom.status.innerText = `СТАРТ ЧЕРЕЗ 5.0с`;
-
-        timerId = setInterval(() => {
-          countdownSec -= 0.1;
-          if (countdownSec <= 0.05) {
-            clearInterval(timerId);
-            timerId = null;
-            enterFlying();
-          } else {
-            dom.status.innerText = `СТАРТ ЧЕРЕЗ ${countdownSec.toFixed(1)}с`;
-          }
-        }, 100);
-      }
-
-      function enterFlying() {
-        clearTimersAndLoops();
-        state = FSM.FLYING;
-
-        dom.statePill.innerText = 'STATUS: FLYING';
-        dom.statePill.style.color = 'var(--neon-cyan)';
-        dom.status.innerText = 'РАКЕТА ЛЕТИТ...';
-
-        dom.inputBet.disabled = true;
-        dom.inputAutoCash.disabled = true;
-        dom.chips.forEach(c => c.disabled = true);
-
-        const rand = Math.random();
-        if (rand < 0.06) {
-          crashTarget = 1.00;
-        } else {
-          crashTarget = parseFloat((0.94 / (1 - rand)).toFixed(2));
-        }
-
-        if (playerHasBet) {
-          dom.btnAction.disabled = false;
-          dom.btnAction.className = 'action-button btn-state-cashout';
-          dom.btnAction.innerText = `ЗАБРАТЬ ${(playerBetAmount * 1.00).toFixed(0)} ED`;
-        } else {
-          dom.btnAction.disabled = true;
-          dom.btnAction.className = 'action-button btn-state-disabled';
-          dom.btnAction.innerText = 'РАУНД ИДЁТ...';
-        }
-
-        flightStartTime = performance.now();
-
-        function frame(now) {
-          if (state !== FSM.FLYING) return;
-
-          try {
-            const elapsed = Math.max(0, (now - flightStartTime) / 1000);
-            const nextMult = parseFloat(Math.pow(Math.E, 0.08 * elapsed).toFixed(2));
-
-            if (!Number.isFinite(nextMult) || Number.isNaN(nextMult)) {
-              enterCrashed(currentMultiplier);
-              return;
-            }
-
-            currentMultiplier = nextMult;
-
-            const autoCashLimit = parseFloat(dom.inputAutoCash.value);
-            if (
-              playerHasBet &&
-              !playerHasCashedOut &&
-              Number.isFinite(autoCashLimit) &&
-              autoCashLimit >= 1.01 &&
-              currentMultiplier >= autoCashLimit
-            ) {
-              cashout();
-            }
-
-            if (playerHasBet && !playerHasCashedOut) {
-              const liveWin = Math.floor(playerBetAmount * currentMultiplier);
-              dom.btnAction.innerText = `ЗАБРАТЬ ${liveWin} ED`;
-            }
-
-            if (currentMultiplier >= crashTarget) {
-              currentMultiplier = crashTarget;
-              enterCrashed(crashTarget);
-              return;
-            }
-
-            dom.multiplier.innerText = `${currentMultiplier.toFixed(2)}x`;
-            renderCanvasFrame(elapsed, currentMultiplier, true);
-
-            rafId = requestAnimationFrame(frame);
-          } catch (err) {
-            enterCrashed(currentMultiplier);
-          }
-        }
-
-        rafId = requestAnimationFrame(frame);
-      }
-
-      function enterCrashed(finalMult) {
-        clearTimersAndLoops();
-        state = FSM.CRASHED;
-
-        const safeMult = (Number.isFinite(finalMult) && finalMult >= 1.00) ? finalMult : 1.00;
-
-        dom.statePill.innerText = 'STATUS: CRASHED';
-        dom.statePill.style.color = 'var(--neon-pink)';
-
-        dom.multiplier.innerText = `КРАШ ${safeMult.toFixed(2)}x`;
-        dom.multiplier.className = 'hud-multiplier crashed';
-
-        dom.status.innerText = 'РАКЕТА ВЗОРВАЛАСЬ!';
-
-        dom.btnAction.disabled = true;
-        dom.btnAction.className = 'action-button btn-state-crashed';
-        dom.btnAction.innerText = 'ВЗРЫВ!';
-
-        haptic('crash');
-        pushHistory(safeMult);
-
-        enterCooldown();
-      }
-
-      function enterCooldown() {
-        state = FSM.COOLDOWN;
-
-        dom.statePill.innerText = 'STATUS: COOLDOWN';
-        dom.statePill.style.color = 'var(--neon-yellow)';
-
-        let cooldownSeconds = 5.0;
-        dom.btnAction.innerText = `СЛЕД. РАУНД ЧЕРЕЗ 5.0с`;
-
-        timerId = setInterval(() => {
-          cooldownSeconds -= 0.1;
-          if (cooldownSeconds <= 0.05) {
-            clearInterval(timerId);
-            timerId = null;
-            enterBetting();
-          } else {
-            dom.btnAction.innerText = `СЛЕД. РАУНД ЧЕРЕЗ ${cooldownSeconds.toFixed(1)}с`;
-          }
-        }, 100);
-      }
-
-      function cashout() {
-        if (playerHasCashedOut || !playerHasBet || state !== FSM.FLYING) return;
-
-        playerHasCashedOut = true;
-        const profit = Math.floor(playerBetAmount * currentMultiplier);
-
-        userBalance += profit;
-        syncBalanceUI();
-        haptic('cashout');
-
-        dom.btnAction.disabled = true;
-        dom.btnAction.className = 'action-button btn-state-taken';
-        dom.btnAction.innerText = `ВЫИГРЫШ ЗАБРАН (+${profit})`;
-        dom.status.innerText = 'ОЖИДАНИЕ КОНЦА РАУНДА';
-      }
-
-      function handleActionClick() {
-        if (state === FSM.BETTING) {
-          if (playerHasBet) return;
-
-          const rawBet = parseFloat(dom.inputBet.value);
-          if (!Number.isFinite(rawBet) || rawBet <= 0) return;
-
-          const finalBet = Math.floor(rawBet);
-          if (userBalance < finalBet) {
-            alert('Недостаточно средств!');
-            return;
-          }
-
-          userBalance -= finalBet;
-          syncBalanceUI();
-
-          playerHasBet = true;
-          playerBetAmount = finalBet;
-          playerHasCashedOut = false;
-
-          haptic('click');
-
-          dom.inputBet.disabled = true;
-          dom.chips.forEach(c => c.disabled = true);
-
-          dom.btnAction.disabled = true;
-          dom.btnAction.className = 'action-button btn-state-disabled';
-          dom.btnAction.innerText = 'СТАВКА ПРИНЯТА';
-        } else if (state === FSM.FLYING) {
-          if (playerHasBet && !playerHasCashedOut) {
-            cashout();
-          }
-        }
-      }
-
-      dom.btnAction.addEventListener('click', handleActionClick);
-
-      dom.chips.forEach(chip => {
-        chip.addEventListener('click', () => {
-          if (state !== FSM.BETTING || playerHasBet) return;
-          const val = chip.getAttribute('data-val');
-          dom.inputBet.value = val;
-          haptic('click');
-        });
+        return { ...s, weight };
       });
 
-      function pushHistory(mult) {
-        const item = document.createElement('span');
-        let colorClass = 'low';
-        if (mult >= 2.0) colorClass = 'high';
-        else if (mult >= 1.5) colorClass = 'mid';
+      const totalWeight = weightedList.reduce((acc, s) => acc + s.weight, 0);
+      let rand = Math.random() * totalWeight;
+      for (const sym of weightedList) {
+        if (rand < sym.weight) return sym;
+        rand -= sym.weight;
+      }
+      return weightedList[0];
+    }
 
-        item.className = `history-item ${colorClass}`;
-        item.innerText = `${mult.toFixed(2)}x`;
+    function createBlockDOM(sym) {
+      const el = document.createElement('div');
+      el.className = 'block-cell';
+      el.innerHTML = ALL_SVGS[sym.id] || '';
+      return el;
+    }
 
-        dom.history.insertBefore(item, dom.history.firstChild);
-        if (dom.history.children.length > 8) {
-          dom.history.removeChild(dom.history.lastChild);
+    function initField() {
+      const cellSize = getCellSize();
+      for (let c = 0; c < COLS; c++) {
+        const colEl = document.getElementById(`col-${c}`);
+        if (!colEl) continue;
+        colEl.innerHTML = '';
+        for (let r = 0; r < ROWS; r++) {
+          const sym = getRandomSymbol(false);
+          const el = createBlockDOM(sym);
+          el.style.top = `${r * cellSize}px`;
+          colEl.appendChild(el);
+          grid[c][r] = { sym, el };
         }
       }
+    }
 
-      function renderCanvasFrame(elapsedSec, mult, isFlying) {
-        const w = dom.canvas.width;
-        const h = dom.canvas.height;
+    /* ====================================================
+       4. ПЕРЕКЛЮЧЕНИЕ МИРОВ (КАРУСЕЛЬ БИОМОВ)
+    ==================================================== */
+    function switchBiome(direction) {
+      if (isRunning || freeSpinsRemaining > 0) return;
 
-        ctx.clearRect(0, 0, w, h);
+      currentBiomeIndex = (currentBiomeIndex + direction + BIOMES.length) % BIOMES.length;
+      const b = BIOMES[currentBiomeIndex];
 
-        ctx.strokeStyle = 'rgba(0, 240, 255, 0.06)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for (let x = 0; x < w; x += 36) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
-        for (let y = 0; y < h; y += 36) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
-        ctx.stroke();
+      document.getElementById('biomeIcon').innerText = b.icon;
+      document.getElementById('biomeName').innerText = b.name;
 
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(30, h - 30);
-        ctx.lineTo(w - 10, h - 30);
-        ctx.moveTo(30, h - 30);
-        ctx.lineTo(30, 10);
-        ctx.stroke();
+      // Меняем фон
+      const bg = document.getElementById('worldBg');
+      bg.className = `world-bg ${b.bgClass}`;
 
-        const safeMult = (Number.isFinite(mult) && mult >= 1.00) ? mult : 1.00;
-        const progress = Math.min((safeMult - 1.00) / 3.00, 1.00);
+      // Меняем рамку
+      const frame = document.getElementById('gridFrame');
+      frame.className = `grid-frame ${b.frameClass} ${isPickaxeActive ? 'enchanted-mode' : ''}`;
 
-        const curX = 30 + progress * (w - 70);
-        const curY = (h - 30) - Math.pow(progress, 1.35) * (h - 60);
+      // Прячем облака и деревья в Аду и Океане
+      const hideFlora = (b.id === 'nether' || b.id === 'ocean');
+      document.getElementById('tree1').style.display = hideFlora ? 'none' : 'block';
+      document.getElementById('tree2').style.display = hideFlora ? 'none' : 'block';
+      document.getElementById('cloud1').style.display = (b.id === 'nether' || b.id === 'ocean') ? 'none' : 'block';
+      document.getElementById('cloud2').style.display = (b.id === 'nether' || b.id === 'ocean') ? 'none' : 'block';
 
-        if (Number.isFinite(curX) && Number.isFinite(curY)) {
-          pathHistory.push({ x: curX, y: curY });
-          if (pathHistory.length > 60) pathHistory.shift();
+      triggerHaptic('selection');
+      initField();
+    }
+
+    /* ====================================================
+       5. ТАЙМЕРЫ И ТУРБО-СКИП
+    ==================================================== */
+    function sleep(ms) {
+      if (skipRequested) return Promise.resolve();
+      return new Promise(resolve => {
+        activeSleepResolver = resolve;
+        setTimeout(() => {
+          activeSleepResolver = null;
+          resolve();
+        }, ms);
+      });
+    }
+
+    function triggerSkip() {
+      if (!isRunning) return;
+      skipRequested = true;
+      document.body.classList.add('fast-forward');
+      if (activeSleepResolver) {
+        activeSleepResolver();
+        activeSleepResolver = null;
+      }
+    }
+
+    /* ====================================================
+       6. СПИН И КАСКАДЫ (АВТОМАТИЧЕСКИЙ РЕЖИМ)
+    ==================================================== */
+    async function handleSpinClick() {
+      // Клик во время авто-фриспинов ставит паузу / возобновляет
+      if (freeSpinsRemaining > 0) {
+        if (isRunning) {
+          triggerSkip();
+          return;
         }
+        isFreeSpinPaused = !isFreeSpinPaused;
+        updateFSUI();
+        if (!isFreeSpinPaused) {
+          executeSpinRound();
+        }
+        return;
+      }
 
-        if (pathHistory.length > 1) {
-          ctx.strokeStyle = '#00f0ff';
-          ctx.lineWidth = 3;
-          ctx.shadowColor = '#00f0ff';
-          ctx.shadowBlur = 10;
-          ctx.beginPath();
-          ctx.moveTo(pathHistory[0].x, pathHistory[0].y);
-          for (let i = 1; i < pathHistory.length; i++) {
-            ctx.lineTo(pathHistory[i].x, pathHistory[i].y);
+      if (isRunning) {
+        triggerSkip();
+        return;
+      }
+
+      const totalBet = getTotalBet();
+      if (balance < totalBet) {
+        alert('Недостаточно монет!');
+        return;
+      }
+
+      executeSpinRound();
+    }
+
+    async function executeSpinRound() {
+      const totalBet = getTotalBet();
+      const inFreeSpin = freeSpinsRemaining > 0;
+
+      isRunning = true;
+      skipRequested = false;
+      document.body.classList.remove('fast-forward');
+      toggleControls(false);
+      document.getElementById('winDisplay').innerText = '0';
+      comboMultiplier = 1;
+      updateComboUI();
+
+      if (inFreeSpin) {
+        freeSpinsRemaining--;
+        updateFSUI();
+      } else {
+        balance -= totalBet;
+        updateStats();
+      }
+      triggerHaptic('medium');
+
+      const cellSize = getCellSize();
+
+      // Улетание старых кубиков вниз
+      for (let c = 0; c < COLS; c++) {
+        for (let r = 0; r < ROWS; r++) {
+          if (grid[c][r]?.el) {
+            grid[c][r].el.style.top = `${(r + 3.5) * cellSize}px`;
+            grid[c][r].el.style.opacity = '0';
           }
-          ctx.stroke();
-          ctx.shadowBlur = 0;
         }
+      }
+      await sleep(200);
 
-        drawRocketSprite(curX, curY, isFlying);
+      for (let c = 0; c < COLS; c++) {
+        document.getElementById(`col-${c}`).innerHTML = '';
+        grid[c] = Array(ROWS).fill(null);
       }
 
-      function drawRocketSprite(x, y, withFire) {
-        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+      // Новые блоки сверху
+      for (let c = 0; c < COLS; c++) {
+        const colEl = document.getElementById(`col-${c}`);
+        for (let r = ROWS - 1; r >= 0; r--) {
+          const sym = getRandomSymbol(inFreeSpin);
+          const el = createBlockDOM(sym);
+          el.style.top = `-${(ROWS - r + 1) * cellSize}px`;
+          colEl.appendChild(el);
+          grid[c][r] = { sym, el };
 
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(-Math.PI / 4.2);
+          void el.offsetHeight;
 
-        ctx.fillStyle = '#fcee0a';
-        ctx.beginPath();
-        ctx.moveTo(0, -9);
-        ctx.lineTo(7, 9);
-        ctx.lineTo(-7, 9);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = '#ff003c';
-        ctx.beginPath();
-        ctx.moveTo(-5, 5);
-        ctx.lineTo(-10, 10);
-        ctx.lineTo(-4, 9);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.moveTo(5, 5);
-        ctx.lineTo(10, 10);
-        ctx.lineTo(4, 9);
-        ctx.closePath();
-        ctx.fill();
-
-        if (withFire) {
-          ctx.fillStyle = '#05ffa1';
-          ctx.beginPath();
-          ctx.moveTo(-3, 9);
-          ctx.lineTo(3, 9);
-          ctx.lineTo(0, 9 + Math.random() * 12);
-          ctx.closePath();
-          ctx.fill();
+          setTimeout(() => {
+            el.style.top = `${r * cellSize}px`;
+            if (!skipRequested) triggerHaptic('light');
+          }, skipRequested ? 0 : (c * 80 + (ROWS - 1 - r) * 70));
         }
-
-        ctx.restore();
       }
 
-      window.addEventListener('beforeunload', clearTimersAndLoops);
+      await sleep(skipRequested ? 40 : (COLS * 80 + ROWS * 70 + 480));
+      await runCascades(inFreeSpin);
+    }
 
-      syncBalanceUI();
-      enterBetting();
-    })();
+    async function runCascades(wasInFreeSpin) {
+      const lineBet = LINE_BETS[lineBetIndex];
+      let spinWin = 0;
+      let scatterProcessed = false;
+      let eggProcessed = false;
+
+      while (true) {
+        const activePaylines = ALL_PAYLINES.slice(0, selectedLines);
+        let winningLines = [];
+        let winningCoords = [];
+
+        activePaylines.forEach((line) => {
+          let firstSym = null;
+          let matchCount = 0;
+          let coords = [];
+
+          for (let c = 0; c < COLS; c++) {
+            const r = line[c];
+            const item = grid[c][r];
+            if (!item || !item.sym || item.sym.isScatter || item.sym.isEgg) break;
+
+            const currentSym = item.sym;
+
+            if (!firstSym) {
+              firstSym = currentSym;
+              matchCount++;
+              coords.push({ c, r });
+            } else if (currentSym.id === firstSym.id || currentSym.isWild || firstSym.isWild) {
+              if (firstSym.isWild && !currentSym.isWild) firstSym = currentSym;
+              matchCount++;
+              coords.push({ c, r });
+            } else {
+              break;
+            }
+          }
+
+          if (matchCount >= 3 && firstSym && !firstSym.isScatter && !firstSym.isEgg) {
+            const mult = firstSym.pays ? (firstSym.pays[matchCount] || 0) : 10;
+            if (mult > 0) {
+              const finalMultiplier = comboMultiplier * activeBoosterMultiplier;
+              const lineWin = lineBet * mult * finalMultiplier;
+              winningLines.push({ coords, lineWin });
+              coords.forEach(coord => {
+                if (!winningCoords.some(w => w.c === coord.c && w.r === coord.r)) {
+                  winningCoords.push(coord);
+                }
+              });
+            }
+          }
+        });
+
+        // Бонуска Логово Дракона
+        if (!eggProcessed) {
+          let eggCount = 0;
+          for (let c = 0; c < COLS; c++) {
+            for (let r = 0; r < ROWS; r++) {
+              if (grid[c][r]?.sym?.isEgg) eggCount++;
+            }
+          }
+          if (eggCount >= 3) {
+            eggProcessed = true;
+            triggerHaptic('bonus');
+            setTimeout(() => startDragonLairGame(), 500);
+          }
+        }
+
+        // Проверка Scatter (Око Края)
+        if (!scatterProcessed) {
+          let scatterCount = 0;
+          for (let c = 0; c < COLS; c++) {
+            for (let r = 0; r < ROWS; r++) {
+              if (grid[c][r]?.sym?.isScatter) scatterCount++;
+            }
+          }
+
+          if (wasInFreeSpin) {
+            if (retriggerCountThisSession < 1) {
+              if (scatterCount === 2) {
+                scatterProcessed = true;
+                retriggerCountThisSession++;
+                freeSpinsRemaining += 3;
+                updateFSUI();
+                showRetriggerBanner('+3 СПИНА!');
+                triggerHaptic('bonus');
+              } else if (scatterCount >= 3) {
+                scatterProcessed = true;
+                retriggerCountThisSession++;
+                freeSpinsRemaining += 10;
+                updateFSUI();
+                showRetriggerBanner('+10 СПИНОВ!');
+                triggerHaptic('bonus');
+              }
+            }
+          } else {
+            if (scatterCount >= 3) {
+              scatterProcessed = true;
+              if (scatterCount === 3) awardedFreeSpins = 10;
+              else if (scatterCount === 4) awardedFreeSpins = 15;
+              else awardedFreeSpins = 25;
+
+              document.getElementById('fsScatterCountText').innerText = scatterCount;
+              document.getElementById('fsAwardedText').innerText = awardedFreeSpins;
+
+              triggerHaptic('bonus');
+              setTimeout(() => document.getElementById('fsModal').classList.add('active'), 450);
+            }
+          }
+        }
+
+        if (winningCoords.length === 0) break;
+
+        // Подсветка победных кубиков
+        triggerHaptic('win');
+        winningCoords.forEach(({ c, r }) => {
+          if (grid[c][r]?.el) grid[c][r].el.classList.add('win-highlight');
+        });
+
+        winningLines.forEach(line => {
+          spinWin += line.lineWin;
+          const centerCoord = line.coords[Math.floor(line.coords.length / 2)];
+          const targetEl = grid[centerCoord.c][centerCoord.r]?.el;
+          if (targetEl) spawnFloatingText(targetEl, `+${Math.round(line.lineWin)}`);
+        });
+
+        document.getElementById('winDisplay').innerText = Math.round(spinWin);
+        if (wasInFreeSpin) {
+          bonusSessionWin += Math.round(spinWin);
+          document.getElementById('bonusTotalDisplay').innerText = bonusSessionWin;
+        }
+
+        await sleep(skipRequested ? 80 : 600);
+
+        // Взрыв кубиков
+        winningCoords.forEach(({ c, r }) => {
+          const item = grid[c][r];
+          if (item?.el) {
+            item.el.classList.remove('win-highlight');
+            item.el.classList.add('breaking');
+            spawnParticles(item.el);
+          }
+        });
+        await sleep(skipRequested ? 40 : 220);
+
+        winningCoords.forEach(({ c, r }) => {
+          if (grid[c][r]?.el) {
+            grid[c][r].el.remove();
+            grid[c][r] = null;
+          }
+        });
+
+        // Гравитация и падение
+        const cellSize = getCellSize();
+        for (let c = 0; c < COLS; c++) {
+          const colEl = document.getElementById(`col-${c}`);
+          const survivingBlocks = [];
+          for (let r = 0; r < ROWS; r++) {
+            if (grid[c][r] !== null) survivingBlocks.push(grid[c][r]);
+          }
+
+          const missingCount = ROWS - survivingBlocks.length;
+          const newColumnBlocks = [];
+
+          for (let i = 0; i < missingCount; i++) {
+            const sym = getRandomSymbol(wasInFreeSpin);
+            const el = createBlockDOM(sym);
+            el.style.top = `-${(missingCount - i + 0.5) * cellSize}px`;
+            colEl.appendChild(el);
+            newColumnBlocks.push({ sym, el });
+          }
+
+          const finalCol = [...newColumnBlocks, ...survivingBlocks];
+          for (let r = 0; r < ROWS; r++) {
+            grid[c][r] = finalCol[r];
+            const block = grid[c][r];
+            void block.el.offsetHeight;
+            setTimeout(() => {
+              block.el.style.top = `${r * cellSize}px`;
+            }, skipRequested ? 0 : 35);
+          }
+        }
+
+        comboMultiplier++;
+        updateComboUI(true);
+        await sleep(skipRequested ? 50 : 480);
+      }
+
+      if (boosterSpinsRemaining > 0) {
+        boosterSpinsRemaining--;
+        if (boosterSpinsRemaining === 0) {
+          activeBoosterMultiplier = 1;
+          document.getElementById('boosterIndicator').innerText = 'СЕТКА 5х3';
+        }
+      }
+
+      if (!wasInFreeSpin) {
+        balance += Math.round(spinWin);
+        updateStats();
+      }
+
+      skipRequested = false;
+      document.body.classList.remove('fast-forward');
+      isRunning = false;
+
+      // Окончание или Авто-продолжение фриспинов
+      if (wasInFreeSpin) {
+        if (freeSpinsRemaining === 0) {
+          await sleep(500);
+          document.getElementById('fsFinalWinText').innerText = bonusSessionWin;
+          document.getElementById('fsEndModal').classList.add('active');
+          triggerHaptic('win');
+        } else {
+          // Автоматический следующий спин через 1.2 сек, если не на паузе
+          setTimeout(() => {
+            if (!isFreeSpinPaused && freeSpinsRemaining > 0 && !isRunning) {
+              executeSpinRound();
+            }
+          }, 1200);
+        }
+      } else {
+        toggleControls(true);
+      }
+    }
+
+    /* ====================================================
+       7. ЛОГОВО ДРАКОНА & ПЕРЕТЕКАНИЕ МОНЕТ
+    ==================================================== */
+    function startDragonLairGame() {
+      const modal = document.getElementById('dragonModal');
+      document.getElementById('dragonWinBox').style.display = 'none';
+      document.getElementById('btnCollectDragon').style.display = 'none';
+
+      const chests = document.querySelectorAll('.dragon-chest-pick');
+      chests.forEach((c, idx) => {
+        c.classList.remove('opened', 'disabled-chest');
+        document.getElementById(`dragonChestVal${idx}`).innerText = '???';
+      });
+
+      modal.classList.add('active');
+    }
+
+    function handleDragonChestPick(selectedIndex) {
+      const totalBet = getTotalBet();
+      const baseMult = Math.floor(Math.random() * 61) + 15;
+      dragonBonusWon = Math.round(totalBet * baseMult);
+
+      const altMult1 = Math.floor(Math.random() * 61) + 15;
+      const altMult2 = Math.floor(Math.random() * 61) + 15;
+      const values = [];
+      let altIdx = 0;
+      for (let i = 0; i < 3; i++) {
+        if (i === selectedIndex) values.push({ mult: baseMult });
+        else {
+          values.push({ mult: altIdx === 0 ? altMult1 : altMult2 });
+          altIdx++;
+        }
+      }
+
+      const chests = document.querySelectorAll('.dragon-chest-pick');
+      chests.forEach((c, idx) => {
+        const valEl = document.getElementById(`dragonChestVal${idx}`);
+        valEl.innerText = `x${values[idx].mult}`;
+        if (idx === selectedIndex) {
+          c.classList.add('opened');
+          triggerHaptic('bonus');
+        } else {
+          c.classList.add('disabled-chest');
+        }
+      });
+
+      document.getElementById('dragonWinAmount').innerText = dragonBonusWon;
+      document.getElementById('dragonWinBox').style.display = 'block';
+      document.getElementById('btnCollectDragon').style.display = 'block';
+    }
+
+    async function animateCoinsTransfer(amount, startElem, onFinish) {
+      const balanceCard = document.getElementById('balanceDisplay');
+      const startRect = startElem.getBoundingClientRect();
+      const endRect = balanceCard.getBoundingClientRect();
+
+      const batches = 12;
+      const batchAmount = Math.max(1, Math.floor(amount / batches));
+      let remaining = amount;
+
+      for (let i = 0; i < batches; i++) {
+        const coin = document.createElement('div');
+        coin.className = 'flying-coin';
+        coin.innerHTML = ALL_SVGS.coin;
+        coin.style.left = `${startRect.left + startRect.width / 2 - 9}px`;
+        coin.style.top = `${startRect.top}px`;
+        document.body.appendChild(coin);
+
+        void coin.offsetHeight;
+
+        const deltaX = (endRect.left + endRect.width / 2) - (startRect.left + startRect.width / 2);
+        const deltaY = (endRect.top + endRect.height / 2) - startRect.top;
+
+        coin.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(1.2)`;
+
+        const isLast = (i === batches - 1);
+        setTimeout(() => {
+          coin.style.opacity = '0';
+          setTimeout(() => coin.remove(), 100);
+
+          const added = isLast ? remaining : batchAmount;
+          remaining = Math.max(0, remaining - added);
+          balance += added;
+
+          balanceCard.innerText = balance;
+          balanceCard.classList.remove('balance-bump');
+          void balanceCard.offsetWidth;
+          balanceCard.classList.add('balance-bump');
+
+          triggerHaptic('light');
+
+          if (isLast && onFinish) onFinish();
+        }, 450);
+
+        await sleep(45);
+      }
+    }
+
+    function showRetriggerBanner(text) {
+      const banner = document.getElementById('retriggerBanner');
+      banner.innerText = text;
+      banner.classList.add('show');
+      setTimeout(() => banner.classList.remove('show'), 1600);
+    }
+
+    /* ====================================================
+       8. СУНДУКИ С ЛУТОМ
+    ==================================================== */
+    const FREE_CHEST_KEY = 'mc_free_chest_timestamp';
+
+    function checkFreeChestAvailable() {
+      const last = localStorage.getItem(FREE_CHEST_KEY);
+      if (!last) return true;
+      return (Date.now() - parseInt(last, 10)) >= 24 * 60 * 60 * 1000;
+    }
+
+    function updateChestButtonUI() {
+      const isFree = checkFreeChestAvailable();
+      document.getElementById('chestDot').style.display = isFree ? 'block' : 'none';
+      const timerEl = document.getElementById('woodChestTimerText');
+
+      if (isFree) {
+        timerEl.innerText = 'ГОТОВ! Бесплатное открытие!';
+        document.getElementById('btnOpenWoodChest').innerText = 'БЕСПЛАТНО';
+      } else {
+        const last = parseInt(localStorage.getItem(FREE_CHEST_KEY), 10);
+        const remainingMs = Math.max(0, 24 * 60 * 60 * 1000 - (Date.now() - last));
+        const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+        const mins = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+        timerEl.innerText = `КД: ${hours}ч ${mins}м (или 50 монет)`;
+        document.getElementById('btnOpenWoodChest').innerText = '50 🪙';
+      }
+    }
+
+    function openLootReward(emoji, title, subtitle) {
+      document.getElementById('rewardEmoji').innerText = emoji;
+      document.getElementById('rewardTitle').innerText = title;
+      document.getElementById('rewardSubtitle').innerText = subtitle;
+      document.getElementById('chestsModal').classList.remove('active');
+      document.getElementById('rewardModal').classList.add('active');
+      triggerHaptic('win');
+    }
+
+    function handleOpenWoodChest() {
+      const isFree = checkFreeChestAvailable();
+      if (!isFree) {
+        if (balance < 50) {
+          alert('Недостаточно монет (нужно 50)!');
+          return;
+        }
+        balance -= 50;
+      } else {
+        localStorage.setItem(FREE_CHEST_KEY, Date.now().toString());
+      }
+      updateChestButtonUI();
+
+      const rand = Math.random();
+      if (rand < 0.55) {
+        const coins = Math.floor(Math.random() * 40) + 40;
+        balance += coins;
+        openLootReward('🪙', `+${coins} МОНЕТ!`, 'Небольшой мешочек с рудой!');
+      } else if (rand < 0.85) {
+        activeBoosterMultiplier = 2;
+        boosterSpinsRemaining = 3;
+        document.getElementById('boosterIndicator').innerText = 'БУСТЕР x2 (3 сп.)';
+        openLootReward('⚡', 'БУСТЕР x2 НА 3 СПИНА!', 'Все победы будут умножены вдвое!');
+      } else {
+        startFreeSpinsSession(5);
+        openLootReward('🎁', '+5 ФРИСПИНОВ!', 'Сундук активировал бонусный портал!');
+      }
+      updateStats();
+    }
+
+    function handleOpenEnderChest() {
+      if (balance < 250) {
+        alert('Нужно 250 монет или Telegram Stars!');
+        return;
+      }
+      balance -= 250;
+
+      const rand = Math.random();
+      if (rand < 0.40) {
+        const coins = Math.floor(Math.random() * 150) + 200;
+        balance += coins;
+        openLootReward('💰', `+${coins} МОНЕТ!`, 'Гора самородков из Края!');
+      } else if (rand < 0.75) {
+        startFreeSpinsSession(10);
+        openLootReward('🌀', '+10 ФРИСПИНОВ!', 'Эндер-сундук призвал 10 фриспинов!');
+      } else {
+        activeBoosterMultiplier = 3;
+        boosterSpinsRemaining = 5;
+        document.getElementById('boosterIndicator').innerText = 'СУПЕР-БУСТ x3 (5 сп.)';
+        openLootReward('🌟', 'СУПЕР-БУСТЕР x3 НА 5 СПИНОВ!', 'Множитель вырос до небес!');
+      }
+      updateStats();
+    }
+
+    /* ====================================================
+       9. ВСПОМОГАТЕЛЬНЫЕ UI ФУНКЦИИ
+    ==================================================== */
+    function startFreeSpinsSession(spinsCount) {
+      freeSpinsRemaining = spinsCount;
+      bonusSessionWin = 0;
+      retriggerCountThisSession = 0;
+      isFreeSpinPaused = false;
+      document.getElementById('bonusTotalDisplay').innerText = '0';
+      document.getElementById('cardLines').style.display = 'none';
+      document.getElementById('cardBonusWin').style.display = 'block';
+      updateFSUI();
+      // Авто-запуск первого бонусного вращения
+      setTimeout(() => {
+        if (!isRunning && freeSpinsRemaining > 0) executeSpinRound();
+      }, 500);
+    }
+
+    function spawnFloatingText(targetEl, text) {
+      const rect = targetEl.getBoundingClientRect();
+      const floater = document.createElement('div');
+      floater.className = 'floating-win';
+      floater.innerText = text;
+      floater.style.left = `${rect.left + rect.width / 2}px`;
+      floater.style.top = `${rect.top + 6}px`;
+      document.body.appendChild(floater);
+      setTimeout(() => floater.remove(), 800);
+    }
+
+    function spawnParticles(targetEl) {
+      const rect = targetEl.getBoundingClientRect();
+      const colors = ['#888', '#fff', '#ff9800', '#ffd700'];
+      for (let i = 0; i < 7; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.floor(Math.random() * 4) + 4;
+        p.style.width = `${size}px`;
+        p.style.height = `${size}px`;
+        p.style.background = colors[Math.floor(Math.random() * colors.length)];
+        p.style.left = `${rect.left + rect.width / 2}px`;
+        p.style.top = `${rect.top + rect.height / 2}px`;
+        document.body.appendChild(p);
+
+        const angle = Math.random() * Math.PI * 2;
+        const dist = Math.random() * 35 + 15;
+        const destX = Math.cos(angle) * dist;
+        const destY = Math.sin(angle) * dist + 20;
+
+        p.animate([
+          { transform: 'translate(0,0) scale(1)', opacity: 1 },
+          { transform: `translate(${destX}px, ${destY}px) scale(0)`, opacity: 0 }
+        ], { duration: 300, easing: 'ease-out' }).onfinish = () => p.remove();
+      }
+    }
+
+    function updateComboUI(boost = false) {
+      const badge = document.getElementById('comboBadge');
+      badge.innerText = `COMBO x${comboMultiplier}`;
+      if (boost) {
+        badge.classList.add('boost');
+        setTimeout(() => badge.classList.remove('boost'), 180);
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('balanceDisplay').innerText = balance;
+      document.getElementById('lineBetDisplay').innerText = LINE_BETS[lineBetIndex];
+      document.getElementById('linesCountDisplay').innerText = selectedLines;
+      document.getElementById('statLinesVal').innerText = selectedLines;
+      document.getElementById('totalBetDisplay').innerText = getTotalBet();
+    }
+
+    function updateFSUI() {
+      const btn = document.getElementById('btnSpin');
+      const pickaxeBar = document.getElementById('pickaxeToggle');
+      const buyBonusBtn = document.getElementById('btnBuyBonus');
+      const btnPrev = document.getElementById('btnPrevBiome');
+      const btnNext = document.getElementById('btnNextBiome');
+
+      if (freeSpinsRemaining > 0) {
+        if (isFreeSpinPaused) {
+          btn.innerText = `ПРОДОЛЖИТЬ (${freeSpinsRemaining})`;
+          btn.className = 'btn-spin btn-fs-resume';
+        } else {
+          btn.innerText = `СТОП (${freeSpinsRemaining})`;
+          btn.className = 'btn-spin btn-fs-stop';
+        }
+        pickaxeBar.classList.add('locked-bonus');
+        buyBonusBtn.disabled = true;
+        btnPrev.disabled = true;
+        btnNext.disabled = true;
+      } else {
+        btn.innerText = 'КРУТИТЬ';
+        btn.className = 'btn-spin';
+        pickaxeBar.classList.remove('locked-bonus');
+        buyBonusBtn.disabled = false;
+        btnPrev.disabled = false;
+        btnNext.disabled = false;
+      }
+    }
+
+    function toggleControls(enable) {
+      if (freeSpinsRemaining > 0) return;
+      document.getElementById('btnSpin').disabled = !enable;
+      document.getElementById('btnLineBetUp').disabled = !enable;
+      document.getElementById('btnLineBetDown').disabled = !enable;
+      document.getElementById('btnLinesUp').disabled = !enable;
+      document.getElementById('btnLinesDown').disabled = !enable;
+      document.getElementById('btnBuyBonus').disabled = !enable;
+      document.getElementById('btnPrevBiome').disabled = !enable;
+      document.getElementById('btnNextBiome').disabled = !enable;
+    }
+
+    function togglePickaxe() {
+      if (isRunning || freeSpinsRemaining > 0) return;
+      isPickaxeActive = !isPickaxeActive;
+      const bar = document.getElementById('pickaxeToggle');
+      const status = document.getElementById('pickaxeStatus');
+      const frame = document.getElementById('gridFrame');
+
+      if (isPickaxeActive) {
+        bar.classList.add('active');
+        frame.classList.add('enchanted-mode');
+        status.innerText = 'ВКЛ';
+        triggerHaptic('medium');
+      } else {
+        bar.classList.remove('active');
+        frame.classList.remove('enchanted-mode');
+        status.innerText = 'ВЫКЛ';
+        triggerHaptic('light');
+      }
+      updateStats();
+    }
+
+    function fillStaticIcons() {
+      document.getElementById('pickaxeIcon').innerHTML = ALL_SVGS.pickaxe;
+      document.getElementById('woodChestIcon').innerHTML = ALL_SVGS.woodChest;
+      document.getElementById('enderChestIcon').innerHTML = ALL_SVGS.enderChest;
+      document.getElementById('icon-scatter').innerHTML = ALL_SVGS.scatter;
+      document.getElementById('icon-egg').innerHTML = ALL_SVGS.egg;
+
+      document.getElementById('dragonChestSvg0').innerHTML = ALL_SVGS.dragonChest;
+      document.getElementById('dragonChestSvg1').innerHTML = ALL_SVGS.dragonChest;
+      document.getElementById('dragonChestSvg2').innerHTML = ALL_SVGS.dragonChest;
+    }
+
+    /* ====================================================
+       10. ЗАПУСК И СЛУШАТЕЛИ
+    ==================================================== */
+    function startApp() {
+      fillStaticIcons();
+      initField();
+      updateStats();
+      updateChestButtonUI();
+
+      document.getElementById('gridFrame').addEventListener('click', triggerSkip);
+
+      document.getElementById('btnSpin').onclick = handleSpinClick;
+      document.getElementById('pickaxeToggle').onclick = togglePickaxe;
+
+      // Стрелочки биомов
+      document.getElementById('btnPrevBiome').onclick = () => switchBiome(-1);
+      document.getElementById('btnNextBiome').onclick = () => switchBiome(1);
+
+      // Кнопка покупки бонуски за Stars
+      document.getElementById('btnBuyBonus').onclick = () => {
+        if (isRunning || freeSpinsRemaining > 0) return;
+        document.getElementById('buyBonusModal').classList.add('active');
+        triggerHaptic('light');
+      };
+
+      document.getElementById('btnCancelBuyBonus').onclick = () => {
+        document.getElementById('buyBonusModal').classList.remove('active');
+      };
+
+      // Подтверждение покупки
+      document.getElementById('btnConfirmBuyBonus').onclick = () => {
+        document.getElementById('buyBonusModal').classList.remove('active');
+        triggerHaptic('bonus');
+
+        // Вызов Telegram WebApp API
+        if (tg && tg.openInvoice) {
+          try {
+            // tg.openInvoice('INVOICE_URL', (status) => { ... });
+          } catch(e) {}
+        }
+
+        // Мгновенный запуск 10 авто-фриспинов
+        startFreeSpinsSession(10);
+      };
+
+      // Управление ставкой
+      document.getElementById('btnLineBetUp').onclick = () => {
+        if (lineBetIndex < LINE_BETS.length - 1) {
+          lineBetIndex++;
+          updateStats();
+          triggerHaptic('light');
+        }
+      };
+
+      document.getElementById('btnLineBetDown').onclick = () => {
+        if (lineBetIndex > 0) {
+          lineBetIndex--;
+          updateStats();
+          triggerHaptic('light');
+        }
+      };
+
+      // Управление линиями
+      document.getElementById('btnLinesUp').onclick = () => {
+        if (selectedLines < 15) {
+          selectedLines++;
+          updateStats();
+          triggerHaptic('light');
+        }
+      };
+
+      document.getElementById('btnLinesDown').onclick = () => {
+        if (selectedLines > 1) {
+          selectedLines--;
+          updateStats();
+          triggerHaptic('light');
+        }
+      };
+
+      // Модалки
+      document.getElementById('btnOpenHelp').onclick = () => {
+        document.getElementById('paytableModal').classList.add('active');
+        triggerHaptic('light');
+      };
+      document.getElementById('btnCloseHelp').onclick = () => {
+        document.getElementById('paytableModal').classList.remove('active');
+      };
+
+      document.getElementById('btnOpenChests').onclick = () => {
+        updateChestButtonUI();
+        document.getElementById('chestsModal').classList.add('active');
+        triggerHaptic('light');
+      };
+      document.getElementById('btnCloseChests').onclick = () => {
+        document.getElementById('chestsModal').classList.remove('active');
+      };
+
+      document.getElementById('btnOpenWoodChest').onclick = handleOpenWoodChest;
+      document.getElementById('btnOpenEnderChest').onclick = handleOpenEnderChest;
+
+      document.getElementById('btnCloseReward').onclick = () => {
+        document.getElementById('rewardModal').classList.remove('active');
+      };
+
+      // Старт фриспинов после окна
+      document.getElementById('btnCloseFsModal').onclick = () => {
+        document.getElementById('fsModal').classList.remove('active');
+        startFreeSpinsSession(awardedFreeSpins);
+      };
+
+      // Забрать куш фриспинов
+      document.getElementById('btnCollectBonus').onclick = () => {
+        document.getElementById('fsEndModal').classList.remove('active');
+        toggleControls(false);
+        const bonusCard = document.getElementById('bonusTotalDisplay');
+        animateCoinsTransfer(bonusSessionWin, bonusCard, () => {
+          bonusSessionWin = 0;
+          document.getElementById('cardBonusWin').style.display = 'none';
+          document.getElementById('cardLines').style.display = 'block';
+          updateFSUI();
+          updateStats();
+          toggleControls(true);
+        });
+      };
+
+      // Клики по сундукам Дракона
+      document.querySelectorAll('.dragon-chest-pick').forEach(chest => {
+        chest.onclick = () => {
+          const idx = parseInt(chest.dataset.index, 10);
+          handleDragonChestPick(idx);
+        };
+      });
+
+      // Забрать куш Дракона
+      document.getElementById('btnCollectDragon').onclick = () => {
+        document.getElementById('dragonModal').classList.remove('active');
+        toggleControls(false);
+        const winBox = document.getElementById('dragonWinBox');
+        animateCoinsTransfer(dragonBonusWon, winBox, () => {
+          dragonBonusWon = 0;
+          updateStats();
+          toggleControls(true);
+        });
+      };
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', startApp);
+    } else {
+      startApp();
+    }
   </script>
 </body>
 </html>
